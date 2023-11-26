@@ -34,7 +34,7 @@ function Cache_table({ tlb_entries, addressPrefix, baseConversion }: cache_table
             <table className='cache-table'>
                 <thead>
                     <tr>
-                        <th>Set</th>
+                        <th></th>
                         {tlb_entries && tlb_entries.length > 0 && tlb_entries[0].map((_, s) => (
                             <React.Fragment key={s}>
                                 <th>Valid</th>
@@ -50,12 +50,15 @@ function Cache_table({ tlb_entries, addressPrefix, baseConversion }: cache_table
 
                         return (
                             <tr key={i}>
-                                <td>{i}</td>
+                                <th>Set {i}</th>
                                 {tlb_entries && tlb_entries.length > 0 && tlb_entries[0].map((_, j) => (
                                     <React.Fragment key={j}>
-                                        <td>{tlb_entries[i][j].valid}</td>
-                                        <td>{addressPrefix + tlb_entries[i][j].tag.toString(2)}</td>
-                                        <td>{addressPrefix + tlb_entries[i][j].block}</td>
+                                        {/* Valid bit input */}
+                                        <td><input maxLength={1}></input></td>
+                                        {/* Tag input */}
+                                        <td><input></input></td>
+                                        {/* Block input */}
+                                        <td><input></input></td>
                                     </React.Fragment >
                                 ))}
                             </tr>
