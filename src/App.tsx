@@ -136,21 +136,24 @@ const ff = createTableEntries<CACHE_TABLE_ENTRY>(4, 1, {
 
 
 function App() {
-  const [addressBitWidth, setAddressBitWidth] = useState(createRandomNumber(10, 14)); 
+  const [addressBitWidth, setAddressBitWidth] = useState(createRandomNumber(10, 14));
   const [address, setAddress] = useState(createRandomNumberWith(addressBitWidth));
 
   const [sets, setSets] = useState(generateIndex());
   const [pageSize, setPageSize] = useState(32); // Make this also a random variable
 
   const [index, setIndex] = useState(Math.log2(sets));
-  const [bOffset, setbOffset] = useState(Math.log2(pageSize));
+  const [offset, setOffset] = useState(Math.log2(pageSize));
 
   const [addressInBits, setAddressInBits] = useState([...address.toString(2)]);
   const deepCopy = JSON.parse(JSON.stringify(addressInBits));
 
-  const [bOffset_bits, setbOffset_bits] = useState(deepCopy.splice(-bOffset).join('')); 
-  const [index_bits, setIndex_bits] = useState(deepCopy.splice(-index).join('')); 
+  const [bOffset_bits, setbOffset_bits] = useState(deepCopy.splice(-offset).join(''));
+  const [index_bits, setIndex_bits] = useState(deepCopy.splice(-index).join(''));
   const [tag_bits, setTag_bits] = useState(deepCopy.join(''));
+  const [tag, setTag] = useState(tag_bits.length);
+
+  const [isMouseDown, setIsMouseDown] = useState(false);
 
   useEffect(() => {
     console.log('------------------------------')
@@ -158,21 +161,98 @@ function App() {
     console.log('addressInBits', addressInBits)
     console.log('pageSize', pageSize)
     console.log('sets', sets)
-    console.log('bOffset', bOffset)
-    console.log('bOffset_bits', bOffset_bits)
+    console.log('offset', offset)
     console.log('index', index)
+    console.log('tag', tag)
+    console.log('bOffset_bits', bOffset_bits)
     console.log('index_bits', index_bits)
     console.log('tag_bits', tag_bits)
   })
 
+  /**
+    * Handles the mouse up event.
+    */
+  function handleMouseUp() {
+    setIsMouseDown(false);
+  };
+
+  /**
+  
+  * Handles the mouse enter event on an element.
+  *
+  * @param {React.MouseEvent} e - The mouse event object.
+  */
+  function handleMouseEnter(e: React.MouseEvent) {
+    if (isMouseDown) {
+      // Apply highlight to the current div
+      const pTagWithIndex = e.currentTarget as HTMLElement;
+      pTagWithIndex.classList.add('highlight');
+
+      // Setting the color the the one selected in the color picker
+      //pTagWithIndex.style.backgroundColor = color;
+    }
+  };
+
+
+
+
+  /**
+ * Inserts the correct answer (facit) into the input field if the user does not know the answer.
+ *
+ * @param {InputField} inputFieldName - The name of the input field to insert the facit into.
+ * @param {React.BaseSyntheticEvent} e - The event object, which contains information about the event.
+ */
+  function insertFacit(inputFieldName: InputField, e: React.BaseSyntheticEvent): void {
+
+  }
+
   return (
     <>
-    <h2>0x{address}</h2>
+      <h2>0x{address}</h2>
+      <p>Bits of virtual address</p>
+      <div className={`list-item-bit-input-wrapper `}>
+        {createNullArr(addressBitWidth).map((_, index) => (
+          <div
+            key={index}
+            className='input-wrapper'
+            onMouseUp={handleMouseUp}
+          >
+            <p
+              id='vbit-index'
+              className="input-text"
+              onMouseDown={handleMouseDown}
+              onMouseEnter={handleMouseEnter}
+
+            >
+              {virtualAddressWidth - index - 1}
+            </p>
+            <input
+              id='vbit'
+              autoComplete='off'
+              autoCorrect='off'
+              autoSave='off'
+              autoFocus={false}
+              autoCapitalize='off'
+              className={`vbit-input ${validateFieldInput(InputFieldsMap.VirtualAddress) ? 'correct' : ''}`}
+              name='VirtualAddress'
+              maxLength={1}
+              onChange={(ev) => handleInputChange(ev, InputFieldsMap.VirtualAddress)}
+            />
+          </div>
+        ))}
+      </div>
+      <button className={'insert-facit-btn'}
+        onClick={(ev) => insertFacit(InputFieldsMap.VirtualAddress, ev)}
+      >
+        Insert facit
+      </button>
+    </div >
+
+
       <Cache_table
         tlb_entries={ff}
         addressPrefix={addressPrefixMap.Hexadecimal}
         baseConversion={baseConversionMap.Hexadecimal}
-
       />
     </>
   )
