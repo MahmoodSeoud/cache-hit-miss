@@ -2,36 +2,43 @@ import React from 'react';
 import { AddressPrefix, BaseConversion, Bit } from '../../App';
 import '../table.css'
 
-export type TLB_TABLE_ENTRY = {
+export type InputFields = {
+    VirtualAddress: string;
+    BOffset: string;
+    Index: string;
+    Tag: string;
+    Valid: string;
+    Hit: Bit;
+    Miss: Bit;
+}
+
+export type CACHE_TABLE_ENTRY = {
     tag: number;
-    ppn: number;
+    block: string;
     valid: Bit;
 };
 
-type Tlb_tableProps = {
-    tlb_entries: Array<TLB_TABLE_ENTRY>[];
+type cache_tableProps = {
+    tlb_entries: Array<CACHE_TABLE_ENTRY>[];
     addressPrefix: AddressPrefix;
     baseConversion: BaseConversion;
-    TLBSets: number;
-    TLBWays: number;
 }
 
 
 
-function Tlb_table({ tlb_entries, addressPrefix, baseConversion, TLBSets, TLBWays }: Tlb_tableProps) {
+function Cache_table({ tlb_entries, addressPrefix, baseConversion }: cache_tableProps) {
     return (
         <div>
-            <h2>TLB</h2>
-            <p>The TLB is {TLBWays}-way set associative with {TLBSets} sets, totaling {TLBWays * TLBSets} entries</p>
-            <table className='table-tlb'>
+            <h2>Cache</h2>
+            <table className='cache-table'>
                 <thead>
                     <tr>
                         <th>Set</th>
-                        {tlb_entries &&tlb_entries.length > 0 &&tlb_entries[0].map((_, s) => (
+                        {tlb_entries && tlb_entries.length > 0 && tlb_entries[0].map((_, s) => (
                             <React.Fragment key={s}>
-                                <th>Tag</th>
-                                <th>PPN</th>
                                 <th>Valid</th>
+                                <th>Tag</th>
+                                <th>Block</th>
                             </React.Fragment >
                         ))}
                     </tr>
@@ -45,9 +52,9 @@ function Tlb_table({ tlb_entries, addressPrefix, baseConversion, TLBSets, TLBWay
                                 <td>{i}</td>
                                 {tlb_entries && tlb_entries.length > 0 && tlb_entries[0].map((_, j) => (
                                     <React.Fragment key={j}>
-                                        <td>{addressPrefix + tlb_entries[i][j].tag.toString(baseConversion).toUpperCase()}</td>
-                                        <td>{addressPrefix + tlb_entries[i][j].ppn.toString(baseConversion).toUpperCase()}</td>
                                         <td>{tlb_entries[i][j].valid}</td>
+                                        <td>{addressPrefix + tlb_entries[i][j].tag.toString(2)}</td>
+                                        <td>{addressPrefix + tlb_entries[i][j].block}</td>
                                     </React.Fragment >
                                 ))}
                             </tr>
@@ -59,4 +66,4 @@ function Tlb_table({ tlb_entries, addressPrefix, baseConversion, TLBSets, TLBWay
         </div>);
 }
 
-export default Tlb_table;
+export default Cache_table;
