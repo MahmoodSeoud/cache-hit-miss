@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import './App.css'
 import Cache_table, { CACHE_TABLE_ENTRY } from './components/Cache_table/Cache_table';
+import './App.css'
+import './components/Cache_table/Cache_table.css'
+
 
 export const InputFieldsMap = {
   VirtualAddress: 'VirtualAddress',
@@ -206,48 +208,57 @@ function App() {
 
   }
 
+  function createNullArr(addressWidth: number): Array<null> {
+    return Array(addressWidth).fill(null);
+  }
+
   return (
     <>
-      <h2>0x{address}</h2>
-      <p>Bits of virtual address</p>
-      <div className={`list-item-bit-input-wrapper `}>
-        {createNullArr(addressBitWidth).map((_, index) => (
-          <div
-            key={index}
-            className='input-wrapper'
-            onMouseUp={handleMouseUp}
-          >
-            <p
-              id='vbit-index'
-              className="input-text"
-              onMouseDown={handleMouseDown}
-              onMouseEnter={handleMouseEnter}
+      <h2>Address: 0x{address}</h2>
+      <div className='virtual-wrapper'>
+        <p>Bits of virtual address</p>
+        <div className={`list-item-wrapper`}>
 
-            >
-              {virtualAddressWidth - index - 1}
-            </p>
-            <input
-              id='vbit'
-              autoComplete='off'
-              autoCorrect='off'
-              autoSave='off'
-              autoFocus={false}
-              autoCapitalize='off'
-              className={`vbit-input ${validateFieldInput(InputFieldsMap.VirtualAddress) ? 'correct' : ''}`}
-              name='VirtualAddress'
-              maxLength={1}
-              onChange={(ev) => handleInputChange(ev, InputFieldsMap.VirtualAddress)}
-            />
+          <div className={`list-item-bit-input-wrapper `}>
+            {createNullArr(addressBitWidth).map((_, index) => (
+              <div
+                key={index}
+                className='input-wrapper'
+                onMouseUp={handleMouseUp}
+              >
+                <p
+                  id='vbit-index'
+                  className="input-text"
+                /*               onMouseDown={handleMouseDown}
+                              onMouseEnter={handleMouseEnter} */
+
+                >
+                  {addressBitWidth - index - 1}
+                </p>
+                <input
+                  id='vbit'
+                  autoComplete='off'
+                  autoCorrect='off'
+                  autoSave='off'
+                  autoFocus={false}
+                  autoCapitalize='off'
+                  /*               className={`vbit-input ${validateFieldInput(InputFieldsMap.VirtualAddress) ? 'correct' : ''}`} */
+                  className='vbit-input'
+                  name='VirtualAddress'
+                  maxLength={1}
+                /*               onChange={(ev) => handleInputChange(ev, InputFieldsMap.VirtualAddress)} */
+                />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <button className={'insert-facit-btn'}
-        onClick={(ev) => insertFacit(InputFieldsMap.VirtualAddress, ev)}
-      >
-        Insert facit
-      </button>
-    </div >
+          <button className={'insert-facit-btn'}
+          /*             onClick={(ev) => insertFacit(InputFieldsMap.VirtualAddress, ev)} */
+          >
+            Insert facit
+          </button>
+        </div>
 
+      </div>
 
       <Cache_table
         tlb_entries={ff}
