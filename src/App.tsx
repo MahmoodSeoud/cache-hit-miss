@@ -90,10 +90,13 @@ function generateIndex(): number {
 
 
 function createTableEntry<TObj extends CACHE_TABLE_ENTRY>(entry: TObj, tag_bits: string, randomBitLength: number): TObj {
-  const valid: Bit = Math.floor(Math.random() * 2) as Bit;
+  //const valid: Bit = Math.floor(Math.random() * 2) as Bit;
+
+  const valid: Bit = 0;
+
   // create unique TLBT address
   const tag: number = createUniqe(Number('0b' + tag_bits), randomBitLength)
-  const block: number = createUniqe(Number('0b' + tag_bits), randomBitLength)// TODO: This should be looked at again
+  const block: string = "Mem[X-X]" // TODO: Find the correct block
 
   let newEntry: TObj;
 
@@ -151,11 +154,11 @@ function App() {
   const [isMouseDown, setIsMouseDown] = useState(false);
 
 
-const cache_table = createTableEntries<CACHE_TABLE_ENTRY>(sets, {
-  tag: 0,
-  valid: 0,
-  block: 'FERO'
-}, '0b', 4);
+  const cache_table = createTableEntries<CACHE_TABLE_ENTRY>(sets, {
+    tag: 0,
+    valid: 0,
+    block: 'FERO'
+  }, '0b', 4);
 
   useEffect(() => {
     console.log('------------------------------')
