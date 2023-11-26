@@ -89,17 +89,17 @@ function generateIndex(): number {
 }
 
 
-function createTableEntry<TObj extends CACHE_TABLE_ENTRY>(entry: TObj, TLBT_bits: string, VPN: string, randomBitLength: number): TObj {
+function createTableEntry<TObj extends CACHE_TABLE_ENTRY>(entry: TObj, tag_bits: string, randomBitLength: number): TObj {
   const valid: Bit = Math.floor(Math.random() * 2) as Bit;
   // create unique TLBT address
-  const tag: number = createUniqe(Number('0b' + TLBT_bits), randomBitLength)
-  const block: number = createUniqe(Number('0b' + TLBT_bits), randomBitLength)
+  const tag: number = createUniqe(Number('0b' + tag_bits), randomBitLength)
+  const block: number = createUniqe(Number('0b' + tag_bits), randomBitLength)// TODO: This should be looked at again
 
   let newEntry: TObj;
-  const vpn: number = createUniqe(Number(VPN), randomBitLength)
+
   newEntry = {
     ...entry,
-    vpn,
+    tag,
     block,
     valid
   };
@@ -109,18 +109,18 @@ function createTableEntry<TObj extends CACHE_TABLE_ENTRY>(entry: TObj, TLBT_bits
 
 function createTableEntries<TObj extends CACHE_TABLE_ENTRY>
   (numOfRows: number,
-    numOfCols: number,
     tableEntry: TObj,
-    TLBT_bits: string,
-    VPN: string,
+    tag_bits: string,
     randomBitLength: number
   ): TObj[][] {
+
+  const numOfCols = 1;
   const entries: TObj[][] = [];
 
   for (let i = 0; i < numOfRows; i++) {
     const array: TObj[] = [];
     for (let j = 0; j < numOfCols; j++) {
-      let entry = createTableEntry<TObj>(tableEntry, TLBT_bits, VPN, randomBitLength)
+      let entry = createTableEntry<TObj>(tableEntry, tag_bits, randomBitLength)
       array.push(entry);
     }
     entries.push(array);
@@ -128,13 +128,6 @@ function createTableEntries<TObj extends CACHE_TABLE_ENTRY>
   return entries;
 }
 
-
-
-const ff = createTableEntries<CACHE_TABLE_ENTRY>(4, 1, {
-  tag: 0,
-  valid: 0,
-  block: 'FERO'
-}, '0b', '0b', 4);
 
 
 function App() {
@@ -156,6 +149,13 @@ function App() {
   const [tag, setTag] = useState(tag_bits.length);
 
   const [isMouseDown, setIsMouseDown] = useState(false);
+
+
+const cache_table = createTableEntries<CACHE_TABLE_ENTRY>(sets, {
+  tag: 0,
+  valid: 0,
+  block: 'FERO'
+}, '0b', 4);
 
   useEffect(() => {
     console.log('------------------------------')
@@ -261,7 +261,7 @@ function App() {
       </div>
 
       <Cache_table
-        tlb_entries={ff}
+        cache_entries={cache_table}
         addressPrefix={addressPrefixMap.Hexadecimal}
         baseConversion={baseConversionMap.Hexadecimal}
       />
