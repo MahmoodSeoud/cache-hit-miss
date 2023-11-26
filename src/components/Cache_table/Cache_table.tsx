@@ -54,15 +54,24 @@ function Cache_table({ cache_entries, addressPrefix, baseConversion }: cache_tab
                                 {cache_entries && cache_entries.length > 0 && cache_entries[0].map((_, j) => (
                                     <React.Fragment key={j}>
                                         {/* Valid bit input */}
-                                        <td><input
-                                            maxLength={1}
-                                            defaultValue={0}
-
-                                        ></input></td>
+                                        <td>
+                                            <input
+                                                maxLength={1}
+                                                defaultValue={cache_entries[i][j].valid.toString()}
+                                            />
+                                        </td>
                                         {/* Tag input */}
-                                        <td><input></input></td>
+                                        <td>
+                                            <input
+                                                defaultValue={cache_entries[i][j].tag.toString(2)}
+                                            />
+                                        </td>
                                         {/* Block input */}
-                                        <td><input></input></td>
+                                        <td>
+                                            <input
+                                                defaultValue={cache_entries[i][j].block}
+                                            />
+                                        </td>
                                     </React.Fragment >
                                 ))}
                             </tr>
