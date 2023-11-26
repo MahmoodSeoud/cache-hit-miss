@@ -26,6 +26,7 @@ type cache_tableProps = {
 
 
 
+
 function Cache_table({ tlb_entries, addressPrefix, baseConversion }: cache_tableProps) {
     return (
         <div>

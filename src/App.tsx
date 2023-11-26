@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import Cache_table, { CACHE_TABLE_ENTRY } from './components/Cache_table/Cache_table';
 
@@ -45,6 +45,7 @@ export type Bit = typeof bitMap[keyof typeof bitMap];
  * @param {number} bitLength - The bit length of the number to generate.
  * @returns {number} - A random number within the range [2^(bitLength-1), 2^bitLength).
  */
+
 export function createRandomNumberWith(bitLength: number): number {
   return createRandomNumber(2 ** (bitLength - 1), 2 ** bitLength)
 }
@@ -81,7 +82,7 @@ function createUniqe(fromNum: number, size: number): number {
  *
  * @returns {number} - A random number of TLB sets, which is a power of 2.
  */
-function generateTLBSets(): number {
+function generateIndex(): number {
   return 2 ** createRandomNumber(2, 4);
 }
 
@@ -133,11 +134,40 @@ const ff = createTableEntries<CACHE_TABLE_ENTRY>(4, 1, {
   block: 'FERO'
 }, '0b', '0b', 4);
 
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [addressBitWidth, setAddressBitWidth] = useState(createRandomNumber(10, 14)); 
+  const [address, setAddress] = useState(createRandomNumberWith(addressBitWidth));
+
+  const [sets, setSets] = useState(generateIndex());
+  const [pageSize, setPageSize] = useState(32); // Make this also a random variable
+
+  const [index, setIndex] = useState(Math.log2(sets));
+  const [bOffset, setbOffset] = useState(Math.log2(pageSize));
+
+  const [addressInBits, setAddressInBits] = useState([...address.toString(2)]);
+  const deepCopy = JSON.parse(JSON.stringify(addressInBits));
+
+  const [bOffset_bits, setbOffset_bits] = useState(deepCopy.splice(-bOffset).join('')); 
+  const [index_bits, setIndex_bits] = useState(deepCopy.splice(-index).join('')); 
+  const [tag_bits, setTag_bits] = useState(deepCopy.join(''));
+
+  useEffect(() => {
+    console.log('------------------------------')
+    console.log('address', address)
+    console.log('addressInBits', addressInBits)
+    console.log('pageSize', pageSize)
+    console.log('sets', sets)
+    console.log('bOffset', bOffset)
+    console.log('bOffset_bits', bOffset_bits)
+    console.log('index', index)
+    console.log('index_bits', index_bits)
+    console.log('tag_bits', tag_bits)
+  })
 
   return (
     <>
+    <h2>0x{address}</h2>
       <Cache_table
         tlb_entries={ff}
         addressPrefix={addressPrefixMap.Hexadecimal}
