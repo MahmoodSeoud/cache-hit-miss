@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react'
-import Cache_table, { CACHE_TABLE_ENTRY } from './components/Cache_table/Cache_table';
+import Cache_table, { CACHE_TABLE_ENTRY, InputFields } from './components/Cache_table/Cache_table';
 import './App.css'
 import './components/Cache_table/Cache_table.css'
 
 
 export const InputFieldsMap = {
   VirtualAddress: 'VirtualAddress',
-  BOffset: 'BOffset',
+  Offset: 'Offset',
   Index: 'Index',
   Tag: 'Tag',
   Valid: 'Valid',
   Hit: 'Hit',
-  Miss: 'Miss'
 } as const;
 
 const baseConversionMap = {
@@ -35,10 +34,7 @@ const bitMap = {
 export type BaseConversion = typeof baseConversionMap[keyof typeof baseConversionMap];
 export type AddressPrefix = typeof addressPrefixMap[keyof typeof addressPrefixMap];
 export type InputField = typeof InputFieldsMap[keyof typeof InputFieldsMap];
-export type Result = Pick<typeof InputFieldsMap, 'Miss' |
-  'Hit'>[keyof Pick<typeof InputFieldsMap, 'Miss' |
-    'Hit'>];
-
+export type Result = Pick<typeof InputFieldsMap, 'Hit'>[keyof Pick<typeof InputFieldsMap, 'Hit'>];
 export type Bit = typeof bitMap[keyof typeof bitMap];
 
 /**
@@ -59,27 +55,6 @@ export function createRandomNumber(a: number, b: number): number {
 
 
 /**
- * Generates a unique number that is not equal to the provided number.
- *
- * @param {number} fromNum - The number that the generated number should not be equal to.
- * @param {number} size - The bit length of the number to generate.
- * @returns {number} - A unique number that is not equal to fromNum.
- */
-function createUniqe(fromNum: number, size: number): number {
-  // A random address is able to be created to be the actual tag of the virtual
-  // address, We have to check for that.
-  let unique = createRandomNumber(0, createRandomNumberWith(size))
-  // Check if the tag already exists in the TLB table
-  while (unique === fromNum) {
-
-    unique = createRandomNumber(0, createRandomNumberWith(size))
-  }
-
-  return unique;
-}
-
-
-/**
  * Generates a random number of TLB sets.
  *
  * @returns {number} - A random number of TLB sets, which is a power of 2.
@@ -92,18 +67,14 @@ function generateIndex(): number {
 function createTableEntry<TObj extends CACHE_TABLE_ENTRY>(entry: TObj, address: number, tag_bits: string): TObj {
   const valid: Bit = 0;
 
-  // create unique TLBT address
-  const tag: number = Number('0b' + tag_bits)
-  
-  const block: string = `Mem[${address}-${address+7}]` // TODO: Find the correct block
 
   let newEntry: TObj;
 
   newEntry = {
     ...entry,
-    tag,
-    block,
-    valid
+    valid,
+    tag: null,
+    block: null
   };
 
   return newEntry;
@@ -145,20 +116,45 @@ function App() {
   const [addressInBits, setAddressInBits] = useState([...address.toString(2)]);
   const deepCopy = JSON.parse(JSON.stringify(addressInBits));
 
-  const [bOffset_bits, setbOffset_bits] = useState(addressInBits.splice(-offset).join(''));
-  const [index_bits, setIndex_bits] = useState(addressInBits.splice(-index).join(''));
-  const [tag_bits, setTag_bits] = useState(addressInBits.join(''));
+  const [offSet_bits, setOffset_bits] = useState(deepCopy.splice(-offset).join(''));
+  const [index_bits, setIndex_bits] = useState(deepCopy.splice(-index).join(''));
+  const [tag_bits, setTag_bits] = useState(deepCopy.join(''));
   const [tag, setTag] = useState<number>(tag_bits.length);
 
   const [isMouseDown, setIsMouseDown] = useState(false);
 
 
-  const cache_table = createTableEntries<CACHE_TABLE_ENTRY>(sets, {
-    tag: 0,
-    valid: 0,
-    block: 'FERO'
-  },
-    address, tag_bits);
+  // TODO: maybe look int making these to state variables
+  const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(createTableEntries<CACHE_TABLE_ENTRY>(sets, { tag: 0, block: '', valid: 0 }, address, tag_bits));
+  const [facitEntries, setFacitEntries] = useState<CACHE_TABLE_ENTRY[][]>(JSON.parse(JSON.stringify(cacheEntries)));
+
+
+  useEffect(() => {
+
+    setCacheEntries(createTableEntries<CACHE_TABLE_ENTRY>(sets, { tag: 0, block: '', valid: 0 }, address, tag_bits));
+    setFacitEntries(JSON.parse(JSON.stringify(cacheEntries)));
+    // Caculate the facit
+    const tag: number = Number('0b' + tag_bits)
+    const block: string = `Mem[${address}-${address + 7}]`
+
+    const cache_hit = facitEntries[index][0].valid === 1;
+
+    if (!cache_hit) {
+      const facitEntriesCopy = JSON.parse(JSON.stringify(facitEntries));
+      facitEntriesCopy[index][0].valid = 1;
+      facitEntriesCopy[index][0].tag = tag;
+      facitEntriesCopy[index][0].block = block;
+
+      setFacitEntries(facitEntriesCopy)
+
+    } else {
+      console.log('Cache hit!')
+    }
+
+  }, [address])
+
+
+
 
   useEffect(() => {
     console.log('------------------------------')
@@ -169,10 +165,12 @@ function App() {
     console.log('offset', offset)
     console.log('index', index)
     console.log('tag', tag)
-    console.log('bOffset_bits', bOffset_bits)
+    console.log('offSet_bits', offSet_bits)
     console.log('index_bits', index_bits)
     console.log('tag_bits', tag_bits)
   })
+
+
 
   /**
     * Handles the mouse up event.
@@ -215,9 +213,13 @@ function App() {
     return Array(addressWidth).fill(null);
   }
 
+
+
+
+
   return (
     <>
-      <h2>Address: 0x{address}</h2>
+      <h2>Address: 0x{address.toString(16).toUpperCase()}</h2>
       <div className='virtual-wrapper'>
         <p>Bits of virtual address</p>
         <div className={`list-item-wrapper`}>
@@ -264,10 +266,13 @@ function App() {
       </div>
 
       <Cache_table
-        cache_entries={cache_table}
+        cacheEntries={cacheEntries}
+        setCacheEntries={setCacheEntries}
+        facit={facitEntries}
         addressPrefix={addressPrefixMap.Hexadecimal}
         baseConversion={baseConversionMap.Hexadecimal}
       />
+
     </>
   )
 }
