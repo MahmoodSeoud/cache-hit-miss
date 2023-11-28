@@ -18,9 +18,9 @@ export type CACHE_TABLE_ENTRY = {
 };
 
 type cache_tableProps = {
-    cacheEntries: CACHE_TABLE_ENTRY[][];
-    setCacheEntries: React.Dispatch<React.SetStateAction<CACHE_TABLE_ENTRY[][]>>;
-    facit: CACHE_TABLE_ENTRY[][];
+    cacheEntries: CACHE_TABLE_ENTRY[];
+    setCacheEntries: React.Dispatch<React.SetStateAction<CACHE_TABLE_ENTRY[]>>;
+    facit: CACHE_TABLE_ENTRY[];
     addressPrefix: AddressPrefix;
     baseConversion: BaseConversion;
 }
@@ -57,60 +57,76 @@ function Cache_table({ cacheEntries, setCacheEntries, facit, addressPrefix, base
     });
 
     function checkInput(): boolean {
-
-        return cacheEntries.every((set, i) => {
-            return set.every((entry, j) => {
-                const facitEntry = facit[i][j];
-                return entry.tag === facitEntry.tag &&
-                    entry.block === facitEntry.block &&
-                    entry.valid === facitEntry.valid;
-            });
-        });
+        return true
     }
 
-    let emptyInput: InputFields = {
-        VirtualAddress: '',
-        Offset: '',
-        Index: '',
-        Tag: '',
-        Valid: 0,
-        Hit: 0
-    }
+    useEffect(() => {
+        console.log('inputFields', inputFields);
+        console.log('cacheEntries', cacheEntries);
+    });
 
 
-
-
-    function handleInputChange(event: React.ChangeEvent<HTMLInputElement>, fieldName: InputField): void {
+    function handleInputChange(event: React.ChangeEvent<HTMLInputElement>, fieldName: InputField, cacheEntryIndex?: number,): void {
         const regexBits = /^[01]*$/; // regular expression to match only 1's and 0's
-        const regexYN = /^[YNyn]*$/; // regular expression to match only Y AND N
-        const regexHexChars = /^[0-9a-fA-F]*$/; // regular expression to match only hex characters
         const input = event.target.value;
 
         switch (fieldName) {
             case InputFieldsMap.VirtualAddress:
+                /*                 if (!regexBits.test(input)) {
+                                    event.target.value = '';
+                                    return;
+                                }
+                                setInputFields((prevState: InputFields) => ({ ...prevState, [fieldName]: getElementValuesFrom("vbit-input") }));
+                                
+                                //setCacheEntries((prevState: InputFields) => ({ ...prevState, [fieldName]: getElementValuesFrom("vbit-input") }));
+                                */
+                break;
+
+            case InputFieldsMap.Offset:
+                setCacheEntries((prevState: CACHE_TABLE_ENTRY[]) => {
+                    const newState = [...prevState];
+                    if (cacheEntryIndex) {
+                        newState[cacheEntryIndex].block = input;
+                    }
+                    return newState;
+                });
+                break;
+
+
+            case InputFieldsMap.Valid:
                 if (!regexBits.test(input)) {
                     event.target.value = '';
                     return;
                 }
-                setInputFields((prevState: InputFields) => ({ ...prevState, [fieldName]: getElementValuesFrom("vbit-input") }));
-                //setCacheEntries((prevState: InputFields) => ({ ...prevState, [fieldName]: getElementValuesFrom("vbit-input") }));
+
+                const validBit: Bit = input === '1' ? 1 : 0;
+
+                setCacheEntries((prevState: CACHE_TABLE_ENTRY[]) => {
+                    const newState = [...prevState];
+                    if (cacheEntryIndex) {
+                        newState[cacheEntryIndex].valid = validBit;
+                    }
+                    return newState;
+                });
+
                 break;
 
-            case InputFieldsMap.Offset:
             case InputFieldsMap.Tag:
-                if (!regexHexChars.test(input)) {
+                if (!regexBits.test(input)) {
                     event.target.value = '';
                     return;
                 }
-                //setCacheEntries((prevState: InputFields) => ({ ...prevState, [fieldName]: input.toLowerCase() }));
+                setCacheEntries((prevState: CACHE_TABLE_ENTRY[]) => {
+                    const newState = [...prevState];
+                    if (cacheEntryIndex) {
+                        newState[cacheEntryIndex].tag = Number(input); // Convert input to a number
+                    }
+                    return newState;
+                });
                 break;
 
             case InputFieldsMap.Hit:
-                if (!regexYN.test(input)) {
-                    event.target.value = '';
-                    return;
-                }
-                //setCacheEntries((prevState: InputFields) => ({ ...prevState, [fieldName]: input.toUpperCase() }));
+                setInputFields((prevState: InputFields) => ({ ...prevState, [fieldName]: event.target.checked ? 1 : 0 }));
                 break;
 
             default:
@@ -124,13 +140,22 @@ function Cache_table({ cacheEntries, setCacheEntries, facit, addressPrefix, base
 
     return (
         <div>
+            <td>
+                <div>
+                    Cache hit?
+                    {/* Cache hit */}
+                    <input
+                        type='checkbox'
+                        onChange={(ev) => handleInputChange(ev, InputFieldsMap.Hit)}
+                    />
+                </div>
+            </td>
             <h2>Cache</h2>
             <table className='cache-table'>
                 <thead>
                     <tr>
                         <th></th>
                         <>
-                            <th>Cache hit?</th>
                             <th>Valid</th>
                             <th>Tag</th>
                             <th>Block</th>
@@ -139,39 +164,30 @@ function Cache_table({ cacheEntries, setCacheEntries, facit, addressPrefix, base
                 </thead>
                 <tbody>
 
-                    {cacheEntries && cacheEntries.map((_, i) => {
-
-
+                    {cacheEntries && cacheEntries.length > 0 && cacheEntries.map((_, i) => {
 
                         return (
                             <tr key={i}>
                                 <th>Set {i}</th>
                                 <>
-                                    <td>
-                                        {/* Cache hit */}
-                                        <input
-                                            type='checkbox'
-                                            onChange={(ev) => handleInputChange(ev, InputFieldsMap.Hit)}
-                                        />
-                                    </td>
                                     {/* Valid bit input */}
                                     <td>
                                         <input
                                             maxLength={1}
                                             defaultValue={0}
-                                            onChange={(ev) => handleInputChange(ev, InputFieldsMap.Valid)}
+                                            onChange={(ev) => handleInputChange(ev, InputFieldsMap.Valid, i)}
                                         />
                                     </td>
                                     {/* Tag input */}
                                     <td>
                                         <input
-                                            onChange={(ev) => handleInputChange(ev, InputFieldsMap.Tag)}
+                                            onChange={(ev) => handleInputChange(ev, InputFieldsMap.Tag, i)}
                                         />
                                     </td>
                                     {/* Offset input */}
                                     <td>
                                         <input
-                                            onChange={(ev) => handleInputChange(ev, InputFieldsMap.Offset)}
+                                            onChange={(ev) => handleInputChange(ev, InputFieldsMap.Offset, i)}
                                         />
                                     </td>
                                 </>

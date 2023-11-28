@@ -80,23 +80,18 @@ function createTableEntry<TObj extends CACHE_TABLE_ENTRY>(entry: TObj, address: 
   return newEntry;
 }
 
-function createTableEntries<TObj extends CACHE_TABLE_ENTRY>
+function createTableEntries
   (numOfRows: number,
-    tableEntry: TObj,
+    tableEntry: CACHE_TABLE_ENTRY,
     address: number,
     tag_bits: string
-  ): TObj[][] {
+  ):CACHE_TABLE_ENTRY[] {
 
-  const numOfCols = 1;
-  const entries: TObj[][] = [];
+  const entries: CACHE_TABLE_ENTRY[] = [];
 
   for (let i = 0; i < numOfRows; i++) {
-    const array: TObj[] = [];
-    for (let j = 0; j < numOfCols; j++) {
-      let entry = createTableEntry<TObj>(tableEntry, address, tag_bits)
-      array.push(entry);
-    }
-    entries.push(array);
+    let entry = createTableEntry(tableEntry, address, tag_bits)
+    entries.push(entry);
   }
   return entries;
 }
@@ -125,26 +120,26 @@ function App() {
 
 
   // TODO: maybe look int making these to state variables
-  const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(createTableEntries<CACHE_TABLE_ENTRY>(sets, { tag: 0, block: '', valid: 0 }, address, tag_bits));
-  const [facitEntries, setFacitEntries] = useState<CACHE_TABLE_ENTRY[][]>(JSON.parse(JSON.stringify(cacheEntries)));
+  const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[]>(createTableEntries(sets, { tag: 0, block: '', valid: 0 }, address, tag_bits));
+  const [facitEntries, setFacitEntries] = useState<CACHE_TABLE_ENTRY[]>(JSON.parse(JSON.stringify(cacheEntries)));
 
 
   useEffect(() => {
 
-    setCacheEntries(createTableEntries<CACHE_TABLE_ENTRY>(sets, { tag: 0, block: '', valid: 0 }, address, tag_bits));
+    setCacheEntries(createTableEntries(sets, { tag: 0, block: '', valid: 0 }, address, tag_bits));
     setFacitEntries(JSON.parse(JSON.stringify(cacheEntries)));
     // Caculate the facit
     const tag: number = Number('0b' + tag_bits)
     const block: string = `Mem[${address}-${address + 7}]`
 
-    const cache_hit = facitEntries[index][0].valid === 1;
+    const cache_hit = facitEntries[index].valid === 1;
 
     if (!cache_hit) {
       const facitEntriesCopy = JSON.parse(JSON.stringify(facitEntries));
-      facitEntriesCopy[index][0].valid = 1;
-      facitEntriesCopy[index][0].tag = tag;
-      facitEntriesCopy[index][0].block = block;
-
+      facitEntriesCopy[index].valid = 1;
+      facitEntriesCopy[index].tag = tag;
+      facitEntriesCopy[index].block = block;
+      
       setFacitEntries(facitEntriesCopy)
 
     } else {
