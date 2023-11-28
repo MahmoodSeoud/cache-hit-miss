@@ -89,14 +89,13 @@ function generateIndex(): number {
 }
 
 
-function createTableEntry<TObj extends CACHE_TABLE_ENTRY>(entry: TObj, tag_bits: string, randomBitLength: number): TObj {
-  //const valid: Bit = Math.floor(Math.random() * 2) as Bit;
-
+function createTableEntry<TObj extends CACHE_TABLE_ENTRY>(entry: TObj, address: number, tag_bits: string): TObj {
   const valid: Bit = 0;
 
   // create unique TLBT address
-  const tag: number = createUniqe(Number('0b' + tag_bits), randomBitLength)
-  const block: string = "Mem[X-X]" // TODO: Find the correct block
+  const tag: number = Number('0b' + tag_bits)
+  
+  const block: string = `Mem[${address}-${address+7}]` // TODO: Find the correct block
 
   let newEntry: TObj;
 
@@ -113,8 +112,8 @@ function createTableEntry<TObj extends CACHE_TABLE_ENTRY>(entry: TObj, tag_bits:
 function createTableEntries<TObj extends CACHE_TABLE_ENTRY>
   (numOfRows: number,
     tableEntry: TObj,
-    tag_bits: string,
-    randomBitLength: number
+    address: number,
+    tag_bits: string
   ): TObj[][] {
 
   const numOfCols = 1;
@@ -123,7 +122,7 @@ function createTableEntries<TObj extends CACHE_TABLE_ENTRY>
   for (let i = 0; i < numOfRows; i++) {
     const array: TObj[] = [];
     for (let j = 0; j < numOfCols; j++) {
-      let entry = createTableEntry<TObj>(tableEntry, tag_bits, randomBitLength)
+      let entry = createTableEntry<TObj>(tableEntry, address, tag_bits)
       array.push(entry);
     }
     entries.push(array);
@@ -135,7 +134,7 @@ function createTableEntries<TObj extends CACHE_TABLE_ENTRY>
 
 function App() {
   const [addressBitWidth, setAddressBitWidth] = useState(createRandomNumber(10, 14));
-  const [address, setAddress] = useState(createRandomNumberWith(addressBitWidth));
+  const [address, setAddress] = useState<number>(createRandomNumberWith(addressBitWidth));
 
   const [sets, setSets] = useState(generateIndex());
   const [pageSize, setPageSize] = useState(32); // Make this also a random variable
@@ -146,10 +145,10 @@ function App() {
   const [addressInBits, setAddressInBits] = useState([...address.toString(2)]);
   const deepCopy = JSON.parse(JSON.stringify(addressInBits));
 
-  const [bOffset_bits, setbOffset_bits] = useState(deepCopy.splice(-offset).join(''));
-  const [index_bits, setIndex_bits] = useState(deepCopy.splice(-index).join(''));
-  const [tag_bits, setTag_bits] = useState(deepCopy.join(''));
-  const [tag, setTag] = useState(tag_bits.length);
+  const [bOffset_bits, setbOffset_bits] = useState(addressInBits.splice(-offset).join(''));
+  const [index_bits, setIndex_bits] = useState(addressInBits.splice(-index).join(''));
+  const [tag_bits, setTag_bits] = useState(addressInBits.join(''));
+  const [tag, setTag] = useState<number>(tag_bits.length);
 
   const [isMouseDown, setIsMouseDown] = useState(false);
 
@@ -158,7 +157,8 @@ function App() {
     tag: 0,
     valid: 0,
     block: 'FERO'
-  }, '0b', 4);
+  },
+    address, tag_bits);
 
   useEffect(() => {
     console.log('------------------------------')
