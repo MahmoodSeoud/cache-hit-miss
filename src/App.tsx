@@ -208,18 +208,29 @@ function App() {
     return entry;
   }
 
+  function calculateindexBits(entryIndex: number) {
+    if (entryIndex.toString(2).length === indexAllocBits) {
+      return entryIndex.toString(2);
+    } else {
+      return entryIndex.toString(2).padStart(indexAllocBits, '0');
+    }
+  }
+
   function newAssignment(assigmentType: string) {
     let tag_bits_copy = "";
     if (assigmentType === 'hit') {
       const entry: CACHE_TABLE_ENTRY = findRandomValidEntry(cacheEntries);
       const entryIndex = cacheEntries.flat().findIndex((x) => deepEqual(x, entry))
-      const randomEntryBits: string = entry.tag.toString(2) + entryIndex.toString(2) + createRandomNumberWith(2).toString(2)
+
+      const randomEntryBits: string = entry.tag.toString(2) +
+        calculateindexBits(entryIndex) +
+        createRandomNumberWith(offsetAllocBits).toString(2);
+
+      createRandomNumberWith(entryIndex);
       const NewAddress = Number("0b" + randomEntryBits)
       const NewaddressInBits = [...NewAddress.toString(2)];
 
       // TODO: Set these to the correct ones
-      setIndexAllocBits(createRandomNumber(2, 4));
-      setOffset_bits(NewaddressInBits.splice(-offsetAllocBits).join(''));
 
       setAddress(NewAddress);
       setAddressInBits(NewaddressInBits);
