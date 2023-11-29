@@ -40,6 +40,48 @@ export type Result = Pick<typeof InputFieldsMap, 'Hit'>[keyof Pick<typeof InputF
 export type Bit = typeof bitMap[keyof typeof bitMap];
 
 /**
+ * Performs a deep comparison between two values to determine if they are equivalent.
+ *
+ * @param {any} object1 - The first value to compare.
+ * @param {any} object2 - The second value to compare.
+ * @returns {boolean} - Returns true if the values are equivalent, false otherwise.
+ */
+// TODO: FIx all the any types
+function deepEqual(object1: any, object2: any): boolean {
+  const keys1 = Object.keys(object1);
+  const keys2 = Object.keys(object2);
+
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  for (const key of keys1) {
+    const val1: any = object1[key];
+    const val2: any = object2[key];
+    const areObjects = isObject(val1) && isObject(val2);
+    if (
+      areObjects && !deepEqual(val1, val2) ||
+      !areObjects && val1 !== val2
+    ) {
+      return false;
+    }
+  }
+
+
+  return true;
+}
+
+/**
+* Checks if a value is an object.
+*
+* @param {InputFields} object - The value to check.
+* @returns {boolean} - Returns true if the value is an object, false otherwise.
+*/
+function isObject(object: InputFields): boolean {
+  return object != null && typeof object === 'object';
+}
+
+/**
  * Generates a random number within a range determined by the bit length.
  *
  * @param {number} bitLength - The bit length of the number to generate.
@@ -138,12 +180,14 @@ function App() {
 
 
   // TODO: maybe look int making these to state variables
-  const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, address, tag_bits));
+  const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, address, tag_bits)
+  const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(coldCache);
 
 
 
   useEffect(() => {
     console.log('------------------------------')
+    console.log("coldCache", coldCache);
     console.log('address', address)
     console.log('addressInBits', addressInBits)
     console.log('numSets', numSets)
@@ -157,30 +201,63 @@ function App() {
     console.log("lineIndex", lineIndex)
   })
 
-  function newAssignment() {
-    const NewAddress = createRandomNumberWith(addressBitWidth);
-    const NewaddressInBits = [...NewAddress.toString(2)];
-    const deepCopy = JSON.parse(JSON.stringify(NewaddressInBits));
-    setOffset_bits(deepCopy.splice(-offsetAllocBits).join(''));
-    setIndex_bits(deepCopy.splice(-indexAllocBits).join(''));
-    setTag_bits(deepCopy.join(''));
+  function findRandomValidEntry(cacheEntries: CACHE_TABLE_ENTRY[][]): CACHE_TABLE_ENTRY {
+    const entries = cacheEntries.flat().filter(entry => entry.valid === 1 && entry.block !== 'meme');
 
-    setAddress(NewAddress);
-    setAddressInBits(NewaddressInBits);
+    const entry = entries[Math.floor(Math.random() * entries.length)]
+    return entry;
+  }
+
+  function newAssignment(assigmentType: string) {
+    if (assigmentType === 'hit') {
+      const entry: CACHE_TABLE_ENTRY = findRandomValidEntry(cacheEntries);
+      const entryIndex = cacheEntries.flat().findIndex((x) => deepEqual(x, entry))
+      const randomEntryBits : string = entry.tag.toString(2) + entryIndex.toString(2) + createRandomNumberWith(2).toString(2)
+      const NewAddress = Number("0b" + randomEntryBits)
+      const NewaddressInBits = [...NewAddress.toString(2)];
+
+      setAddress(NewAddress);
+      setAddressInBits(NewaddressInBits);
+
+    } else {
+
+      const NewAddress = createRandomNumberWith(addressBitWidth);
+      const NewaddressInBits = [...NewAddress.toString(2)];
+      const deepCopy = JSON.parse(JSON.stringify(NewaddressInBits));
+      setOffset_bits(deepCopy.splice(-offsetAllocBits).join(''));
+      setIndex_bits(deepCopy.splice(-indexAllocBits).join(''));
+      setTag_bits(deepCopy.join(''));
+
+      setAddress(NewAddress);
+      setAddressInBits(NewaddressInBits);
+    }
   }
 
   function generateNewCache() {
 
   }
 
-  function isCacheHit(): boolean {
+  function isCacheEmpty(): boolean {
+    return deepEqual(cacheEntries, coldCache)
+  }
 
+  function isCacheHit(): boolean {
     if (cacheEntries[parseInt(index_bits, 2)][lineIndex].valid === 1 &&
       cacheEntries[parseInt(index_bits, 2)][lineIndex].tag === parseInt(tag_bits, 2)) {
       return true
     }
     return false
 
+  }
+
+  // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
+  function randomAssignment(probability: number) {
+    if (!isCacheEmpty() && Math.random() <= probability / 100) {
+      console.log("!!!!!! MAKING A HIT!!!!!!!")
+      newAssignment('hit')
+    } else {
+      newAssignment('miss')
+    }
   }
 
   function handleCacheButtonClick(isHit: boolean) {
@@ -190,8 +267,8 @@ function App() {
     if (isHit) {
       if (wasAHit) {
         console.log('correct, it was a hit');
-        newAssignment()
-        // Make a new address and add to log
+        randomAssignment(20);
+        // TODO: add to log
       } else {
         console.log('Incorrect, it was not a hit');
       }
@@ -200,8 +277,8 @@ function App() {
         console.log('correct, it was a miss');
         const cache = createFacitCache();
         setCacheEntries(cache);
-        newAssignment()
-        // Add new address and add to log
+        randomAssignment(20);
+        // TODO: add to log
       } else {
         console.log('Incorrect, it was not a miss');
       }
