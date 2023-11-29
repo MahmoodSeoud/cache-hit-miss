@@ -209,15 +209,21 @@ function App() {
   }
 
   function newAssignment(assigmentType: string) {
+    let tag_bits_copy = "";
     if (assigmentType === 'hit') {
       const entry: CACHE_TABLE_ENTRY = findRandomValidEntry(cacheEntries);
       const entryIndex = cacheEntries.flat().findIndex((x) => deepEqual(x, entry))
-      const randomEntryBits : string = entry.tag.toString(2) + entryIndex.toString(2) + createRandomNumberWith(2).toString(2)
+      const randomEntryBits: string = entry.tag.toString(2) + entryIndex.toString(2) + createRandomNumberWith(2).toString(2)
       const NewAddress = Number("0b" + randomEntryBits)
       const NewaddressInBits = [...NewAddress.toString(2)];
 
+      // TODO: Set these to the correct ones
+      setIndexAllocBits(createRandomNumber(2, 4));
+      setOffset_bits(NewaddressInBits.splice(-offsetAllocBits).join(''));
+
       setAddress(NewAddress);
       setAddressInBits(NewaddressInBits);
+
 
     } else {
 
@@ -227,10 +233,18 @@ function App() {
       setOffset_bits(deepCopy.splice(-offsetAllocBits).join(''));
       setIndex_bits(deepCopy.splice(-indexAllocBits).join(''));
       setTag_bits(deepCopy.join(''));
+      tag_bits_copy = deepCopy.join('');
 
       setAddress(NewAddress);
       setAddressInBits(NewaddressInBits);
     }
+
+    const ff = cacheEntries.flat().some(line => line.tag === Number('0b' + tag_bits_copy))
+
+    if (ff) {
+      newAssignment(assigmentType)
+    }
+
   }
 
   function generateNewCache() {
@@ -252,12 +266,15 @@ function App() {
 
   // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
   function randomAssignment(probability: number) {
+
+
     if (!isCacheEmpty() && Math.random() <= probability / 100) {
       console.log("!!!!!! MAKING A HIT!!!!!!!")
       newAssignment('hit')
     } else {
       newAssignment('miss')
     }
+    console.log('doine')
   }
 
   function handleCacheButtonClick(isHit: boolean) {
