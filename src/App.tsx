@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
-import Cache_table, { CACHE_TABLE_ENTRY, InputFields } from './components/Cache_table/Cache_table';
+import Cache_table, { CACHE_TABLE_ENTRY, InputFields } from './components/Cache_input_table/Cache_input_table'
 import './App.css'
-import './components/Cache_table/Cache_table.css'
+import './components/Cache_input_table/Cache_input_table.css'
+import Cache_visual_table from './components/Cache_visual_table/Cache_visual_table';
+
 
 
 export const InputFieldsMap = {
@@ -55,12 +57,13 @@ export function createRandomNumber(a: number, b: number): number {
 
 
 /**
- * Generates a random number of TLB sets.
+ *  
  *
- * @returns {number} - A random number of TLB sets, which is a power of 2.
- */
-function generateIndex(): number {
-  return 2 ** createRandomNumber(2, 4);
+ * @param {number} n - The number of indexes.
+ * @returns {number} - number of numSets
+*/
+function generateLogn(n: number): number{
+  return 2 ** n
 }
 
 
@@ -85,7 +88,7 @@ function createTableEntries
     tableEntry: CACHE_TABLE_ENTRY,
     address: number,
     tag_bits: string
-  ):CACHE_TABLE_ENTRY[] {
+  ): CACHE_TABLE_ENTRY[] {
 
   const entries: CACHE_TABLE_ENTRY[] = [];
 
@@ -96,50 +99,60 @@ function createTableEntries
   return entries;
 }
 
+function handleCacheFacit() {
+
+}
+
+
+interface LogEntry {
+  address: number;
+  hit: boolean;
+  cacheEntries: CACHE_TABLE_ENTRY[]
+}
+
+const logOfEntries: LogEntry[] = [];
 
 
 function App() {
-  const [addressBitWidth, setAddressBitWidth] = useState(createRandomNumber(10, 14));
+  const [addressBitWidth, setAddressBitWidth] = useState<number>(createRandomNumber(10, 14));
   const [address, setAddress] = useState<number>(createRandomNumberWith(addressBitWidth));
+  
+  const [indexAllocBits, setIndexAllocBits] = useState<number>(createRandomNumber(1, 4));
+  const [numSets, setNumSets] = useState<number>(2**indexAllocBits);
+  const [offsetAllocBits, setOffsetsetAllocBits] = useState(createRandomNumber(1, 4));
+  const [tagAllocBits, setTagAllocBits] = useState<number>(addressBitWidth - indexAllocBits - offsetAllocBits);
 
-  const [sets, setSets] = useState(generateIndex());
-  const [pageSize, setPageSize] = useState(32); // Make this also a random variable
-
-  const [index, setIndex] = useState(Math.log2(sets));
-  const [offset, setOffset] = useState(Math.log2(pageSize));
-
-  const [addressInBits, setAddressInBits] = useState([...address.toString(2)]);
+  const [addressInBits, setAddressInBits] = useState<string[]>([...address.toString(2)]);
   const deepCopy = JSON.parse(JSON.stringify(addressInBits));
 
-  const [offSet_bits, setOffset_bits] = useState(deepCopy.splice(-offset).join(''));
-  const [index_bits, setIndex_bits] = useState(deepCopy.splice(-index).join(''));
-  const [tag_bits, setTag_bits] = useState(deepCopy.join(''));
-  const [tag, setTag] = useState<number>(tag_bits.length);
+  const [offSet_bits, setOffset_bits] = useState<string>(deepCopy.splice(-offsetAllocBits).join(''));
+  const [index_bits, setIndex_bits] = useState<string>(deepCopy.splice(-indexAllocBits).join(''));
+  const [tag_bits, setTag_bits] = useState<string>(deepCopy.join(''));
 
   const [isMouseDown, setIsMouseDown] = useState(false);
 
 
   // TODO: maybe look int making these to state variables
-  const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[]>(createTableEntries(sets, { tag: 0, block: '', valid: 0 }, address, tag_bits));
+  const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[]>(createTableEntries(numSets, { tag: 0, block: '', valid: 0 }, address, tag_bits));
   const [facitEntries, setFacitEntries] = useState<CACHE_TABLE_ENTRY[]>(JSON.parse(JSON.stringify(cacheEntries)));
 
 
   useEffect(() => {
 
-    setCacheEntries(createTableEntries(sets, { tag: 0, block: '', valid: 0 }, address, tag_bits));
+    setCacheEntries(createTableEntries(numSets, { tag: 0, block: '', valid: 0 }, address, tag_bits));
     setFacitEntries(JSON.parse(JSON.stringify(cacheEntries)));
     // Caculate the facit
     const tag: number = Number('0b' + tag_bits)
     const block: string = `Mem[${address}-${address + 7}]`
 
-    const cache_hit = facitEntries[index].valid === 1;
+    const cache_hit = facitEntries[indexAllocBits].valid === 1;
 
     if (!cache_hit) {
       const facitEntriesCopy = JSON.parse(JSON.stringify(facitEntries));
-      facitEntriesCopy[index].valid = 1;
-      facitEntriesCopy[index].tag = tag;
-      facitEntriesCopy[index].block = block;
-      
+      facitEntriesCopy[indexAllocBits].valid = 1;
+      facitEntriesCopy[indexAllocBits].tag = tag;
+      facitEntriesCopy[indexAllocBits].block = block;
+
       setFacitEntries(facitEntriesCopy)
 
     } else {
@@ -155,11 +168,10 @@ function App() {
     console.log('------------------------------')
     console.log('address', address)
     console.log('addressInBits', addressInBits)
-    console.log('pageSize', pageSize)
-    console.log('sets', sets)
-    console.log('offset', offset)
-    console.log('index', index)
-    console.log('tag', tag)
+    console.log('numSets', numSets)
+    console.log('offset', offsetAllocBits)
+    console.log('numIndexAllocBits', indexAllocBits)
+    console.log('tag', tagAllocBits)
     console.log('offSet_bits', offSet_bits)
     console.log('index_bits', index_bits)
     console.log('tag_bits', tag_bits)
@@ -214,59 +226,33 @@ function App() {
 
   return (
     <>
-      <h2>Address: 0x{address.toString(16).toUpperCase()}</h2>
-      <div className='virtual-wrapper'>
-        <p>Bits of virtual address</p>
-        <div className={`list-item-wrapper`}>
-
-          <div className={`list-item-bit-input-wrapper `}>
-            {createNullArr(addressBitWidth).map((_, index) => (
-              <div
-                key={index}
-                className='input-wrapper'
-                onMouseUp={handleMouseUp}
-              >
-                <p
-                  id='vbit-index'
-                  className="input-text"
-                /*               onMouseDown={handleMouseDown}
-                              onMouseEnter={handleMouseEnter} */
-
-                >
-                  {addressBitWidth - index - 1}
-                </p>
-                <input
-                  id='vbit'
-                  autoComplete='off'
-                  autoCorrect='off'
-                  autoSave='off'
-                  autoFocus={false}
-                  autoCapitalize='off'
-                  /*               className={`vbit-input ${validateFieldInput(InputFieldsMap.VirtualAddress) ? 'correct' : ''}`} */
-                  className='vbit-input'
-                  name='VirtualAddress'
-                  maxLength={1}
-                /*               onChange={(ev) => handleInputChange(ev, InputFieldsMap.VirtualAddress)} */
-                />
-              </div>
-            ))}
-          </div>
-          <button className={'insert-facit-btn'}
-          /*             onClick={(ev) => insertFacit(InputFieldsMap.VirtualAddress, ev)} */
-          >
-            Insert facit
-          </button>
+      <div className='logAssignmentWrapper'>
+        <div className='logContainer'>
+          <p>Test</p>
         </div>
 
-      </div>
+        <h2>Address: {address.toString(2)}</h2>
+        <div className='virtual-wrapper'>
+          <div className={`list-item-wrapper`}>
+            <button
+            onClick={handleCacheFacit}>
+              Cache Hit
+            </button>
+            <button
+            onClick={handleCacheFacit}>Cache Miss</button>
+          </div>
 
-      <Cache_table
+        </div>
+
+      <Cache_visual_table
         cacheEntries={cacheEntries}
         setCacheEntries={setCacheEntries}
         facit={facitEntries}
-        addressPrefix={addressPrefixMap.Hexadecimal}
-        baseConversion={baseConversionMap.Hexadecimal}
+        addressPrefix={addressPrefixMap.Binary}
+        baseConversion={baseConversionMap.Binary}
+      
       />
+      </div>
 
     </>
   )

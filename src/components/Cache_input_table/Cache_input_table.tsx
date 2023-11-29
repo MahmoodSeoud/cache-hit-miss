@@ -1,6 +1,6 @@
 import { AddressPrefix, BaseConversion, Bit, InputField, InputFieldsMap } from '../../App';
 import { useState, useEffect } from 'react';
-import '../table.css'
+import './Cache_input_table.css'
 
 export type InputFields = {
     VirtualAddress: string;
@@ -45,7 +45,7 @@ function getElementValuesFrom(className: string): string {
 
 
 
-function Cache_table({ cacheEntries, setCacheEntries, facit, addressPrefix, baseConversion }: cache_tableProps) {
+function Cache_input_table({ cacheEntries, setCacheEntries, facit, addressPrefix, baseConversion }: cache_tableProps) {
 
     const [inputFields, setInputFields] = useState<InputFields>({
         VirtualAddress: '',
@@ -201,5 +201,5 @@ function Cache_table({ cacheEntries, setCacheEntries, facit, addressPrefix, base
     );
 }
 
-export default Cache_table;
+export default Cache_input_table;
 
