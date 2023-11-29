@@ -261,13 +261,14 @@ function App() {
   }
 
   function handleCacheButtonClick(isHit: boolean) {
+    const propability = 50;
     const wasAHit = isCacheHit();
     const wasAMiss = !wasAHit;
 
     if (isHit) {
       if (wasAHit) {
         console.log('correct, it was a hit');
-        randomAssignment(20);
+        randomAssignment(propability);
         // TODO: add to log
       } else {
         console.log('Incorrect, it was not a hit');
@@ -277,7 +278,7 @@ function App() {
         console.log('correct, it was a miss');
         const cache = createFacitCache();
         setCacheEntries(cache);
-        randomAssignment(20);
+        randomAssignment(propability);
         // TODO: add to log
       } else {
         console.log('Incorrect, it was not a miss');
