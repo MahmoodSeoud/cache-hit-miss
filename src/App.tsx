@@ -208,12 +208,12 @@ function App() {
     return entry;
   }
 
-  function calculateindexBits(entryIndex: number) {
+  function newIndexBits(entryIndex: number) {
     if (entryIndex.toString(2).length === indexAllocBits) {
       return entryIndex.toString(2);
-    } else {
-      return entryIndex.toString(2).padStart(indexAllocBits, '0');
     }
+    return entryIndex.toString(2).padStart(indexAllocBits, '0');
+
   }
 
   function newAssignment(assigmentType: string) {
@@ -223,7 +223,7 @@ function App() {
       const entryIndex = cacheEntries.flat().findIndex((x) => deepEqual(x, entry))
 
       const randomEntryBits: string = entry.tag.toString(2) +
-        calculateindexBits(entryIndex) +
+        newIndexBits(entryIndex) +
         createRandomNumberWith(offsetAllocBits).toString(2);
 
       createRandomNumberWith(entryIndex);
