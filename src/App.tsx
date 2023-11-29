@@ -7,11 +7,11 @@ import Cache_visual_table from './components/Cache_visual_table/Cache_visual_tab
 
 
 export const InputFieldsMap = {
-  VirtualAddress: 'VirtualAddress',
-  Offset: 'Offset',
-  Index: 'Index',
-  Tag: 'Tag',
-  Valid: 'Valid',
+  /*   VirtualAddress: 'VirtualAddress',
+    Offset: 'Offset',
+    Index: 'Index',
+    Tag: 'Tag',
+    Valid: 'Valid', */
   Hit: 'Hit',
 } as const;
 
@@ -62,22 +62,22 @@ export function createRandomNumber(a: number, b: number): number {
  * @param {number} n - The number of indexes.
  * @returns {number} - number of numSets
 */
-function generateLogn(n: number): number{
+function generateLogn(n: number): number {
   return 2 ** n
 }
 
 
-function createTableEntry<TObj extends CACHE_TABLE_ENTRY>(entry: TObj, address: number, tag_bits: string): TObj {
+function createTableEntry(entry: CACHE_TABLE_ENTRY, address: number, tag_bits: string): CACHE_TABLE_ENTRY {
   const valid: Bit = 0;
 
 
-  let newEntry: TObj;
+  let newEntry: CACHE_TABLE_ENTRY;
 
   newEntry = {
     ...entry,
-    valid,
-    tag: null,
-    block: null
+    valid: Math.round(Math.random()) as Bit,
+    tag: createRandomNumberWith(tag_bits.length), // TODO: make this random
+    block: 'meme' // TODO: make this random
   };
 
   return newEntry;
@@ -85,29 +85,32 @@ function createTableEntry<TObj extends CACHE_TABLE_ENTRY>(entry: TObj, address: 
 
 function createTableEntries
   (numOfRows: number,
-    tableEntry: CACHE_TABLE_ENTRY,
+    numOfCols: number,
+    cacheEntry: CACHE_TABLE_ENTRY,
     address: number,
     tag_bits: string
-  ): CACHE_TABLE_ENTRY[] {
+  ): CACHE_TABLE_ENTRY[][] {
 
-  const entries: CACHE_TABLE_ENTRY[] = [];
+  const entries: CACHE_TABLE_ENTRY[][] = [];
 
   for (let i = 0; i < numOfRows; i++) {
-    let entry = createTableEntry(tableEntry, address, tag_bits)
-    entries.push(entry);
+    const array: CACHE_TABLE_ENTRY[] = [];
+    for (let j = 0; j < numOfCols; j++) {
+      let entry = createTableEntry(cacheEntry, address, tag_bits)
+      array.push(entry);
+    }
+    entries.push(array);
   }
   return entries;
 }
 
-function handleCacheFacit() {
 
-}
 
 
 interface LogEntry {
   address: number;
   hit: boolean;
-  cacheEntries: CACHE_TABLE_ENTRY[]
+  cacheEntries: CACHE_TABLE_ENTRY[][]
 }
 
 const logOfEntries: LogEntry[] = [];
@@ -116,9 +119,11 @@ const logOfEntries: LogEntry[] = [];
 function App() {
   const [addressBitWidth, setAddressBitWidth] = useState<number>(createRandomNumber(10, 14));
   const [address, setAddress] = useState<number>(createRandomNumberWith(addressBitWidth));
-  
-  const [indexAllocBits, setIndexAllocBits] = useState<number>(createRandomNumber(1, 4));
-  const [numSets, setNumSets] = useState<number>(2**indexAllocBits);
+
+  const [indexAllocBits, setIndexAllocBits] = useState<number>(createRandomNumber(2, 4));
+  const [numSets, setNumSets] = useState<number>(2 ** indexAllocBits);
+  const [numLines, setNumLines] = useState<number>(2 ** createRandomNumber(0, 1));
+  const [lineIndex, setLineIndex] = useState<number>(Math.floor(Math.random() * numLines));
   const [offsetAllocBits, setOffsetsetAllocBits] = useState(createRandomNumber(1, 4));
   const [tagAllocBits, setTagAllocBits] = useState<number>(addressBitWidth - indexAllocBits - offsetAllocBits);
 
@@ -133,34 +138,7 @@ function App() {
 
 
   // TODO: maybe look int making these to state variables
-  const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[]>(createTableEntries(numSets, { tag: 0, block: '', valid: 0 }, address, tag_bits));
-  const [facitEntries, setFacitEntries] = useState<CACHE_TABLE_ENTRY[]>(JSON.parse(JSON.stringify(cacheEntries)));
-
-
-  useEffect(() => {
-
-    setCacheEntries(createTableEntries(numSets, { tag: 0, block: '', valid: 0 }, address, tag_bits));
-    setFacitEntries(JSON.parse(JSON.stringify(cacheEntries)));
-    // Caculate the facit
-    const tag: number = Number('0b' + tag_bits)
-    const block: string = `Mem[${address}-${address + 7}]`
-
-    const cache_hit = facitEntries[indexAllocBits].valid === 1;
-
-    if (!cache_hit) {
-      const facitEntriesCopy = JSON.parse(JSON.stringify(facitEntries));
-      facitEntriesCopy[indexAllocBits].valid = 1;
-      facitEntriesCopy[indexAllocBits].tag = tag;
-      facitEntriesCopy[indexAllocBits].block = block;
-
-      setFacitEntries(facitEntriesCopy)
-
-    } else {
-      console.log('Cache hit!')
-    }
-
-  }, [address])
-
+  const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, address, tag_bits));
 
 
 
@@ -175,53 +153,74 @@ function App() {
     console.log('offSet_bits', offSet_bits)
     console.log('index_bits', index_bits)
     console.log('tag_bits', tag_bits)
+    console.log("numLines", numLines)
+    console.log("lineIndex", lineIndex)
   })
 
+  function newAssignment() {
+    const NewAddress = createRandomNumberWith(addressBitWidth);
+    const NewaddressInBits = [...NewAddress.toString(2)];
+    const deepCopy = JSON.parse(JSON.stringify(NewaddressInBits));
+    setOffset_bits(deepCopy.splice(-offsetAllocBits).join(''));
+    setIndex_bits(deepCopy.splice(-indexAllocBits).join(''));
+    setTag_bits(deepCopy.join(''));
 
+    setAddress(NewAddress);
+    setAddressInBits(NewaddressInBits);
+  }
 
-  /**
-    * Handles the mouse up event.
-    */
-  function handleMouseUp() {
-    setIsMouseDown(false);
-  };
+  function generateNewCache() {
 
-  /**
-  
-  * Handles the mouse enter event on an element.
-  *
-  * @param {React.MouseEvent} e - The mouse event object.
-  */
-  function handleMouseEnter(e: React.MouseEvent) {
-    if (isMouseDown) {
-      // Apply highlight to the current div
-      const pTagWithIndex = e.currentTarget as HTMLElement;
-      pTagWithIndex.classList.add('highlight');
+  }
 
-      // Setting the color the the one selected in the color picker
-      //pTagWithIndex.style.backgroundColor = color;
+  function isCacheHit(): boolean {
+
+    if (cacheEntries[parseInt(index_bits, 2)][lineIndex].valid === 1 &&
+      cacheEntries[parseInt(index_bits, 2)][lineIndex].tag === parseInt(tag_bits, 2)) {
+      return true
     }
-  };
-
-
-
-
-  /**
- * Inserts the correct answer (facit) into the input field if the user does not know the answer.
- *
- * @param {InputField} inputFieldName - The name of the input field to insert the facit into.
- * @param {React.BaseSyntheticEvent} e - The event object, which contains information about the event.
- */
-  function insertFacit(inputFieldName: InputField, e: React.BaseSyntheticEvent): void {
+    return false
 
   }
 
-  function createNullArr(addressWidth: number): Array<null> {
-    return Array(addressWidth).fill(null);
+  function handleCacheButtonClick(isHit: boolean) {
+    const wasAHit = isCacheHit();
+    const wasAMiss = !wasAHit;
+
+    if (isHit) {
+      if (wasAHit) {
+        console.log('correct, it was a hit');
+        newAssignment()
+        // Make a new address and add to log
+      } else {
+        console.log('Incorrect, it was not a hit');
+      }
+    } else {
+      if (wasAMiss) {
+        console.log('correct, it was a miss');
+        const cache = createFacitCache();
+        setCacheEntries(cache);
+        newAssignment()
+        // Add new address and add to log
+      } else {
+        console.log('Incorrect, it was not a miss');
+      }
+    }
+
   }
 
+  function createFacitCache(): CACHE_TABLE_ENTRY[][] {
+    const set = parseInt(index_bits, 2)
+    const deepCopy: CACHE_TABLE_ENTRY[][] = JSON.parse(JSON.stringify(cacheEntries));
 
+    const tag: number = Number('0b' + tag_bits);
+    const block: string = `Mem[${address}-${address + 7}]`;
+    deepCopy[set][lineIndex].tag = tag;
+    deepCopy[set][lineIndex].valid = 1;
+    deepCopy[set][lineIndex].block = block;
 
+    return deepCopy
+  }
 
 
   return (
@@ -232,26 +231,31 @@ function App() {
         </div>
 
         <h2>Address: {address.toString(2)}</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3>tag bits:{tagAllocBits}</h3>
+          <h3>set bits:{indexAllocBits}</h3>
+          <h3>offset bits:{offsetAllocBits}</h3>
+        </div>
         <div className='virtual-wrapper'>
           <div className={`list-item-wrapper`}>
             <button
-            onClick={handleCacheFacit}>
+              onClick={() => handleCacheButtonClick(true)}>
               Cache Hit
             </button>
             <button
-            onClick={handleCacheFacit}>Cache Miss</button>
+              onClick={() => handleCacheButtonClick(false)}>Cache Miss</button>
           </div>
 
         </div>
 
-      <Cache_visual_table
-        cacheEntries={cacheEntries}
-        setCacheEntries={setCacheEntries}
-        facit={facitEntries}
-        addressPrefix={addressPrefixMap.Binary}
-        baseConversion={baseConversionMap.Binary}
-      
-      />
+        <Cache_visual_table
+          cacheEntries={cacheEntries}
+          setCacheEntries={setCacheEntries}
+          facit={null}
+          addressPrefix={addressPrefixMap.Binary}
+          baseConversion={baseConversionMap.Binary}
+
+        />
       </div>
 
     </>
@@ -259,3 +263,4 @@ function App() {
 }
 
 export default App
+

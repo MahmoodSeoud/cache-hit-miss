@@ -2,6 +2,7 @@
 import { AddressPrefix, BaseConversion, Bit, InputField, InputFieldsMap } from '../../App';
 import { useState, useEffect } from 'react';
 import './Cache_visual_table.css'
+import React from 'react';
 
 export type InputFields = {
     VirtualAddress: string;
@@ -19,9 +20,9 @@ export type CACHE_TABLE_ENTRY = {
 };
 
 type cache_tableProps = {
-    cacheEntries: CACHE_TABLE_ENTRY[];
-    setCacheEntries: React.Dispatch<React.SetStateAction<CACHE_TABLE_ENTRY[]>>;
-    facit: CACHE_TABLE_ENTRY[];
+    cacheEntries: CACHE_TABLE_ENTRY[][];
+    setCacheEntries: React.Dispatch<React.SetStateAction<CACHE_TABLE_ENTRY[][]>>;
+    facit: CACHE_TABLE_ENTRY[][] | null;
     addressPrefix: AddressPrefix;
     baseConversion: BaseConversion;
 }
@@ -40,43 +41,37 @@ function Cache_visual_table({ cacheEntries, setCacheEntries, facit, addressPrefi
             <table className='cache-table'>
                 <thead>
                     <tr>
-                        <th></th>
-                        <>
-                            <th>Valid</th>
-                            <th>Tag</th>
-                            <th>Block</th>
-                        </>
+                        <th>Set</th>
+                        {cacheEntries && cacheEntries.length > 0 && cacheEntries[0].map((_, s) => (
+                            <React.Fragment key={s}>
+                                <th>Valid</th>
+                                <th>Tag</th>
+                                <th>Block</th>
+                            </React.Fragment >
+                        ))}
                     </tr>
                 </thead>
                 <tbody>
 
-                    {cacheEntries && cacheEntries.length > 0 && cacheEntries.map((_, i) => {
+                    {cacheEntries && cacheEntries.map((_, i) => {
 
                         return (
                             <tr key={i}>
-                                <th>Set {i}</th>
-                                <>
-                                    {/* Valid bit input */}
-                                    <td>
-                                        <div></div>
-                                    </td>
-                                    {/* Tag input */}
-                                    <td>
-                                        <div></div>
-                                    </td>
-                                    {/* Offset input */}
-                                    <td>
-                                        <div></div>
-                                    </td>
-                                </>
+                                <td>{i}</td>
+                                {cacheEntries && cacheEntries.length > 0 && cacheEntries[0].map((_, j) => (
+                                    <React.Fragment key={j}>
+                                        <td>{cacheEntries[i][j].valid}</td>
+                                        <td>{cacheEntries[i][j].tag.toString(2)}</td>
+                                        <td>{cacheEntries[i][j].block}</td>
+                                    </React.Fragment >
+                                ))}
                             </tr>
-                        );
+                        )
                     })}
+
                 </tbody>
             </table>
-            <button onClick={() => console.log("it is:", checkInput)}>Check input</button>
-        </div>
-    );
+        </div>    );
 }
 
 export default Cache_visual_table;
