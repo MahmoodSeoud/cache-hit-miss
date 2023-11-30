@@ -3,6 +3,7 @@ import Cache_table, { CACHE_TABLE_ENTRY, InputFields } from './components/Cache_
 import './App.css'
 import './components/Cache_input_table/Cache_input_table.css'
 import Cache_visual_table from './components/Cache_visual_table/Cache_visual_table';
+import Settings from './components/Settings/Settings';
 
 
 
@@ -331,6 +332,10 @@ function App() {
 
   return (
     <>
+
+    <Settings/>
+
+    
       <div className='logAssignmentWrapper'>
         <div className='logContainer'>
           <p>Test</p>
