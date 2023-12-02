@@ -5,6 +5,7 @@ import './components/Cache_input_table/Cache_input_table.css'
 import Cache_visual_table from './components/Cache_visual_table/Cache_visual_table';
 import Settings from './components/Settings/Settings';
 import { Toast } from 'primereact/toast';
+import { ColorResult, HuePicker } from 'react-color';
 import './Laratheme.css'
 
 
@@ -180,12 +181,17 @@ function App() {
 
   const [isMouseDown, setIsMouseDown] = useState(false);
 
+
+  const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
+
   const toast = useRef<Toast>(null);
 
 
   // TODO: maybe look int making these to state variables
   const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, address, tag_bits)
   const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(coldCache);
+
+
 
 
   /**
@@ -195,7 +201,7 @@ function App() {
     toast.current?.show({
       severity: 'success',
       summary: 'Correct!',
-      detail: 'Not right, The address: ' + address.toString(2) +  '\nwas a cache ' + cacheAssignmentType + ' assignment',
+      detail: 'Not right, The address: ' + address.toString(2) + '\nwas a cache ' + cacheAssignmentType + ' assignment',
       life: 3000
     });
   }
@@ -203,14 +209,16 @@ function App() {
   /**
   * Displays a failure toast notification.
   */
-  function showFailure(cacheAssignmentType: string ): void {
+  function showFailure(cacheAssignmentType: string): void {
     toast.current?.show({
       severity: 'error',
       summary: 'Wrong',
-      detail: 'Not right, The address: ' + address.toString(2) +  '\nwas a cache ' + cacheAssignmentType + ' assignment',
+      detail: 'Not right, The address: ' + address.toString(2) + '\nwas a cache ' + cacheAssignmentType + ' assignment',
       life: 3000
     });
   }
+
+
 
 
 
@@ -229,6 +237,56 @@ function App() {
     console.log("numLines", numLines)
     console.log("lineIndex", lineIndex)
   })
+
+  /**
+ * Handles the mouse enter event on an element.
+ *
+ * @param {React.MouseEvent} e - The mouse event object.
+ */
+  function handleMouseDown(e: React.MouseEvent) {
+    setIsMouseDown(true);
+    const pTagWithIndex = e.currentTarget as HTMLElement;
+    const isHighligted = pTagWithIndex.classList.contains('highlight');
+
+    if (isHighligted) {
+      pTagWithIndex.classList.remove('highlight');
+      // Setting the color the the one selected in the color picker
+      pTagWithIndex.style.backgroundColor = "";
+    } else {
+
+      // Apply highlight to the current div
+      pTagWithIndex.classList.add('highlight');
+      // Setting the color the the one selected in the color picker
+      pTagWithIndex.style.backgroundColor = color;
+
+    }
+  }
+
+  /**
+   * Handles the mouse up event.
+   */
+  function handleMouseUp() {
+    setIsMouseDown(false);
+  };
+
+  /**
+
+* Handles the mouse enter event on an element.
+*
+* @param {React.MouseEvent} e - The mouse event object.
+*/
+  function handleMouseEnter(e: React.MouseEvent) {
+    if (isMouseDown) {
+      // Apply highlight to the current div
+      const pTagWithIndex = e.currentTarget as HTMLElement;
+      pTagWithIndex.classList.add('highlight');
+
+      // Setting the color the the one selected in the color picker
+      pTagWithIndex.style.backgroundColor = color;
+    }
+  };
+
+
 
   function findRandomValidEntry(cacheEntries: CACHE_TABLE_ENTRY[][]): CACHE_TABLE_ENTRY {
     const entries = cacheEntries.flat().filter(entry => entry.valid === 1 && entry.block !== 'meme');
@@ -363,6 +421,52 @@ function App() {
   }
 
 
+  /**
+ * Handles changes in color selection.
+ *
+ * @param {ColorResult} color - The new color selected by the user.
+ */
+  function handleColorChange(color: ColorResult): void {
+    setColor(color.hex)
+  }
+
+
+  /**
+* Resets the colors of all highlighted elements to their initial state.
+*/
+  function resetColors(): void {
+    const bitElements = document.getElementsByClassName('input-text') as HTMLCollectionOf<HTMLElement>;
+    const textElements = document.getElementsByClassName('exercise-label') as HTMLCollectionOf<HTMLElement>;
+
+    for (let i = 0; i < bitElements.length; i++) {
+      const isHighligted = bitElements && bitElements[i] && bitElements[i].classList.contains('highlight');
+
+      if (isHighligted) {
+        bitElements[i].classList.remove('highlight');
+        bitElements[i].style.backgroundColor = '';
+      }
+    }
+
+    for (let i = 0; i < bitElements.length; i++) {
+      const isHighligted = textElements && textElements[i] && textElements[i].classList.contains('highlight');
+
+      if (isHighligted) {
+        textElements[i].classList.remove('highlight');
+        textElements[i].style.backgroundColor = '';
+      }
+    }
+  }
+
+
+  /**
+ * Creates an array of nulls with a specified length.
+ *
+ * @param {number} addressWidth - The length of the array to create.
+ * @returns {Array<null>} - An array of nulls with the specified length.
+ */
+  function createNullArr(addressWidth: number): Array<null> {
+    return Array(addressWidth).fill(null);
+  }
   return (
     <>
 
@@ -373,7 +477,51 @@ function App() {
           <p>Test</p>
         </div>
 
-        <h2>Address: {address.toString(2)}</h2>
+        <div className='input-header'>
+          <div className="input-buttons">
+
+            <button
+              className='reset-color-btn'
+              onClick={resetColors}
+            >
+              Reset the colors
+            </button>
+
+          </div>
+          <HuePicker
+            width={'200px'}
+            color={color}
+            onChange={handleColorChange}
+          />
+          <h4>Click and drag to highlight bits or labels <br /> </h4>
+          <div className={`list-item-bit-input-wrapper `}>
+            {createNullArr(addressBitWidth).map((_, index) => (
+              <div
+                key={index}
+                className='input-wrapper'
+                onMouseUp={handleMouseUp}
+              >
+                <p
+                  id='vbit-index'
+                  className="input-text"
+                  onMouseDown={handleMouseDown}
+                  onMouseEnter={handleMouseEnter}
+
+                >
+                  {addressBitWidth - index - 1}
+                </p>
+                <div
+                  id='vbit'
+                  autoFocus={false}
+                  autoCapitalize='off'
+                  className={'vbit-input'}
+                >
+                    {addressInBits[addressBitWidth - index - 1]}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3>tag bits:{tagAllocBits}</h3>
           <h3>set bits:{indexAllocBits}</h3>
