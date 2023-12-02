@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
-import Cache_table, { CACHE_TABLE_ENTRY, InputFields } from './components/Cache_input_table/Cache_input_table'
+import { useEffect, useRef, useState } from 'react'
+import { CACHE_TABLE_ENTRY, InputFields } from './components/Cache_input_table/Cache_input_table'
 import './App.css'
 import './components/Cache_input_table/Cache_input_table.css'
 import Cache_visual_table from './components/Cache_visual_table/Cache_visual_table';
 import Settings from './components/Settings/Settings';
-
+import { Toast } from 'primereact/toast';
+import './Laratheme.css'
 
 
 export const InputFieldsMap = {
@@ -179,10 +180,37 @@ function App() {
 
   const [isMouseDown, setIsMouseDown] = useState(false);
 
+  const toast = useRef<Toast>(null);
+
 
   // TODO: maybe look int making these to state variables
   const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, address, tag_bits)
   const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(coldCache);
+
+
+  /**
+  * Displays a success toast notification.
+  */
+  function showSuccess(cacheAssignmentType: string): void {
+    toast.current?.show({
+      severity: 'success',
+      summary: 'Correct!',
+      detail: 'Not right, The address: ' + address.toString(2) +  '\nwas a cache ' + cacheAssignmentType + ' assignment',
+      life: 3000
+    });
+  }
+
+  /**
+  * Displays a failure toast notification.
+  */
+  function showFailure(cacheAssignmentType: string ): void {
+    toast.current?.show({
+      severity: 'error',
+      summary: 'Wrong',
+      detail: 'Not right, The address: ' + address.toString(2) +  '\nwas a cache ' + cacheAssignmentType + ' assignment',
+      life: 3000
+    });
+  }
 
 
 
@@ -298,9 +326,11 @@ function App() {
       if (wasAHit) {
         console.log('correct, it was a hit');
         randomAssignment(propability);
+        showSuccess('hit');
         // TODO: add to log
       } else {
         console.log('Incorrect, it was not a hit');
+        showFailure('hit');
       }
     } else {
       if (wasAMiss) {
@@ -308,9 +338,12 @@ function App() {
         const cache = createFacitCache();
         setCacheEntries(cache);
         randomAssignment(propability);
+        showSuccess('miss');
         // TODO: add to log
+
       } else {
         console.log('Incorrect, it was not a miss');
+        showFailure('miss');
       }
     }
 
@@ -333,9 +366,8 @@ function App() {
   return (
     <>
 
-    <Settings/>
-
-    
+      <Settings />
+      <Toast ref={toast} />
       <div className='logAssignmentWrapper'>
         <div className='logContainer'>
           <p>Test</p>
