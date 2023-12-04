@@ -182,11 +182,8 @@ function App() {
   const toast = useRef<Toast>(null);
 
 
-  // TODO: maybe look int making these to state variables
   const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, address, tag_bits)
   const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(coldCache);
-
-
 
 
   /**
@@ -230,6 +227,11 @@ function App() {
     console.log("lineIndex", lineIndex)
   })
 
+
+  useEffect(() =>   {
+    const cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, address, tag_bits)
+    setCacheEntries(cache);
+  }, [numSets, numLines, address, tag_bits])  
   /**
  * Handles the mouse enter event on an element.
  *
@@ -355,15 +357,11 @@ function App() {
 
   // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
   function randomAssignment(probability: number) {
-
-
     if (!isCacheEmpty() && Math.random() <= probability / 100) {
-      console.log("!!!!!! MAKING A HIT!!!!!!!")
       newAssignment('hit')
     } else {
       newAssignment('miss')
     }
-    console.log('doine')
   }
 
   function handleCacheButtonClick(isHit: boolean) {
@@ -373,17 +371,14 @@ function App() {
 
     if (isHit) {
       if (wasAHit) {
-        console.log('correct, it was a hit');
         randomAssignment(propability);
         showSuccess('hit');
         // TODO: add to log
       } else {
-        console.log('Incorrect, it was not a hit');
         showFailure('hit');
       }
     } else {
       if (wasAMiss) {
-        console.log('correct, it was a miss');
         const cache = createFacitCache();
         setCacheEntries(cache);
         randomAssignment(propability);
@@ -391,7 +386,6 @@ function App() {
         // TODO: add to log
 
       } else {
-        console.log('Incorrect, it was not a miss');
         showFailure('miss');
       }
     }
@@ -461,7 +455,17 @@ function App() {
   return (
     <>
 
-      <Settings />
+      <Settings
+        assignmentType={''}
+        addressBitWidth={addressBitWidth}
+        setAddressBitWidth={setAddressBitWidth}
+        numSets={numSets}
+        setNumSets={setNumSets}
+        numLines={numLines}
+        setNumLines={setNumLines}
+      />
+
+
       <Toast ref={toast} />
       <div className='logAssignmentWrapper'>
         <div className='logContainer'>
