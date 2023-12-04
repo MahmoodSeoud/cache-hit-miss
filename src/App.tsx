@@ -102,12 +102,12 @@ export function createRandomNumber(a: number, b: number): number {
 }
 
 
-function createTableEntry(entry: CACHE_TABLE_ENTRY, tag_bits: string): CACHE_TABLE_ENTRY {
+function createTableEntry(entry: CACHE_TABLE_ENTRY, address: number, tag_bits: string): CACHE_TABLE_ENTRY {
   let valid: Bit = Math.round(Math.random()) as Bit;
   let tag: number = createRandomNumberWith(tag_bits.length);
-  let block: string = `Mem[${tag} - ${tag + 7}]`;
-
-
+  const addressBitWidth = createRandomNumber(10, 14);
+  const NewAddress = createRandomNumberWith(addressBitWidth);
+  let block: string = `Mem[${NewAddress} - ${NewAddress + 7}]`;
 
 
   let newEntry: CACHE_TABLE_ENTRY;
@@ -125,6 +125,7 @@ function createTableEntries
   (numOfRows: number,
     numOfCols: number,
     cacheEntry: CACHE_TABLE_ENTRY,
+    address: number,
     tag_bits: string
   ): CACHE_TABLE_ENTRY[][] {
 
@@ -133,13 +134,13 @@ function createTableEntries
   for (let i = 0; i < numOfRows; i++) {
     const array: CACHE_TABLE_ENTRY[] = [];
     for (let j = 0; j < numOfCols; j++) {
-      let entry = createTableEntry(cacheEntry, tag_bits);
+      let entry = createTableEntry(cacheEntry, address, tag_bits);
       array.push(entry);
     }
     entries.push(array);
   }
 
-  
+
   return entries.sort((a, b) => a[0].tag - b[0].tag);
 }
 
@@ -182,7 +183,7 @@ function App() {
 
 
   // TODO: maybe look int making these to state variables
-  const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tag_bits)
+  const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, address, tag_bits)
   const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(coldCache);
 
 
