@@ -228,10 +228,37 @@ function App() {
   })
 
 
-  useEffect(() =>   {
+  useEffect(() => {
     const cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, address, tag_bits)
     setCacheEntries(cache);
-  }, [numSets, numLines, address, tag_bits])  
+  }, [numSets, numLines, address, tag_bits])
+
+  useEffect(() => {
+
+    const address = createRandomNumberWith(addressBitWidth);
+
+    const indexAllocBits = createRandomNumber(2, 4);
+    const offsetAllocBits = createRandomNumber(1, 4);
+    const tagAllocBits = (addressBitWidth - indexAllocBits - offsetAllocBits);
+
+    const addressInBits =[...address.toString(2)];
+    const deepCopy = JSON.parse(JSON.stringify(addressInBits));
+
+    const offSet_bits = deepCopy.splice(-offsetAllocBits).join('');
+    const index_bits = deepCopy.splice(-indexAllocBits).join('');
+    const tag_bits = deepCopy.join('');
+
+
+    setAddress(address);
+    setAddressInBits(addressInBits);
+    setIndexAllocBits(indexAllocBits);
+    setOffsetsetAllocBits(offsetAllocBits);
+    setTagAllocBits(tagAllocBits);
+    setOffset_bits(offSet_bits);
+    setIndex_bits(index_bits);
+    setTag_bits(tag_bits);
+  }, [addressBitWidth])
+
   /**
  * Handles the mouse enter event on an element.
  *
