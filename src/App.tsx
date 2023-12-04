@@ -92,6 +92,7 @@ function isObject(object: InputFields): boolean {
  */
 
 export function createRandomNumberWith(bitLength: number): number {
+
   return createRandomNumber(2 ** (bitLength - 1), 2 ** bitLength)
 }
 
@@ -101,28 +102,20 @@ export function createRandomNumber(a: number, b: number): number {
 }
 
 
-/**
- *  
- *
- * @param {number} n - The number of indexes.
- * @returns {number} - number of numSets
-*/
-function generateLogn(n: number): number {
-  return 2 ** n
-}
+function createTableEntry(entry: CACHE_TABLE_ENTRY, tag_bits: string): CACHE_TABLE_ENTRY {
+  let valid: Bit = Math.round(Math.random()) as Bit;
+  let tag: number = createRandomNumberWith(tag_bits.length);
+  let block: string = `Mem[${tag} - ${tag + 7}]`;
 
 
-function createTableEntry(entry: CACHE_TABLE_ENTRY, address: number, tag_bits: string): CACHE_TABLE_ENTRY {
-  const valid: Bit = 0;
 
 
   let newEntry: CACHE_TABLE_ENTRY;
-
   newEntry = {
     ...entry,
-    valid: Math.round(Math.random()) as Bit,
-    tag: createRandomNumberWith(tag_bits.length), // TODO: make this random
-    block: 'meme' // TODO: make this random
+    valid: valid,
+    tag: tag,
+    block: block
   };
 
   return newEntry;
@@ -132,21 +125,22 @@ function createTableEntries
   (numOfRows: number,
     numOfCols: number,
     cacheEntry: CACHE_TABLE_ENTRY,
-    address: number,
     tag_bits: string
   ): CACHE_TABLE_ENTRY[][] {
 
-  const entries: CACHE_TABLE_ENTRY[][] = [];
+  let entries: CACHE_TABLE_ENTRY[][] = [];
 
   for (let i = 0; i < numOfRows; i++) {
     const array: CACHE_TABLE_ENTRY[] = [];
     for (let j = 0; j < numOfCols; j++) {
-      let entry = createTableEntry(cacheEntry, address, tag_bits)
+      let entry = createTableEntry(cacheEntry, tag_bits);
       array.push(entry);
     }
     entries.push(array);
   }
-  return entries;
+
+  
+  return entries.sort((a, b) => a[0].tag - b[0].tag);
 }
 
 
@@ -188,7 +182,7 @@ function App() {
 
 
   // TODO: maybe look int making these to state variables
-  const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, address, tag_bits)
+  const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tag_bits)
   const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(coldCache);
 
 
@@ -217,9 +211,6 @@ function App() {
       life: 3000
     });
   }
-
-
-
 
 
   useEffect(() => {
@@ -288,41 +279,40 @@ function App() {
 
 
 
-  function findRandomValidEntry(cacheEntries: CACHE_TABLE_ENTRY[][]): CACHE_TABLE_ENTRY {
-    const entries = cacheEntries.flat().filter(entry => entry.valid === 1 && entry.block !== 'meme');
+  function getRandomValidEntry(cacheEntries: CACHE_TABLE_ENTRY[][]): [CACHE_TABLE_ENTRY, number] {
+    const entries = cacheEntries.flat().filter(entry => entry.valid === 1 && entry.block !== '');
 
     const entry = entries[Math.floor(Math.random() * entries.length)]
-    return entry;
+    const entryIndex = cacheEntries.flat().findIndex((x) => deepEqual(x, entry))
+
+    return [entry, entryIndex];
   }
 
-  function newIndexBits(entryIndex: number) {
+  function padZeroOnBitsToFitBitLength(entryIndex: number) {
     if (entryIndex.toString(2).length === indexAllocBits) {
       return entryIndex.toString(2);
     }
-    return entryIndex.toString(2).padStart(indexAllocBits, '0');
 
+    return entryIndex.toString(2).padStart(indexAllocBits, '0');
   }
+
+
 
   function newAssignment(assigmentType: string) {
     let tag_bits_copy = "";
     if (assigmentType === 'hit') {
-      const entry: CACHE_TABLE_ENTRY = findRandomValidEntry(cacheEntries);
-      const entryIndex = cacheEntries.flat().findIndex((x) => deepEqual(x, entry))
+      const [entry, entryIndex]: [CACHE_TABLE_ENTRY, number] = getRandomValidEntry(cacheEntries);
 
       const randomEntryBits: string = entry.tag.toString(2) +
-        newIndexBits(entryIndex) +
+        padZeroOnBitsToFitBitLength(entryIndex) +
         createRandomNumberWith(offsetAllocBits).toString(2);
 
-      createRandomNumberWith(entryIndex);
       const NewAddress = Number("0b" + randomEntryBits)
       const NewaddressInBits = [...NewAddress.toString(2)];
 
       // TODO: Set these to the correct ones
-
       setAddress(NewAddress);
       setAddressInBits(NewaddressInBits);
-
-
     } else {
 
       const NewAddress = createRandomNumberWith(addressBitWidth);
@@ -516,7 +506,7 @@ function App() {
                   autoCapitalize='off'
                   className={'vbit-input'}
                 >
-                    {addressInBits[addressBitWidth - index - 1]}
+                  {addressInBits[addressBitWidth - index - 1]}
                 </div>
               </div>
             ))}
