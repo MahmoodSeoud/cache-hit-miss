@@ -161,11 +161,12 @@ function App() {
   const [address, setAddress] = useState<number>(createRandomNumberWith(addressBitWidth));
 
   const [indexAllocBits, setIndexAllocBits] = useState<number>(createRandomNumber(2, 4));
+  const [offsetAllocBits, setOffsetsetAllocBits] = useState(createRandomNumber(1, 4));
+  const [tagAllocBits, setTagAllocBits] = useState<number>(addressBitWidth - indexAllocBits - offsetAllocBits);
+
   const [numSets, setNumSets] = useState<number>(2 ** indexAllocBits);
   const [numLines, setNumLines] = useState<number>(2 ** createRandomNumber(0, 1));
   const [lineIndex, setLineIndex] = useState<number>(Math.floor(Math.random() * numLines));
-  const [offsetAllocBits, setOffsetsetAllocBits] = useState(createRandomNumber(1, 4));
-  const [tagAllocBits, setTagAllocBits] = useState<number>(addressBitWidth - indexAllocBits - offsetAllocBits);
 
   const [addressInBits, setAddressInBits] = useState<string[]>([...address.toString(2)]);
   const deepCopy = JSON.parse(JSON.stringify(addressInBits));
@@ -175,10 +176,7 @@ function App() {
   const [tag_bits, setTag_bits] = useState<string>(deepCopy.join(''));
 
   const [isMouseDown, setIsMouseDown] = useState(false);
-
-
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
-
   const toast = useRef<Toast>(null);
 
 
@@ -235,28 +233,35 @@ function App() {
 
   useEffect(() => {
 
-    const address = createRandomNumberWith(addressBitWidth);
+    const newAddress = createRandomNumberWith(addressBitWidth);
 
-    const indexAllocBits = createRandomNumber(2, 4);
-    const offsetAllocBits = createRandomNumber(1, 4);
-    const tagAllocBits = (addressBitWidth - indexAllocBits - offsetAllocBits);
+    const newIndexAllocBits = createRandomNumber(2, 4);
+    const newOffsetAllocBits = createRandomNumber(1, 4);
+    const newTagAllocBits = (addressBitWidth - indexAllocBits - offsetAllocBits);
 
-    const addressInBits =[...address.toString(2)];
-    const deepCopy = JSON.parse(JSON.stringify(addressInBits));
+    const newAddressInBits = [...newAddress.toString(2)];
 
-    const offSet_bits = deepCopy.splice(-offsetAllocBits).join('');
-    const index_bits = deepCopy.splice(-indexAllocBits).join('');
-    const tag_bits = deepCopy.join('');
+    const newDeepCopy = JSON.parse(JSON.stringify(addressInBits));
+    const newOffSet_bits: string = newDeepCopy.splice(-offsetAllocBits).join('');
+    const newIndex_bits: string = newDeepCopy.splice(-indexAllocBits).join('');
+    const newTag_bits: string = newDeepCopy.join('');
 
+    console.log("index_bits ---->", index_bits)
 
-    setAddress(address);
-    setAddressInBits(addressInBits);
-    setIndexAllocBits(indexAllocBits);
-    setOffsetsetAllocBits(offsetAllocBits);
-    setTagAllocBits(tagAllocBits);
-    setOffset_bits(offSet_bits);
-    setIndex_bits(index_bits);
-    setTag_bits(tag_bits);
+/*     const cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, newAddress, tag_bits)
+    setCacheEntries(cache); */
+
+    setAddress(newAddress);
+    setAddressInBits(newAddressInBits);
+
+    setIndexAllocBits(newIndexAllocBits);
+    setOffsetsetAllocBits(newOffsetAllocBits);
+    setTagAllocBits(newTagAllocBits);
+
+    setOffset_bits(newOffSet_bits);
+    setIndex_bits(newIndex_bits);
+    setTag_bits(newTag_bits);
+
   }, [addressBitWidth])
 
   /**
@@ -327,7 +332,6 @@ function App() {
   }
 
 
-
   function newAssignment(assigmentType: string) {
     let tag_bits_copy = "";
     if (assigmentType === 'hit') {
@@ -362,11 +366,6 @@ function App() {
     if (ff) {
       newAssignment(assigmentType)
     }
-
-  }
-
-  function generateNewCache() {
-
   }
 
   function isCacheEmpty(): boolean {
@@ -374,6 +373,7 @@ function App() {
   }
 
   function isCacheHit(): boolean {
+    debugger
     if (cacheEntries[parseInt(index_bits, 2)][lineIndex].valid === 1 &&
       cacheEntries[parseInt(index_bits, 2)][lineIndex].tag === parseInt(tag_bits, 2)) {
       return true
@@ -522,6 +522,7 @@ function App() {
                 key={index}
                 className='input-wrapper'
                 onMouseUp={handleMouseUp}
+              // TODO: Maybe change the coloring to appear when clicking on this div aswell
               >
                 <p
                   id='vbit-index'
