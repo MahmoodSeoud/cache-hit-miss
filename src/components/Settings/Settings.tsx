@@ -8,6 +8,8 @@ import 'primeicons/primeicons.css';
 
 
 interface SettingsProps {
+    maxAddress: number;
+    setAddress: React.Dispatch<SetStateAction<number>>;
     assignmentType: string;
     addressBitWidth: number;
     setAddressBitWidth: React.Dispatch<SetStateAction<number>>;
@@ -15,11 +17,15 @@ interface SettingsProps {
     setNumSets: React.Dispatch<SetStateAction<number>>;
     numLines: number;
     setNumLines: React.Dispatch<SetStateAction<number>>;
+    cacheShouldBeCold: boolean;
+    setCacheShouldBeCold: React.Dispatch<SetStateAction<boolean>>;
+
 }
 
 export default function Settings(props: SettingsProps) {
     const [showSettings, setShowSettings] = useState<boolean>(false);
     const lineOptions: string[] = ['1', '2'];
+    const cacheShouldBeCold: string[] = ['True', 'False'];
 
     return (
         <>
@@ -36,12 +42,31 @@ export default function Settings(props: SettingsProps) {
 
                     <form method="dialog">
                         <div className="card flex justify-content-center">
+                            <label htmlFor="AddressValue">Address Max Value</label>
+                            <div>
+                                <InputNumber
+                                    value={props.maxAddress}
+                                    disabled
+                                />
+                                <Slider
+                                    value={props.maxAddress}
+                                    onChange={(e: SliderChangeEvent) => props.setAddress(e.value as number)}
+                                    max={1024}
+                                    min={1}
+                                    className="w-14rem"
+                                    step={1}
+
+                                />
+                            </div>
+                        </div>
+                        <div className="card flex justify-content-center">
                             <label htmlFor="numSets">Number of sets</label>
                             <div>
                                 <InputNumber
-
                                     value={props.numSets}
-                                    disabled />
+                                    disabled
+                                />
+
                                 <Slider
                                     value={props.numSets}
                                     onChange={(e: SliderChangeEvent) => props.setNumSets(e.value as number)}
@@ -58,8 +83,20 @@ export default function Settings(props: SettingsProps) {
                             <label htmlFor="numLines">Number of lines</label>
                             <div>
                                 <SelectButton value={props.numLines.toString()}
-                                 onChange={(e: SelectButtonChangeEvent) => props.setNumLines(e.value)} 
-                                 options={lineOptions} />
+                                    onChange={(e: SelectButtonChangeEvent) => props.setNumLines(e.value)}
+                                    options={lineOptions}
+                                />
+
+                            </div>
+                        </div>
+
+                        <div className="card flex justify-content-center">
+                            <label htmlFor="numLines">Should cache be cold?</label>
+                            <div>
+                                <SelectButton value={props.cacheShouldBeCold}
+                                    onChange={(e: SelectButtonChangeEvent) => props.setCacheShouldBeCold(e.value)}
+                                    options={cacheShouldBeCold}
+                                />
 
                             </div>
                         </div>

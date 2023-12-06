@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { SetStateAction, useEffect, useRef, useState } from 'react'
 import { CACHE_TABLE_ENTRY, InputFields } from './components/Cache_input_table/Cache_input_table'
 import './App.css'
 import './components/Cache_input_table/Cache_input_table.css'
@@ -101,52 +101,6 @@ export function createRandomNumber(a: number, b: number): number {
   return Math.floor(Math.random() * (b - a)) + a;
 }
 
-
-function createTableEntry(entry: CACHE_TABLE_ENTRY, address: number, tag_bits: string): CACHE_TABLE_ENTRY {
-  let valid: Bit = Math.round(Math.random()) as Bit;
-  let tag: number = createRandomNumberWith(tag_bits.length);
-  const addressBitWidth = createRandomNumber(10, 14);
-  const NewAddress = createRandomNumberWith(addressBitWidth);
-  let block: string = `Mem[${NewAddress} - ${NewAddress + 7}]`;
-
-
-  let newEntry: CACHE_TABLE_ENTRY;
-  newEntry = {
-    ...entry,
-    valid: valid,
-    tag: tag,
-    block: block
-  };
-
-  return newEntry;
-}
-
-function createTableEntries
-  (numOfRows: number,
-    numOfCols: number,
-    cacheEntry: CACHE_TABLE_ENTRY,
-    address: number,
-    tag_bits: string
-  ): CACHE_TABLE_ENTRY[][] {
-
-  let entries: CACHE_TABLE_ENTRY[][] = [];
-
-  for (let i = 0; i < numOfRows; i++) {
-    const array: CACHE_TABLE_ENTRY[] = [];
-    for (let j = 0; j < numOfCols; j++) {
-      let entry = createTableEntry(cacheEntry, address, tag_bits);
-      array.push(entry);
-    }
-    entries.push(array);
-  }
-
-
-  return entries.sort((a, b) => a[0].tag - b[0].tag);
-}
-
-
-
-
 interface LogEntry {
   address: number;
   hit: boolean;
@@ -158,7 +112,7 @@ const logOfEntries: LogEntry[] = [];
 
 function App() {
   const [addressBitWidth, setAddressBitWidth] = useState<number>(createRandomNumber(10, 14));
-  const [address, setAddress] = useState<number>(createRandomNumberWith(addressBitWidth));
+  const [address, setAddress] = useState<number>(createRandomNumber(0, 256));
 
   const [indexAllocBits, setIndexAllocBits] = useState<number>(createRandomNumber(2, 4));
   const [offsetAllocBits, setOffsetsetAllocBits] = useState(createRandomNumber(1, 4));
@@ -168,7 +122,7 @@ function App() {
   const [numLines, setNumLines] = useState<number>(2 ** createRandomNumber(0, 1));
   const [lineIndex, setLineIndex] = useState<number>(Math.floor(Math.random() * numLines));
 
-  const [addressInBits, setAddressInBits] = useState<string[]>([...address.toString(2)]);
+  const [addressInBits, setAddressInBits] = useState<string[]>([...address.toString(2).padStart(addressBitWidth, '0')]);
   const deepCopy = JSON.parse(JSON.stringify(addressInBits));
 
   const [offSet_bits, setOffset_bits] = useState<string>(deepCopy.splice(-offsetAllocBits).join(''));
@@ -179,9 +133,62 @@ function App() {
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
   const toast = useRef<Toast>(null);
 
+  const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(true);
 
-  const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, address, tag_bits)
+  const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tag_bits)
   const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(coldCache);
+
+
+  function createTableEntry(entry: CACHE_TABLE_ENTRY, tag_bits: string): CACHE_TABLE_ENTRY {
+
+    let newEntry: CACHE_TABLE_ENTRY;
+    let valid: Bit = Math.round(Math.random()) as Bit;
+    let tag: number = createRandomNumberWith(tag_bits.length);
+    const addressBitWidth = createRandomNumber(10, 14);
+    const NewAddress = createRandomNumberWith(addressBitWidth);
+    let block: string = `Mem[${NewAddress} - ${NewAddress + 7}]`;
+    if (!cacheShouldBeCold) {
+
+      newEntry = {
+        ...entry,
+        valid: valid,
+        tag: tag,
+        block: block
+      };
+    } else {
+      newEntry = {
+        ...entry,
+        valid: 0,
+        tag: 0,
+        block: ''
+      };
+    }
+
+    return newEntry;
+  }
+
+  function createTableEntries
+    (numOfRows: number,
+      numOfCols: number,
+      cacheEntry: CACHE_TABLE_ENTRY,
+      tag_bits: string
+    ): CACHE_TABLE_ENTRY[][] {
+
+    let entries: CACHE_TABLE_ENTRY[][] = [];
+
+    for (let i = 0; i < numOfRows; i++) {
+      const array: CACHE_TABLE_ENTRY[] = [];
+      for (let j = 0; j < numOfCols; j++) {
+        let entry = createTableEntry(cacheEntry, tag_bits);
+        array.push(entry);
+      }
+      entries.push(array);
+    }
+
+
+    return entries.sort((a, b) => a[0].tag - b[0].tag);
+  }
+
 
 
   /**
@@ -227,18 +234,18 @@ function App() {
 
 
   useEffect(() => {
-    const cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, address, tag_bits)
+    const cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tag_bits)
     setCacheEntries(cache);
   }, [numSets, numLines, address, tag_bits])
 
   useEffect(() => {
 
-    const newAddress = createRandomNumberWith(addressBitWidth);
+    const newAddress = createRandomNumber(0, 256);
 
     const newIndexAllocBits = createRandomNumber(2, 4);
     const newOffsetAllocBits = createRandomNumber(1, 4);
-    const newTagAllocBits = (addressBitWidth  - newIndexAllocBits - newOffsetAllocBits);
-    const newAddressInBits = [...newAddress.toString(2)];
+    const newTagAllocBits = (addressBitWidth - newIndexAllocBits - newOffsetAllocBits);
+    const newAddressInBits = [...newAddress.toString(2).padStart(addressBitWidth, '0')];
 
     const newDeepCopy = JSON.parse(JSON.stringify(newAddressInBits));
     const newOffSet_bits: string = newDeepCopy.splice(-newOffsetAllocBits).join('');
@@ -373,7 +380,6 @@ function App() {
   }
 
   function isCacheHit(): boolean {
-    debugger
     if (cacheEntries[parseInt(index_bits, 2)][lineIndex].valid === 1 &&
       cacheEntries[parseInt(index_bits, 2)][lineIndex].tag === parseInt(tag_bits, 2)) {
       return true
@@ -483,6 +489,8 @@ function App() {
     <>
 
       <Settings
+        maxAddress={address}
+        setAddress={setAddress}
         assignmentType={''}
         addressBitWidth={addressBitWidth}
         setAddressBitWidth={setAddressBitWidth}
@@ -490,7 +498,9 @@ function App() {
         setNumSets={setNumSets}
         numLines={numLines}
         setNumLines={setNumLines}
-      />
+        cacheShouldBeCold={cacheShouldBeCold}
+        setCacheShouldBeCold={setCacheShouldBeCold} 
+        />
 
 
       <Toast ref={toast} />
