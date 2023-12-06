@@ -191,11 +191,13 @@ function App() {
   const [maxAddress, setMaxAddress] = useState<number>(createRandomNumber(0, 256));
   const [address, setAddress] = useState<number>(maxAddress);
 
-  const [indexAllocBits, setIndexAllocBits] = useState<number>(createRandomNumber(2, 4));
   const [offsetAllocBits, setOffsetsetAllocBits] = useState(createRandomNumber(1, 4));
+  
+  const [numSets, setNumSets] = useState<number>(4);
+  const [indexAllocBits, setIndexAllocBits] = useState<number>(Math.log2(numSets));
+
   const [tagAllocBits, setTagAllocBits] = useState<number>(addressBitWidth - indexAllocBits - offsetAllocBits);
 
-  const [numSets, setNumSets] = useState<number>(2 ** indexAllocBits);
   const [numLines, setNumLines] = useState<number>(2 ** createRandomNumber(0, 1));
   const [lineIndex, setLineIndex] = useState<number>(Math.floor(Math.random() * numLines));
 
@@ -257,6 +259,7 @@ function App() {
 
   useEffect(() => {
     let cache;
+    setIndexAllocBits(Math.log2(numSets));
     cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tag_bits)
     setCacheEntries(cache);
   }, [numSets, numLines])
@@ -265,7 +268,7 @@ function App() {
 
     //const newAddress = createRandomNumber(0, 256);
 
-    const newIndexAllocBits = createRandomNumber(2, 4);
+    const newIndexAllocBits = Math.log2(numSets)
     const newOffsetAllocBits = createRandomNumber(1, 4);
     const newTagAllocBits = (addressBitWidth - newIndexAllocBits - newOffsetAllocBits);
     const newAddressInBits = [...address.toString(2).padStart(addressBitWidth, '0')];
