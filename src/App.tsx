@@ -215,11 +215,6 @@ function App() {
   const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tag_bits)
   const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(coldCache);
 
-
-
-
-
-
   /**
   * Displays a success toast notification.
   */
@@ -262,13 +257,9 @@ function App() {
 
   useEffect(() => {
     let cache;
-    if (cacheShouldBeCold) {
-      cache = createEmptyTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 });
-    } else {
-      cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tag_bits)
-    }
+    cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tag_bits)
     setCacheEntries(cache);
-  }, [numSets, numLines, address, tag_bits, cacheShouldBeCold])
+  }, [numSets, numLines])
 
   useEffect(() => {
 
@@ -383,7 +374,7 @@ function App() {
         createRandomNumberWith(offsetAllocBits).toString(2);
 
       const NewAddress = Number("0b" + randomEntryBits)
-      const NewaddressInBits = [...NewAddress.toString(2)];
+      const NewaddressInBits = [...NewAddress.toString(2).padStart(addressBitWidth, '0')];
 
       // TODO: Set these to the correct ones
       setAddress(NewAddress);
@@ -402,9 +393,9 @@ function App() {
       setAddressInBits(NewaddressInBits);
     }
 
-    const ff = cacheEntries.flat().some(line => line.tag === Number('0b' + tag_bits_copy))
+    const findMatchTag = cacheEntries.flat().some(line => line.tag === Number('0b' + tag_bits_copy))
 
-    if (ff) {
+    if (findMatchTag) {
       newAssignment(assigmentType)
     }
   }
