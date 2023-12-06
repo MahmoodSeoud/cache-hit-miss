@@ -22,13 +22,14 @@ export type CACHE_TABLE_ENTRY = {
 type cache_tableProps = {
     cacheEntries: CACHE_TABLE_ENTRY[][];
     setCacheEntries: React.Dispatch<React.SetStateAction<CACHE_TABLE_ENTRY[][]>>;
+    tagAllocBits: number;
     facit: CACHE_TABLE_ENTRY[][] | null;
     addressPrefix: AddressPrefix;
     baseConversion: BaseConversion;
 }
 
 
-function Cache_visual_table({ cacheEntries, setCacheEntries, facit, addressPrefix, baseConversion }: cache_tableProps) {
+function Cache_visual_table({ cacheEntries, setCacheEntries, tagAllocBits }: cache_tableProps) {
 
     function checkInput(): boolean {
         return true
@@ -61,7 +62,7 @@ function Cache_visual_table({ cacheEntries, setCacheEntries, facit, addressPrefi
                                 {cacheEntries && cacheEntries.length > 0 && cacheEntries[0].map((_, j) => (
                                     <React.Fragment key={j}>
                                         <td>{cacheEntries[i][j].valid}</td>
-                                        <td>{cacheEntries[i][j].tag.toString(2)}</td>
+                                        <td>{cacheEntries[i][j].tag.toString(2).padStart(tagAllocBits, '0')}</td>
                                         <td>{cacheEntries[i][j].block}</td>
                                     </React.Fragment >
                                 ))}
