@@ -1,10 +1,4 @@
-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 40em;
-    background-color: rgb(58, 117, 139);
-    padding: 20px;
-    border-radius: 10px;
+.input-card {
+    margin-bottom: 15px;
+    width: 203px;
 }

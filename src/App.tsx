@@ -101,10 +101,86 @@ export function createRandomNumber(a: number, b: number): number {
   return Math.floor(Math.random() * (b - a)) + a;
 }
 
-interface LogEntry {
+export interface LogEntry {
   address: number;
   hit: boolean;
   cacheEntries: CACHE_TABLE_ENTRY[][]
+}
+
+function createEmptyTableEntry(entry: CACHE_TABLE_ENTRY): CACHE_TABLE_ENTRY {
+  let newEntry: CACHE_TABLE_ENTRY;
+
+  newEntry = {
+    ...entry,
+    valid: 0,
+    tag: 0,
+    block: ''
+  };
+
+  return newEntry;
+}
+
+
+export function createEmptyTableEntries
+(numOfRows: number,
+  numOfCols: number,
+  cacheEntry: CACHE_TABLE_ENTRY,
+): CACHE_TABLE_ENTRY[][] {
+
+let entries: CACHE_TABLE_ENTRY[][] = [];
+
+for (let i = 0; i < numOfRows; i++) {
+  const array: CACHE_TABLE_ENTRY[] = [];
+  for (let j = 0; j < numOfCols; j++) {
+    let entry = createEmptyTableEntry(cacheEntry);
+    array.push(entry);
+  }
+  entries.push(array);
+}
+
+
+return entries
+}
+
+function createTableEntry(entry: CACHE_TABLE_ENTRY, tag_bits: string): CACHE_TABLE_ENTRY {
+
+  let newEntry: CACHE_TABLE_ENTRY;
+  let valid: Bit = Math.round(Math.random()) as Bit;
+  let tag: number = createRandomNumberWith(tag_bits.length);
+  const addressBitWidth = createRandomNumber(10, 14);
+  const NewAddress = createRandomNumberWith(addressBitWidth);
+  let block: string = `Mem[${NewAddress} - ${NewAddress + 7}]`;
+
+  newEntry = {
+    ...entry,
+    valid: valid,
+    tag: tag,
+    block: block
+  };
+
+  return newEntry;
+}
+
+function createTableEntries
+(numOfRows: number,
+  numOfCols: number,
+  cacheEntry: CACHE_TABLE_ENTRY,
+  tag_bits: string
+): CACHE_TABLE_ENTRY[][] {
+
+let entries: CACHE_TABLE_ENTRY[][] = [];
+
+for (let i = 0; i < numOfRows; i++) {
+  const array: CACHE_TABLE_ENTRY[] = [];
+  for (let j = 0; j < numOfCols; j++) {
+    let entry = createTableEntry(cacheEntry, tag_bits);
+    array.push(entry);
+  }
+  entries.push(array);
+}
+
+
+return entries.sort((a, b) => a[0].tag - b[0].tag);
 }
 
 const logOfEntries: LogEntry[] = [];
@@ -134,61 +210,13 @@ function App() {
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
   const toast = useRef<Toast>(null);
 
-  const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(true);
+  const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
 
   const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tag_bits)
   const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(coldCache);
 
 
-  function createTableEntry(entry: CACHE_TABLE_ENTRY, tag_bits: string): CACHE_TABLE_ENTRY {
 
-    let newEntry: CACHE_TABLE_ENTRY;
-    let valid: Bit = Math.round(Math.random()) as Bit;
-    let tag: number = createRandomNumberWith(tag_bits.length);
-    const addressBitWidth = createRandomNumber(10, 14);
-    const NewAddress = createRandomNumberWith(addressBitWidth);
-    let block: string = `Mem[${NewAddress} - ${NewAddress + 7}]`;
-    if (!cacheShouldBeCold) {
-
-      newEntry = {
-        ...entry,
-        valid: valid,
-        tag: tag,
-        block: block
-      };
-    } else {
-      newEntry = {
-        ...entry,
-        valid: 0,
-        tag: 0,
-        block: ''
-      };
-    }
-
-    return newEntry;
-  }
-
-  function createTableEntries
-    (numOfRows: number,
-      numOfCols: number,
-      cacheEntry: CACHE_TABLE_ENTRY,
-      tag_bits: string
-    ): CACHE_TABLE_ENTRY[][] {
-
-    let entries: CACHE_TABLE_ENTRY[][] = [];
-
-    for (let i = 0; i < numOfRows; i++) {
-      const array: CACHE_TABLE_ENTRY[] = [];
-      for (let j = 0; j < numOfCols; j++) {
-        let entry = createTableEntry(cacheEntry, tag_bits);
-        array.push(entry);
-      }
-      entries.push(array);
-    }
-
-
-    return entries.sort((a, b) => a[0].tag - b[0].tag);
-  }
 
 
 
@@ -216,7 +244,6 @@ function App() {
     });
   }
 
-
   useEffect(() => {
     console.log('------------------------------')
     console.log("coldCache", coldCache);
@@ -233,11 +260,15 @@ function App() {
     console.log("lineIndex", lineIndex)
   })
 
-
   useEffect(() => {
-    const cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tag_bits)
+    let cache;
+    if (cacheShouldBeCold) {
+      cache = createEmptyTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 });
+    } else {
+      cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tag_bits)
+    }
     setCacheEntries(cache);
-  }, [numSets, numLines, address, tag_bits])
+  }, [numSets, numLines, address, tag_bits, cacheShouldBeCold])
 
   useEffect(() => {
 
@@ -271,6 +302,8 @@ function App() {
     setTag_bits(newTag_bits);
 
   }, [addressBitWidth, maxAddress])
+
+
 
   /**
  * Handles the mouse enter event on an element.
@@ -417,6 +450,7 @@ function App() {
         setCacheEntries(cache);
         randomAssignment(propability);
         showSuccess('miss');
+        console.log('i was ahere')
         // TODO: add to log
 
       } else {
@@ -499,17 +533,14 @@ function App() {
         setNumSets={setNumSets}
         numLines={numLines}
         setNumLines={setNumLines}
+        setCacheEntries={setCacheEntries}
         cacheShouldBeCold={cacheShouldBeCold}
-        setCacheShouldBeCold={setCacheShouldBeCold} 
-        />
+        setCacheShouldBeCold={setCacheShouldBeCold}
+      />
 
 
       <Toast ref={toast} />
       <div className='logAssignmentWrapper'>
-        <div className='logContainer'>
-          <p>Test</p>
-        </div>
-
         <div className='input-header'>
           <div className="input-buttons">
 
