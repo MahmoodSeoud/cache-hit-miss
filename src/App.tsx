@@ -191,7 +191,7 @@ function App() {
     toast.current?.show({
       severity: 'success',
       summary: 'Correct!',
-      detail: 'Not right, The address: ' + address.toString(2) + '\nwas a cache ' + cacheAssignmentType + ' assignment',
+      detail: 'Correct! The address: ' + address.toString(2) + '\nwas a cache ' + cacheAssignmentType + ' assignment',
       life: 3000
     });
   }
@@ -237,19 +237,19 @@ function App() {
 
     const newIndexAllocBits = createRandomNumber(2, 4);
     const newOffsetAllocBits = createRandomNumber(1, 4);
-    const newTagAllocBits = (addressBitWidth - indexAllocBits - offsetAllocBits);
-
+    const newTagAllocBits = (addressBitWidth  - newIndexAllocBits - newOffsetAllocBits);
     const newAddressInBits = [...newAddress.toString(2)];
 
-    const newDeepCopy = JSON.parse(JSON.stringify(addressInBits));
-    const newOffSet_bits: string = newDeepCopy.splice(-offsetAllocBits).join('');
-    const newIndex_bits: string = newDeepCopy.splice(-indexAllocBits).join('');
+    const newDeepCopy = JSON.parse(JSON.stringify(newAddressInBits));
+    const newOffSet_bits: string = newDeepCopy.splice(-newOffsetAllocBits).join('');
+    const newIndex_bits: string = newDeepCopy.splice(-newIndexAllocBits).join('');
     const newTag_bits: string = newDeepCopy.join('');
+    console.log("newIndex_bits", newIndex_bits);
 
     console.log("index_bits ---->", index_bits)
 
-/*     const cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, newAddress, tag_bits)
-    setCacheEntries(cache); */
+    /*     const cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, newAddress, tag_bits)
+        setCacheEntries(cache); */
 
     setAddress(newAddress);
     setAddressInBits(newAddressInBits);
@@ -539,7 +539,7 @@ function App() {
                   autoCapitalize='off'
                   className={'vbit-input'}
                 >
-                  {addressInBits[addressBitWidth - index - 1]}
+                  {addressInBits[index]}
                 </div>
               </div>
             ))}
