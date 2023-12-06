@@ -112,7 +112,8 @@ const logOfEntries: LogEntry[] = [];
 
 function App() {
   const [addressBitWidth, setAddressBitWidth] = useState<number>(createRandomNumber(10, 14));
-  const [address, setAddress] = useState<number>(createRandomNumber(0, 256));
+  const [maxAddress, setMaxAddress] = useState<number>(createRandomNumber(0, 256));
+  const [address, setAddress] = useState<number>(maxAddress);
 
   const [indexAllocBits, setIndexAllocBits] = useState<number>(createRandomNumber(2, 4));
   const [offsetAllocBits, setOffsetsetAllocBits] = useState(createRandomNumber(1, 4));
@@ -240,12 +241,12 @@ function App() {
 
   useEffect(() => {
 
-    const newAddress = createRandomNumber(0, 256);
+    //const newAddress = createRandomNumber(0, 256);
 
     const newIndexAllocBits = createRandomNumber(2, 4);
     const newOffsetAllocBits = createRandomNumber(1, 4);
     const newTagAllocBits = (addressBitWidth - newIndexAllocBits - newOffsetAllocBits);
-    const newAddressInBits = [...newAddress.toString(2).padStart(addressBitWidth, '0')];
+    const newAddressInBits = [...address.toString(2).padStart(addressBitWidth, '0')];
 
     const newDeepCopy = JSON.parse(JSON.stringify(newAddressInBits));
     const newOffSet_bits: string = newDeepCopy.splice(-newOffsetAllocBits).join('');
@@ -258,7 +259,7 @@ function App() {
     /*     const cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, newAddress, tag_bits)
         setCacheEntries(cache); */
 
-    setAddress(newAddress);
+    setAddress(createRandomNumber(0, maxAddress));
     setAddressInBits(newAddressInBits);
 
     setIndexAllocBits(newIndexAllocBits);
@@ -269,7 +270,7 @@ function App() {
     setIndex_bits(newIndex_bits);
     setTag_bits(newTag_bits);
 
-  }, [addressBitWidth])
+  }, [addressBitWidth, maxAddress])
 
   /**
  * Handles the mouse enter event on an element.
@@ -489,8 +490,8 @@ function App() {
     <>
 
       <Settings
-        maxAddress={address}
-        setAddress={setAddress}
+        maxAddress={maxAddress}
+        setMaxAddress={setMaxAddress}
         assignmentType={''}
         addressBitWidth={addressBitWidth}
         setAddressBitWidth={setAddressBitWidth}

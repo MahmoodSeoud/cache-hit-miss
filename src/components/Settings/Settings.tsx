@@ -5,11 +5,12 @@ import { InputNumber } from "primereact/inputnumber";
 import { SelectButton, SelectButtonChangeEvent } from 'primereact/selectbutton';
 import './Settings.css';
 import 'primeicons/primeicons.css';
+import { createRandomNumber } from "../../App";
 
 
 interface SettingsProps {
     maxAddress: number;
-    setAddress: React.Dispatch<SetStateAction<number>>;
+    setMaxAddress: React.Dispatch<SetStateAction<number>>;
     assignmentType: string;
     addressBitWidth: number;
     setAddressBitWidth: React.Dispatch<SetStateAction<number>>;
@@ -41,7 +42,7 @@ export default function Settings(props: SettingsProps) {
                 <div className="settings-window">
 
                     <form method="dialog">
-                        <div className="card flex justify-content-center">
+                        <div>
                             <label htmlFor="AddressValue">Address Max Value</label>
                             <div>
                                 <InputNumber
@@ -50,7 +51,7 @@ export default function Settings(props: SettingsProps) {
                                 />
                                 <Slider
                                     value={props.maxAddress}
-                                    onChange={(e: SliderChangeEvent) => props.setAddress(e.value as number)}
+                                    onChange={(e: SliderChangeEvent) => props.setMaxAddress(e.value as number)}
                                     max={1024}
                                     min={1}
                                     className="w-14rem"
@@ -58,8 +59,6 @@ export default function Settings(props: SettingsProps) {
 
                                 />
                             </div>
-                        </div>
-                        <div className="card flex justify-content-center">
                             <label htmlFor="numSets">Number of sets</label>
                             <div>
                                 <InputNumber
@@ -77,9 +76,7 @@ export default function Settings(props: SettingsProps) {
 
                                 />
                             </div>
-                        </div>
 
-                        <div className="card flex justify-content-center">
                             <label htmlFor="numLines">Number of lines</label>
                             <div>
                                 <SelectButton value={props.numLines.toString()}
@@ -90,33 +87,29 @@ export default function Settings(props: SettingsProps) {
                             </div>
                         </div>
 
-                        <div className="card flex justify-content-center">
-                            <label htmlFor="numLines">Should cache be cold?</label>
-                            <div>
-                                <SelectButton value={props.cacheShouldBeCold}
-                                    onChange={(e: SelectButtonChangeEvent) => props.setCacheShouldBeCold(e.value)}
-                                    options={cacheShouldBeCold}
-                                />
+                        <label htmlFor="numLines">Should cache be cold?</label>
+                        <div>
+                            <SelectButton value={props.cacheShouldBeCold}
+                                onChange={(e: SelectButtonChangeEvent) => props.setCacheShouldBeCold(e.value)}
+                                options={cacheShouldBeCold}
+                            />
 
-                            </div>
                         </div>
 
-                        <div className="card flex justify-content-center">
-                            <label htmlFor="addressBitWidth">Address bit width</label>
-                            <div>
-                                <InputNumber
-                                    value={props.addressBitWidth}
-                                    disabled />
-                                <Slider
-                                    value={props.addressBitWidth}
-                                    onChange={(e: SliderChangeEvent) => props.setAddressBitWidth(e.value as number)}
-                                    max={14}
-                                    min={10}
-                                    className="w-14rem"
-                                    step={1}
+                        <label htmlFor="addressBitWidth">Address bit width</label>
+                        <div>
+                            <InputNumber
+                                value={props.addressBitWidth}
+                                disabled />
+                            <Slider
+                                value={props.addressBitWidth}
+                                onChange={(e: SliderChangeEvent) => props.setAddressBitWidth(e.value as number)}
+                                max={14}
+                                min={10}
+                                className="w-14rem"
+                                step={1}
 
-                                />
-                            </div>
+                            />
                         </div>
 
 
