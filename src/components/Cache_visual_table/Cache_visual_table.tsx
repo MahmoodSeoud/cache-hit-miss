@@ -24,13 +24,10 @@ type cache_tableProps = {
     cache: Cache;
     setCache: React.Dispatch<React.SetStateAction<Cache>>
     tag: number;
-    facit: CACHE_TABLE_ENTRY[][] | null;
-    addressPrefix: AddressPrefix;
-    baseConversion: BaseConversion;
 }
 
 
-function Cache_visual_table({ cache, setCache, tag }: cache_tableProps) {
+function Cache_visual_table({ cache, setCache, tag}: cache_tableProps) {
 
     function checkInput(): boolean {
         return true
@@ -65,7 +62,7 @@ function Cache_visual_table({ cache, setCache, tag }: cache_tableProps) {
                                     <React.Fragment key={j}>
                                         <td>{line.valid}</td>
                                         <td>{line.tag.toString(2).padStart(tag, '0')}</td>
-{/*                                         <td>{line.block}</td> */}
+                                         <td>{line.blockSizeStr}</td> 
                                     </React.Fragment >
                                 ))}
                             </tr>

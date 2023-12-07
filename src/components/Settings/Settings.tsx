@@ -10,7 +10,7 @@ import { Button } from 'primereact/button';
 import { Sidebar } from 'primereact/sidebar';
 import './Settings.css';
 import 'primeicons/primeicons.css';
-import { Cache } from "../../App";
+import { Cache, CacheSet } from "../../App";
 
 
 interface SettingsProps {
@@ -24,6 +24,10 @@ interface SettingsProps {
     setCache: React.Dispatch<SetStateAction<Cache>>;
     cacheShouldBeCold: boolean;
     setCacheShouldBeCold: React.Dispatch<SetStateAction<boolean>>;
+    cache: Cache;
+    isCacheEmpty: () => boolean;
+    initEmptyCache: (numSets: number, blockSize: number, linesPerSet: number) => Cache;
+    initNonEmptyCache: (numSets: number, blockSize: number, linesPerSet: number) => Cache;
     //setCacheEntries: React.Dispatch<SetStateAction<CACHE_TABLE_ENTRY[][]>>;
 }
 
@@ -35,15 +39,43 @@ export default function Settings(props: SettingsProps) {
     function handleSetState(value: number | number[]): void {
 
         const index = setMarks.findIndex(mark => value === mark.value);
-        //props.setCache(Number(setMarks[index].label))
-        props.setCache((prevState: Cache) => {
-            let newCache: Cache = { ...prevState };
-            newCache.numSets = Number(setMarks[index].label);
 
-            newCache.sets = Array.from({ length: newCache.numSets }, (_, i) => ({ lines: newCache.sets[i].lines }));
-            return newCache;
-        });
+        if (props.isCacheEmpty()) {
+            //props.setCache(props.initEmptyCache(value as number, props.cache.blockSize, Number(setMarks[index].label)));
+            console.log('ferr')
+            props.setCache(prevState => {
+                let newCache: Cache = { ...prevState };
+                newCache.numSets = Number(setMarks[index].label)
+                const sets: CacheSet[] = [];
+                for (let i = 0; i < newCache.numSets; i++) {
+                    sets.push({ lines: Array.from({ length: newCache.linesPerSet }, (_, i) => ({ tag: 0, valid: 0, empty: 1, blockSizeStr: "" })) });
+                }
+                return newCache;
+            })
+        } else {
+            props.setCache((prevState: Cache) => {
 
+                let newCache: Cache = { ...prevState };
+                newCache.numSets = Number(setMarks[index].label)
+                const sets: CacheSet[] = [];
+                for (let index = 0; index < Number(setMarks[index].label); index++) {
+                    if (index < newCache.sets.length) {
+                        sets.push({
+                            lines: Array.from({ length: newCache.numSets }, (_, k) => ({
+                                tag: newCache.sets[index].lines[k].tag,
+                                valid: newCache.sets[index].lines[k].valid,
+                                empty: newCache.sets[index].lines[k].empty,
+                                blockSizeStr: newCache.sets[index].lines[k].blockSizeStr,
+                            }))
+                        });
+                    } else {
+                        sets.push({ lines: Array.from({ length: newCache.linesPerSet }, (_, i) => ({ tag: 0, valid: 0, empty: 1, blockSizeStr: "" })) });
+                        newCache.sets = sets;
+                    }
+                }
+                return newCache;
+            });
+        }
     }
 
     function handleNumberOfLines(linesPerSet: number) {
@@ -111,7 +143,7 @@ export default function Settings(props: SettingsProps) {
                             <Button
                                 severity="danger"
                                 label="Clear Cache"
-                                //onClick={(e) => props.setCacheEntries(createEmptyTableEntries(props.numSets, props.linesPerSet, { tag: 0, valid: 0, block: "" }))}
+                            //onClick={(e) => props.setCacheEntries(createEmptyTableEntries(props.numSets, props.linesPerSet, { tag: 0, valid: 0, block: "" }))}
                             ></Button>
 
 
@@ -221,97 +253,97 @@ const grey = {
 
 const Slider = styled(BaseSlider)(
     ({ theme }) => `
-  color: ${theme.palette.mode === 'light' ? blue[500] : blue[400]};
-  height: 6px;
-  width: 100%;
-  padding: 16px 0;
-  display: inline-block;
-  position: relative;
-  cursor: pointer;
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
+color: ${theme.palette.mode === 'light' ? blue[500] : blue[400]};
+height: 6px;
+width: 100%;
+padding: 16px 0;
+display: inline-block;
+position: relative;
+cursor: pointer;
+touch-action: none;
+-webkit-tap-highlight-color: transparent;
 
-  &.${sliderClasses.disabled} { 
-    pointer-events: none;
-    cursor: default;
-    color: ${theme.palette.mode === 'light' ? grey[300] : grey[600]};
-    opacity: 0.5;
-  }
+&.${sliderClasses.disabled} { 
+pointer-events: none;
+cursor: default;
+color: ${theme.palette.mode === 'light' ? grey[300] : grey[600]};
+opacity: 0.5;
+}
 
-  & .${sliderClasses.rail} {
-    display: block;
-    position: absolute;
-    width: 100%;
-    height: 4px;
-    border-radius: 2px;
-    background-color: currentColor;
-    opacity: 0.4;
-  }
+& .${sliderClasses.rail} {
+display: block;
+position: absolute;
+width: 100%;
+height: 4px;
+border-radius: 2px;
+background-color: currentColor;
+opacity: 0.4;
+}
 
-  & .${sliderClasses.track} {
-    display: block;
-    position: absolute;
-    height: 4px;
-    border-radius: 2px;
-    background-color: currentColor;
-  }
+& .${sliderClasses.track} {
+display: block;
+position: absolute;
+height: 4px;
+border-radius: 2px;
+background-color: currentColor;
+}
 
-  & .${sliderClasses.thumb} {
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    margin-left: -6px;
-    margin-top: -6px;
-    box-sizing: border-box;
-    border-radius: 50%;
-    outline: 0;
-    border: 3px solid currentColor;
-    background-color: #fff;
+& .${sliderClasses.thumb} {
+position: absolute;
+width: 16px;
+height: 16px;
+margin-left: -6px;
+margin-top: -6px;
+box-sizing: border-box;
+border-radius: 50%;
+outline: 0;
+border: 3px solid currentColor;
+background-color: #fff;
 
-    &:hover{
-      box-shadow: 0 0 0 4px ${alpha(
+&:hover{
+box-shadow: 0 0 0 4px ${alpha(
         theme.palette.mode === 'light' ? blue[200] : blue[300],
         0.3,
     )};
-    }
-    
-    &.${sliderClasses.focusVisible} {
-      box-shadow: 0 0 0 4px ${theme.palette.mode === 'dark' ? blue[700] : blue[200]};
-      outline: none;
-    }
+}
+ 
+&.${sliderClasses.focusVisible} {
+box-shadow: 0 0 0 4px ${theme.palette.mode === 'dark' ? blue[700] : blue[200]};
+outline: none;
+}
 
-    &.${sliderClasses.active} {
-      box-shadow: 0 0 0 5px ${alpha(
+&.${sliderClasses.active} {
+box-shadow: 0 0 0 5px ${alpha(
         theme.palette.mode === 'light' ? blue[200] : blue[300],
         0.5,
     )};
-      outline: none;
-    }
-  }
+outline: none;
+}
+}
 
-  & .${sliderClasses.mark} {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-radius: 99%;
-    background-color: ${theme.palette.mode === 'light' ? blue[200] : blue[900]};
-    top: 43%;
-    transform: translateX(-50%);
-  }
+& .${sliderClasses.mark} {
+position: absolute;
+width: 8px;
+height: 8px;
+border-radius: 99%;
+background-color: ${theme.palette.mode === 'light' ? blue[200] : blue[900]};
+top: 43%;
+transform: translateX(-50%);
+}
 
-  & .${sliderClasses.markActive} {
-    background-color: ${theme.palette.mode === 'light' ? blue[500] : blue[400]};
-  }
+& .${sliderClasses.markActive} {
+background-color: ${theme.palette.mode === 'light' ? blue[500] : blue[400]};
+}
 
-  & .${sliderClasses.markLabel} {
-    font-family: IBM Plex Sans;
-    font-weight: 600;
-    font-size: 12px;
-    position: absolute;
-    top: 20px;
-    transform: translateX(-50%);
-    margin-top: 8px;
-  }
+& .${sliderClasses.markLabel} {
+font-family: IBM Plex Sans;
+font-weight: 600;
+font-size: 12px;
+position: absolute;
+top: 20px;
+transform: translateX(-50%);
+margin-top: 8px;
+}
 `,
 );
 
