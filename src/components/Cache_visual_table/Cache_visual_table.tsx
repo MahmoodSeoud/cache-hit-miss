@@ -3,6 +3,7 @@ import { AddressPrefix, BaseConversion, Bit, InputField, InputFieldsMap } from '
 import { useState, useEffect } from 'react';
 import './Cache_visual_table.css'
 import React from 'react';
+import { Cache } from '../../App';
 
 export type InputFields = {
     VirtualAddress: string;
@@ -20,16 +21,16 @@ export type CACHE_TABLE_ENTRY = {
 };
 
 type cache_tableProps = {
-    cacheEntries: CACHE_TABLE_ENTRY[][];
-    setCacheEntries: React.Dispatch<React.SetStateAction<CACHE_TABLE_ENTRY[][]>>;
-    tagAllocBits: number;
+    cache: Cache;
+    setCache: React.Dispatch<React.SetStateAction<Cache>>
+    tag: number;
     facit: CACHE_TABLE_ENTRY[][] | null;
     addressPrefix: AddressPrefix;
     baseConversion: BaseConversion;
 }
 
 
-function Cache_visual_table({ cacheEntries, setCacheEntries, tagAllocBits }: cache_tableProps) {
+function Cache_visual_table({ cache, setCache, tag }: cache_tableProps) {
 
     function checkInput(): boolean {
         return true
@@ -43,7 +44,8 @@ function Cache_visual_table({ cacheEntries, setCacheEntries, tagAllocBits }: cac
                 <thead>
                     <tr>
                         <th>Set</th>
-                        {cacheEntries && cacheEntries.length > 0 && cacheEntries[0].map((_, s) => (
+                        {cache && cache.linesPerSet > 0 && Array(cache.linesPerSet).fill(null).map((_, s) => (
+                            
                             <React.Fragment key={s}>
                                 <th>Valid</th>
                                 <th>Tag</th>
@@ -54,16 +56,16 @@ function Cache_visual_table({ cacheEntries, setCacheEntries, tagAllocBits }: cac
                 </thead>
                 <tbody>
 
-                    {cacheEntries && cacheEntries.map((_, i) => {
+                    {cache && cache.sets.map((set, i) => {
 
                         return (
                             <tr key={i}>
                                 <td>{i}</td>
-                                {cacheEntries && cacheEntries.length > 0 && cacheEntries[0].map((_, j) => (
+                                {set && set.lines.length > 0 && set.lines.map((line, j) => (
                                     <React.Fragment key={j}>
-                                        <td>{cacheEntries[i][j].valid}</td>
-                                        <td>{cacheEntries[i][j].tag.toString(2).padStart(tagAllocBits, '0')}</td>
-                                        <td>{cacheEntries[i][j].block}</td>
+                                        <td>{line.valid}</td>
+                                        <td>{line.tag.toString(2).padStart(tag, '0')}</td>
+{/*                                         <td>{line.block}</td> */}
                                     </React.Fragment >
                                 ))}
                             </tr>
@@ -72,7 +74,7 @@ function Cache_visual_table({ cacheEntries, setCacheEntries, tagAllocBits }: cac
 
                 </tbody>
             </table>
-        </div>    );
+        </div>);
 }
 
 export default Cache_visual_table;

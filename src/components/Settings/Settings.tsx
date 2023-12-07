@@ -10,8 +10,7 @@ import { Button } from 'primereact/button';
 import { Sidebar } from 'primereact/sidebar';
 import './Settings.css';
 import 'primeicons/primeicons.css';
-import { CACHE_TABLE_ENTRY } from "../Cache_input_table/Cache_input_table";
-import { createEmptyTableEntries } from "../../App";
+import { Cache } from "../../App";
 
 
 interface SettingsProps {
@@ -21,12 +20,11 @@ interface SettingsProps {
     addressBitWidth: number;
     setAddressBitWidth: React.Dispatch<SetStateAction<number>>;
     numSets: number;
-    setNumSets: React.Dispatch<SetStateAction<number>>;
-    numLines: number;
-    setNumLines: React.Dispatch<SetStateAction<number>>;
+    linesPerSet: number;
+    setCache: React.Dispatch<SetStateAction<Cache>>;
     cacheShouldBeCold: boolean;
     setCacheShouldBeCold: React.Dispatch<SetStateAction<boolean>>;
-    setCacheEntries: React.Dispatch<SetStateAction<CACHE_TABLE_ENTRY[][]>>;
+    //setCacheEntries: React.Dispatch<SetStateAction<CACHE_TABLE_ENTRY[][]>>;
 }
 
 export default function Settings(props: SettingsProps) {
@@ -37,8 +35,26 @@ export default function Settings(props: SettingsProps) {
     function handleSetState(value: number | number[]): void {
 
         const index = setMarks.findIndex(mark => value === mark.value);
-        props.setNumSets(Number(setMarks[index].label))
+        //props.setCache(Number(setMarks[index].label))
+        props.setCache((prevState: Cache) => {
+            let newCache: Cache = { ...prevState };
+            newCache.numSets = Number(setMarks[index].label);
+
+            newCache.sets = Array.from({ length: newCache.numSets }, (_, i) => ({ lines: newCache.sets[i].lines }));
+            return newCache;
+        });
+
     }
+
+    function handleNumberOfLines(linesPerSet: number) {
+        props.setCache((prevState: Cache) => {
+            let newCache: Cache = { ...prevState };
+            newCache.linesPerSet = linesPerSet
+            newCache.sets = Array.from({ length: newCache.numSets }, (_, i) => ({ lines: newCache.sets[i].lines }));
+            return newCache;
+        });
+    }
+
     return (
         <>
             <div className="settings-window">
@@ -81,21 +97,21 @@ export default function Settings(props: SettingsProps) {
                             />
                         </div>
 
-                        <label htmlFor="numLines">Number of lines</label>
+                        <label htmlFor="linesPerSet">Number of lines</label>
                         <div className="input-card">
-                            <SelectButton value={props.numLines.toString()}
-                                onChange={(e: SelectButtonChangeEvent) => props.setNumLines(e.value)}
+                            <SelectButton value={props.linesPerSet.toString()}
+                                onChange={(e: SelectButtonChangeEvent) => handleNumberOfLines(e.value)}
                                 options={lineOptions}
                             />
 
                         </div>
 
-                        <label htmlFor="numLines"></label>
+                        <label htmlFor="linesPerSet"></label>
                         <div className="input-card">
                             <Button
                                 severity="danger"
                                 label="Clear Cache"
-                                onClick={(e) => props.setCacheEntries(createEmptyTableEntries(props.numSets, props.numLines, { tag: 0, valid: 0, block: "" }))}
+                                //onClick={(e) => props.setCacheEntries(createEmptyTableEntries(props.numSets, props.linesPerSet, { tag: 0, valid: 0, block: "" }))}
                             ></Button>
 
 
