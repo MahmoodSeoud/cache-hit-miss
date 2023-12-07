@@ -36,53 +36,23 @@ export default function Settings(props: SettingsProps) {
     const lineOptions: string[] = ['1', '2'];
 
 
-    function handleSetState(value: number | number[]): void {
+    function handleSetNumSets(value: number | number[]): void {
 
         const index = setMarks.findIndex(mark => value === mark.value);
+        const numSets = Number(setMarks[index].label)
 
-        if (props.isCacheEmpty()) {
-            //props.setCache(props.initEmptyCache(value as number, props.cache.blockSize, Number(setMarks[index].label)));
-            console.log('ferr')
-            props.setCache(prevState => {
-                let newCache: Cache = { ...prevState };
-                newCache.numSets = Number(setMarks[index].label)
-                const sets: CacheSet[] = [];
-                for (let i = 0; i < newCache.numSets; i++) {
-                    sets.push({ lines: Array.from({ length: newCache.linesPerSet }, (_, i) => ({ tag: 0, valid: 0, empty: 1, blockSizeStr: "" })) });
-                }
-                return newCache;
-            })
-        } else {
-            props.setCache((prevState: Cache) => {
+        props.setCache((prevState: Cache) => {
+            let newCache: Cache = { ...prevState };
+            newCache.numSets = numSets;
+            return newCache;
+        });
 
-                let newCache: Cache = { ...prevState };
-                newCache.numSets = Number(setMarks[index].label)
-                const sets: CacheSet[] = [];
-                for (let index = 0; index < Number(setMarks[index].label); index++) {
-                    if (index < newCache.sets.length) {
-                        sets.push({
-                            lines: Array.from({ length: newCache.numSets }, (_, k) => ({
-                                tag: newCache.sets[index].lines[k].tag,
-                                valid: newCache.sets[index].lines[k].valid,
-                                empty: newCache.sets[index].lines[k].empty,
-                                blockSizeStr: newCache.sets[index].lines[k].blockSizeStr,
-                            }))
-                        });
-                    } else {
-                        sets.push({ lines: Array.from({ length: newCache.linesPerSet }, (_, i) => ({ tag: 0, valid: 0, empty: 1, blockSizeStr: "" })) });
-                        newCache.sets = sets;
-                    }
-                }
-                return newCache;
-            });
-        }
     }
 
-    function handleNumberOfLines(linesPerSet: number) {
+    function handleSetNumLines(linesPerSet: number) {
         props.setCache((prevState: Cache) => {
             let newCache: Cache = { ...prevState };
             newCache.linesPerSet = linesPerSet
-            newCache.sets = Array.from({ length: newCache.numSets }, (_, i) => ({ lines: newCache.sets[i].lines }));
             return newCache;
         });
     }
@@ -123,7 +93,7 @@ export default function Settings(props: SettingsProps) {
                             />
 
                             <DiscreteSliderValues
-                                handleSetState={handleSetState}
+                                handleSetNumSets={handleSetNumSets}
                                 marks={setMarks}
                                 value={props.numSets}
                             />
@@ -132,7 +102,7 @@ export default function Settings(props: SettingsProps) {
                         <label htmlFor="linesPerSet">Number of lines</label>
                         <div className="input-card">
                             <SelectButton value={props.linesPerSet.toString()}
-                                onChange={(e: SelectButtonChangeEvent) => handleNumberOfLines(e.value)}
+                                onChange={(e: SelectButtonChangeEvent) => handleSetNumLines(e.value)}
                                 options={lineOptions}
                             />
 
@@ -205,7 +175,7 @@ const setMarks: Mark[] = [
 ];
 
 interface DiscreteSliderValuesProps {
-    handleSetState: (value: number | number[]) => void;
+    handleSetNumSets: (value: number | number[]) => void;
     marks: Mark[];
     value: number;
 }
@@ -219,7 +189,7 @@ function DiscreteSliderValues(props: DiscreteSliderValuesProps) {
                 defaultValue={defaultValue}
                 step={null}
                 style={{ width: '203px' }}
-                onChange={(e, value) => props.handleSetState(value as number)}
+                onChange={(e, value) => props.handleSetNumSets(value as number)}
                 marks={props.marks}
             />
         </Box>

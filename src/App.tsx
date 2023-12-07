@@ -372,12 +372,14 @@ function App() {
     })
    */
   useEffect(() => {
-    let cache;
+    let cache_;
     //setSetIndex(Math.log2(numSets));
 
-    cache = initNonEmptyCache(4, 64, 2 ** createRandomNumber(0, 1));
-    console.log('cache', cache)
-    setCache(cache);
+    cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet);
+    console.log('cache', cache_)
+    
+    setCache(cache_);
+    
   }, [cache.numSets, cache.linesPerSet, cache.blockSize])
 
   useEffect(() => {
