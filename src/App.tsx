@@ -72,40 +72,6 @@ export type Bit = typeof bitMap[keyof typeof bitMap];
  * @param {any} object2 - The second value to compare.
  * @returns {boolean} - Returns true if the values are equivalent, false otherwise.
  */
-// TODO: FIx all the any types
-function deepEqual(object1: any, object2: any): boolean {
-  const keys1 = Object.keys(object1);
-  const keys2 = Object.keys(object2);
-
-  if (keys1.length !== keys2.length) {
-    return false;
-  }
-
-  for (const key of keys1) {
-    const val1: any = object1[key];
-    const val2: any = object2[key];
-    const areObjects = isObject(val1) && isObject(val2);
-    if (
-      areObjects && !deepEqual(val1, val2) ||
-      !areObjects && val1 !== val2
-    ) {
-      return false;
-    }
-  }
-
-
-  return true;
-}
-
-/**
-* Checks if a value is an object.
-*
-* @param {InputFields} object - The value to check.
-* @returns {boolean} - Returns true if the value is an object, false otherwise.
-*/
-function isObject(object: InputFields): boolean {
-  return object != null && typeof object === 'object';
-}
 
 /**
  * Generates a random number within a range determined by the bit length.
@@ -118,7 +84,6 @@ export function createRandomNumberWith(bitLength: number): number {
 
   return createRandomNumber(2 ** (bitLength - 1), 2 ** bitLength)
 }
-
 
 export function createRandomNumber(a: number, b: number): number {
   return Math.floor(Math.random() * (b - a)) + a;
@@ -176,24 +141,24 @@ function App() {
   const [maxAddress, setMaxAddress] = useState<number>(createRandomNumber(0, 256));
   const [address, setAddress] = useState<number>(maxAddress);
 
-  //const [numSets, setNumSets] = useState<number>(4);
-  //const [numLines, setNumLines] = useState<number>(2 ** createRandomNumber(0, 1));
-
   // TODO: Make the numSets a variable that is calculated aswell as the block size
   const [cache, setCache] = useState<Cache>(initNonEmptyCache(4, 64, 2 ** createRandomNumber(0, 1)));
-  const [blockOffset, setBlockOffset] = useState<number>(Math.log2(cache.blockSize));
-  const [setIndex, setSetIndex] = useState<number>(Math.log2(cache.numSets));
-  const [tag, setTag] = useState<number>(addressBitWidth - (setIndex + blockOffset));
-  const [lineIndex, setLineIndex] = useState<number>(Math.floor(Math.random() * cache.linesPerSet));
-
-  const [addressInBits, setAddressInBits] = useState<string[]>([...address.toString(2).padStart(addressBitWidth, '0')]);
-  //const deepCopy = JSON.parse(JSON.stringify(addressInBits));
-  //const [blockOffsetBits, setBlockOffsetBits] = useState<string>(addressInBits.toSpliced(-blockOffset).join('')); NOTE: We may not need this 
-  const [setIndexBits, setSetIndexBits] = useState<string>(addressInBits.toSpliced(- (blockOffset + setIndex)).join(''));
-  const [tagBits, setTagBits] = useState<string>(addressInBits.toSpliced(0, -(blockOffset + setIndex)).join(''));
-
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
 
+  const blockOffset: number = Math.log2(cache.blockSize);
+  const setIndex: number = Math.log2(cache.numSets);
+  const tag : number= addressBitWidth - (setIndex + blockOffset);
+  const lineIndex: number = Math.floor(Math.random() * cache.linesPerSet);
+
+  const addressInBits : string[]=([...address.toString(2).padStart(addressBitWidth, '0')]);
+  const setIndexBits: string = addressInBits.toSpliced(- (blockOffset + setIndex)).join('');
+  const tagBits: string = (addressInBits.toSpliced(0, -(blockOffset + setIndex)).join(''));
+
+
+  useEffect(() => {
+    setAddress(createRandomNumber(0, maxAddress));
+
+  }, [addressBitWidth, maxAddress])
   //const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tagBits)
   //const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(coldCache);
 
@@ -202,14 +167,7 @@ function App() {
   const toast = useRef<Toast>(null);
 
   function isCacheEmpty(): boolean {
-    const coldCache: Cache = {
-      numSets: 4,
-      blockSize: 64,
-      linesPerSet: 2,
-      sets: [],
-    }
-
-    return deepEqual(cache, coldCache)
+    return cache.sets.every(set => set.lines.every(line => line.empty === 1));
   }
   // Function to initialize the cache
   function initEmptyCache(numSets: number, blockSize: number, linesPerSet: number): Cache {
@@ -281,54 +239,6 @@ function App() {
   }
 
 
-  function createTableEntry(entry: CACHE_TABLE_ENTRY, tagBits: string): CACHE_TABLE_ENTRY {
-    const NewAddress = createRandomNumber(0, maxAddress);
-    const newAddressInBits = [...NewAddress.toString(2).padStart(addressBitWidth, '0')];
-    const deepCopy = JSON.parse(JSON.stringify(newAddressInBits));
-
-
-    const newOffSet_bits: string = deepCopy.splice(-blockOffset).join('');
-    const newIndex_bits: string = deepCopy.splice(-setIndex).join('');
-    const newtagBits: string = deepCopy.join('');
-
-    let newEntry: CACHE_TABLE_ENTRY;
-    let valid: Bit = Math.round(Math.random()) as Bit;
-    let tag: number = Number('0b' + newtagBits);
-    let block: string = `Mem[${NewAddress} - ${NewAddress + 7}]`;
-
-
-    newEntry = {
-      ...entry,
-      valid: valid,
-      tag: tag,
-      block: block
-    };
-
-    return newEntry;
-  }
-
-  function createTableEntries
-    (numOfRows: number,
-      numOfCols: number,
-      cacheEntry: CACHE_TABLE_ENTRY,
-      tagBits: string
-    ): CACHE_TABLE_ENTRY[][] {
-
-    let validEntries: CACHE_TABLE_ENTRY[][] = [];
-
-    for (let i = 0; i < numOfRows; i++) {
-      const array: CACHE_TABLE_ENTRY[] = [];
-      for (let j = 0; j < numOfCols; j++) {
-        let entry = createTableEntry(cacheEntry, tagBits);
-        array.push(entry);
-      }
-      validEntries.push(array);
-    }
-
-
-    return validEntries.sort((a, b) => a[0].tag - b[0].tag);
-  }
-
   /**
   * Displays a success toast notification.
   */
@@ -377,39 +287,12 @@ function App() {
 
     cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet);
     console.log('cache', cache_)
-    
+
     setCache(cache_);
-    
+
   }, [cache.numSets, cache.linesPerSet, cache.blockSize])
 
-  useEffect(() => {
 
-    //const newAddress = createRandomNumber(0, 256);
-
-    const newIndexAllocBits = Math.log2(cache.numSets)
-    const newOffsetAllocBits = createRandomNumber(1, 4);
-    const newtag = (addressBitWidth - newIndexAllocBits - newOffsetAllocBits);
-    const newAddressInBits = [...address.toString(2).padStart(addressBitWidth, '0')];
-
-    const newDeepCopy = JSON.parse(JSON.stringify(newAddressInBits));
-    const newOffSet_bits: string = newDeepCopy.splice(-newOffsetAllocBits).join('');
-    const newIndex_bits: string = newDeepCopy.splice(-newIndexAllocBits).join('');
-    const newtagBits: string = newDeepCopy.join('');
-    /*     const cache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, newAddress, tagBits)
-        setCacheEntries(cache); */
-
-    setAddress(createRandomNumber(0, maxAddress));
-    setAddressInBits(newAddressInBits);
-
-    setSetIndex(newIndexAllocBits);
-    setBlockOffset(newOffsetAllocBits);
-    setTag(newtag);
-
-    //setBlockOffsetBits(newOffSet_bits);
-    setSetIndexBits(newIndex_bits);
-    setTagBits(newtagBits);
-
-  }, [addressBitWidth, maxAddress])
 
 
 
@@ -463,21 +346,21 @@ function App() {
 
 
 
-  function getRandomValidEntry(cacheEntries: CACHE_TABLE_ENTRY[][]): [CACHE_TABLE_ENTRY, number] {
-    // find all valid entries
-    const validEntries = cacheEntries.flat().filter(entry => entry.valid === 1 && entry.block !== '');
-
-    // Find a random valid entry
-    const validRandomEntry = validEntries[Math.floor(Math.random() * validEntries.length)]
-    let validRandomEntryIndex;
-    if (!isCacheEmpty()) {
-      validRandomEntryIndex = cacheEntries.flat().findIndex((x) => deepEqual(x, validRandomEntry))
-    } else {
-      validRandomEntryIndex = cacheEntries.flat().findIndex((x) => validRandomEntry);
-    }
-
-    return [validRandomEntry, validRandomEntryIndex];
-  }
+  /*   function getRandomValidEntry(cacheEntries: CACHE_TABLE_ENTRY[][]): [CACHE_TABLE_ENTRY, number] {
+      // find all valid entries
+      const validEntries = cacheEntries.flat().filter(entry => entry.valid === 1 && entry.block !== '');
+  
+      // Find a random valid entry
+      const validRandomEntry = validEntries[Math.floor(Math.random() * validEntries.length)]
+      let validRandomEntryIndex;
+      if (!isCacheEmpty()) {
+        validRandomEntryIndex = cacheEntries.flat().findIndex((x) => deepEqual(x, validRandomEntry))
+      } else {
+        validRandomEntryIndex = cacheEntries.flat().findIndex((x) => validRandomEntry);
+      }
+  
+      return [validRandomEntry, validRandomEntryIndex];
+    } */
 
   function padZeroOnBitsToFitBitLength(entryIndex: number) {
     if (entryIndex.toString(2).length === setIndex) {
@@ -547,12 +430,12 @@ function App() {
     }
   }
 
-  function handleCacheButtonClick(isHit: boolean) {
+  function handleCacheButtonClick(userGuessedHit: boolean) {
     const propability = 50;
     const wasAHit = isCacheHit();
     const wasAMiss = !wasAHit;
 
-    if (isHit) {
+    if (userGuessedHit) {
       if (wasAHit) {
         randomAssignment(propability);
         showSuccess('hit');
@@ -562,7 +445,7 @@ function App() {
       }
     } else {
       if (wasAMiss) {
-        const cache = createFacitCache();
+        insertAddressInCache();
         //setCacheEntries(cache);
         randomAssignment(propability);
         showSuccess('miss');
@@ -575,17 +458,19 @@ function App() {
 
   }
 
-  function createFacitCache(): CACHE_TABLE_ENTRY[][] {
+  function insertAddressInCache(): void {
     const set = parseInt(setIndexBits, 2)
-    const deepCopy: CACHE_TABLE_ENTRY[][] = JSON.parse(JSON.stringify(cache));
-
     const tag: number = Number('0b' + tagBits);
-    const block: string = `Mem[${address}-${address + 7}]`;
-    deepCopy[set][lineIndex].tag = tag;
-    deepCopy[set][lineIndex].valid = 1;
-    deepCopy[set][lineIndex].block = block;
 
-    return deepCopy
+    setCache(prevState => {
+      const newCache = { ...prevState };
+      newCache.sets[set].lines[lineIndex].tag = tag;
+      newCache.sets[set].lines[lineIndex].valid = 1;
+      newCache.sets[set].lines[lineIndex].empty = 0;
+      newCache.sets[set].lines[lineIndex].blockSizeStr = `Mem[${address}-${address + 7}]`;
+
+      return newCache
+    })
   }
 
 

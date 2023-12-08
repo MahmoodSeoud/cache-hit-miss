@@ -2,3 +2,8 @@ TODO:
 - Mem addresser må ikke overlappe med hinanden
 - [x] Størrelsen på addressererne er for store, prøv at lave dem mindre (256 perhaps)
 - Sørge for at sets er de rigtige antal ift til passer med pensum
+
+
+
+More todo:
+- [] Deep equal skal slettes og i stedet skal du tjekke om empty == 1
