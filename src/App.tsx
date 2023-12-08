@@ -111,7 +111,7 @@ function App() {
 
   const addressInBits: string[] = [...address.toString(2).padStart(addressBitWidth, '0')];
   const setIndexBits: string = addressInBits.toSpliced(- (blockOffset + setIndex)).join('');
-  const tagBits: string = addressInBits.toSpliced(0, -(blockOffset + setIndex)).join('');
+  const tagBits: string = addressInBits.slice(0, -(blockOffset + setIndex)).join('');
 
 
   const [isMouseDown, setIsMouseDown] = useState(false);
@@ -354,12 +354,11 @@ function App() {
 
 
   function isCacheHit(): boolean {
-    if (cache.sets[parseInt(setIndexBits, 2)].lines[lineIndex].valid === 1 &&
-      cache.sets[parseInt(setIndexBits, 2)].lines[lineIndex].tag === parseInt(tagBits, 2)) {
+    const cacheBlock = cache.sets[parseInt(setIndexBits, 2)].lines[lineIndex];
+    if (cacheBlock.valid === 1 && cacheBlock.tag === parseInt(tagBits, 2)) {
       return true
     }
     return false
-
   }
 
   // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
