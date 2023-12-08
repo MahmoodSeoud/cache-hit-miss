@@ -147,24 +147,35 @@ function App() {
 
   const blockOffset: number = Math.log2(cache.blockSize);
   const setIndex: number = Math.log2(cache.numSets);
-  const tag : number= addressBitWidth - (setIndex + blockOffset);
+  const tag: number = addressBitWidth - (setIndex + blockOffset);
   const lineIndex: number = Math.floor(Math.random() * cache.linesPerSet);
 
-  const addressInBits : string[]=([...address.toString(2).padStart(addressBitWidth, '0')]);
+  const addressInBits: string[] = ([...address.toString(2).padStart(addressBitWidth, '0')]);
   const setIndexBits: string = addressInBits.toSpliced(- (blockOffset + setIndex)).join('');
   const tagBits: string = (addressInBits.toSpliced(0, -(blockOffset + setIndex)).join(''));
+
+
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
+  const toast = useRef<Toast>(null);
+
 
 
   useEffect(() => {
     setAddress(createRandomNumber(0, maxAddress));
 
   }, [addressBitWidth, maxAddress])
-  //const coldCache = createTableEntries(numSets, numLines, { tag: 0, block: '', valid: 0 }, tagBits)
-  //const [cacheEntries, setCacheEntries] = useState<CACHE_TABLE_ENTRY[][]>(coldCache);
 
-  const [isMouseDown, setIsMouseDown] = useState(false);
-  const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
-  const toast = useRef<Toast>(null);
+  useEffect(() => {
+    let cache_;
+    //setSetIndex(Math.log2(numSets));
+
+    cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet);
+    console.log('cache', cache_)
+
+    setCache(cache_);
+
+  }, [cache.numSets, cache.linesPerSet, cache.blockSize])
 
   function isCacheEmpty(): boolean {
     return cache.sets.every(set => set.lines.every(line => line.empty === 1));
@@ -262,38 +273,6 @@ function App() {
       life: 3000
     });
   }
-
-
-
-  /*   useEffect(() => {
-      console.log('------------------------------')
-      console.log("coldCache", coldCache);
-      console.log('address', address)
-      console.log('addressInBits', addressInBits)
-      console.log('numSets', numSets)
-      console.log('offset', blockOffset)
-      console.log('numIndexAllocBits', setIndex)
-      console.log('tag', tag)
-      console.log('blockOffsetBits', blockOffsetBits)
-      console.log('setIndexBits', setIndexBits)
-      console.log('tagBits', tagBits)
-      console.log("numLines", numLines)
-      console.log("lineIndex", lineIndex)
-    })
-   */
-  useEffect(() => {
-    let cache_;
-    //setSetIndex(Math.log2(numSets));
-
-    cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet);
-    console.log('cache', cache_)
-
-    setCache(cache_);
-
-  }, [cache.numSets, cache.linesPerSet, cache.blockSize])
-
-
-
 
 
   /**
