@@ -94,46 +94,7 @@ export interface LogEntry {
   cacheEntries: CACHE_TABLE_ENTRY[][]
 }
 
-function createEmptyTableEntry(entry: CACHE_TABLE_ENTRY): CACHE_TABLE_ENTRY {
-  let newEntry: CACHE_TABLE_ENTRY;
-
-  newEntry = {
-    ...entry,
-    valid: 0,
-    tag: 0,
-    block: ''
-  };
-
-  return newEntry;
-}
-
-
-export function createEmptyTableEntries
-  (numOfRows: number,
-    numOfCols: number,
-    cacheEntry: CACHE_TABLE_ENTRY,
-  ): CACHE_TABLE_ENTRY[][] {
-
-  let validEntries: CACHE_TABLE_ENTRY[][] = [];
-
-  for (let i = 0; i < numOfRows; i++) {
-    const array: CACHE_TABLE_ENTRY[] = [];
-    for (let j = 0; j < numOfCols; j++) {
-      let entry = createEmptyTableEntry(cacheEntry);
-      array.push(entry);
-    }
-    validEntries.push(array);
-  }
-
-
-  return validEntries
-}
-
-
 const logOfEntries: LogEntry[] = [];
-
-
-
 
 function App() {
   const [addressBitWidth, setAddressBitWidth] = useState<number>(createRandomNumber(10, 14));
@@ -181,6 +142,7 @@ function App() {
   function isCacheEmpty(): boolean {
     return cache.sets.every(set => set.lines.every(line => line.empty === 1));
   }
+
   // Function to initialize the cache
   function initEmptyCache(numSets: number, blockSize: number, linesPerSet: number): Cache {
     const cache: Cache = {
@@ -230,10 +192,10 @@ function App() {
 
       const NewAddress = createRandomNumber(0, maxAddress);
       const newAddressInBits = [...NewAddress.toString(2).padStart(addressBitWidth, '0')];
-      let valid: Bit = Math.round(Math.random()) as Bit;
+      const valid: Bit = 1;
       const newtagBits: string = newAddressInBits.toSpliced(0, -(Math.log2(blockSize) + Math.log2(numSets))).join('');
-      let tag: number = Number('0b' + newtagBits);
-      let blockSizeStr: string = `Mem[${NewAddress} - ${NewAddress + blockSize - 1}]`;
+      const tag: number = Number('0b' + newtagBits);
+      const blockSizeStr: string = `Mem[${NewAddress} - ${NewAddress + blockSize - 1}]`;
 
       for (let j = 0; j < linesPerSet; j++) {
         const block: CacheBlock = {
