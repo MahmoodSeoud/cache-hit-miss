@@ -103,16 +103,15 @@ function App() {
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
 
-  const [cache, setCache] = useState<Cache>(initNonEmptyCache(4, 64, 2 ** createRandomNumber(0, 1)));
+  const [cache, setCache] = useState<Cache>(initNonEmptyCache(4, 8, 2 ** createRandomNumber(0, 1)));
   const blockOffset: number = Math.log2(cache.blockSize);
   const setIndex: number = Math.log2(cache.numSets);
   const tag: number = addressBitWidth - (setIndex + blockOffset);
   const lineIndex: number = Math.floor(Math.random() * cache.linesPerSet);
 
-  const addressInBits: string[] = [...address.toString(2).padStart(addressBitWidth, '0')];
-  const setIndexBits: string = addressInBits.toSpliced(- (blockOffset + setIndex)).join('');
-  const tagBits: string = addressInBits.slice(0, -(blockOffset + setIndex)).join('');
-
+  const addressInBits: string = address.toString(2).padStart(addressBitWidth, '0');
+  const setIndexBits: string = addressInBits.slice(tag, - blockOffset);
+  const tagBits: string = addressInBits.slice(0, tag);
 
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
@@ -134,10 +133,16 @@ function App() {
       setCacheShouldBeCold(false);
     }
 
-    console.log('cache', cache_)
     setCache(cache_);
 
   }, [cache.numSets, cache.linesPerSet, cache.blockSize, cacheShouldBeCold])
+
+  useEffect(() => {
+    console.log('-----------------------------------')
+    /*     console.log('cache', cache)
+        console.log('address', address)
+        console.log('addressInBits', address.toString(2).padStart(addressBitWidth, '0')) */
+  });
 
   function isCacheEmpty(): boolean {
     return cache.sets.every(set => set.lines.every(line => line.empty === 1));
@@ -190,19 +195,28 @@ function App() {
         lines: [],
       };
 
-      const NewAddress = createRandomNumber(0, maxAddress);
-      const newAddressInBits = [...NewAddress.toString(2).padStart(addressBitWidth, '0')];
-      const valid: Bit = 1;
-      const newtagBits: string = newAddressInBits.slice(0, -(Math.log2(blockSize) + Math.log2(numSets))).join('');
-      const tag: number = Number('0b' + newtagBits);
-      const blockSizeStr: string = `Mem[${NewAddress} - ${NewAddress + blockSize - 1}]`;
+      const address_ = createRandomNumber(0, maxAddress);
+      const addressInBits_ = address_.toString(2).padStart(addressBitWidth, '0');
+      const tagBits_: string = addressInBits_.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
+      const setIndexBits_: string = addressInBits_.slice(tagBits_.length, -Math.log2(blockSize));
+
+      const valid_: Bit = 1;
+      const tag_: number = tagBits_.length
+      const setIndex_: number = setIndexBits_.length
+      const blockSizeStr_: string = `Mem[${address_} - ${address_ + blockSize - 1}]`;
+      console.log('----------ferrrrooo----------')
+      console.log('tag:', tag_);
+      console.log('set:', setIndex_);
+      console.log('addressInBits:', addressInBits_);
+      console.log('tagBits:', tagBits_);
+      console.log('setIndexBits:', setIndexBits_);
 
       for (let j = 0; j < linesPerSet; j++) {
         const block: CacheBlock = {
-          tag: tag,
-          valid: valid,
+          tag: tag_,
+          valid: valid_,
           empty: 0,
-          blockSizeStr: blockSizeStr,
+          blockSizeStr: blockSizeStr_,
         };
         set.lines.push(block);
       }
@@ -220,7 +234,7 @@ function App() {
     toast.current?.show({
       severity: 'success',
       summary: 'Correct!',
-      detail: 'Correct! The address: ' + address.toString(2) + '\nwas a cache ' + cacheAssignmentType + ' assignment',
+      detail: 'Correct! The address: ' + address.toString(2).padStart(addressBitWidth, '0') + '\nwas a cache ' + cacheAssignmentType + ' assignment',
       life: 3000
     });
   }
@@ -232,7 +246,7 @@ function App() {
     toast.current?.show({
       severity: 'error',
       summary: 'Wrong',
-      detail: 'Not right, The address: ' + address.toString(2) + '\nwas a cache ' + cacheAssignmentType + ' assignment',
+      detail: 'Not right, The address: ' + address.toString(2).padStart(addressBitWidth, '0') + '\nwas a cache ' + cacheAssignmentType + ' assignment',
       life: 3000
     });
   }
@@ -314,48 +328,27 @@ function App() {
 
 
   function cacheLookUp(assigmentType: string) {
-    /*     let tagBits_copy = "";
-        if (assigmentType === 'hit') {
-          const [entry, entryIndex]: [CACHE_TABLE_ENTRY, number] = getRandomValidEntry(cacheEntries);
-    
-          const randomEntryBits: string = entry.tag.toString(2) +
-            padZeroOnBitsToFitBitLength(entryIndex) +
-            createRandomNumberWith(blockOffset).toString(2);
-    
-          const NewAddress = Number("0b" + randomEntryBits)
-          const NewaddressInBits = [...NewAddress.toString(2).padStart(addressBitWidth, '0')];
-    
-          // TODO: Set these to the correct ones
-          setAddress(NewAddress);
-          setAddressInBits(NewaddressInBits);
-        } else {
-    
-          // THIS IS THE PROBLEM MATE
-          const NewAddress = createRandomNumber(0, maxAddress);
-    
-          const NewaddressInBits = [...NewAddress.toString(2).padStart(addressBitWidth, '0')];
-          const deepCopy = JSON.parse(JSON.stringify(NewaddressInBits));
-          setBlockOffsetBits(deepCopy.splice(-blockOffset).join(''));
-          setSetIndexBits(deepCopy.splice(-setIndex).join(''));
-          setTagBits(deepCopy.join(''));
-          tagBits_copy = deepCopy.join('');
-    
-          setAddress(NewAddress);
-          setAddressInBits(NewaddressInBits);
-        } */
-    /*     // THIS IS PORLBME MATE
-        const findMatchTag = cacheEntries.flat().some(line => line.tag === Number('0b' + tagBits_copy))
-        console.log('findMatchTag', findMatchTag)
-        if (!findMatchTag) {
-          cacheLookUp(assigmentType)
-        } */
+    if (assigmentType === 'hit') {
+      const cacheHitBlock = cache.sets[parseInt(setIndexBits, 2)].lines[lineIndex];
+      const addressForCacheHitOnLookUp: string = (cacheHitBlock.tag.toString(2) +
+        setIndexBits +
+        createRandomNumberWith(blockOffset)
+          .toString(2))
+        .padStart(addressBitWidth, '0');
+
+      const NewAddress = Number("0b" + addressForCacheHitOnLookUp)
+
+      setAddress(NewAddress);
+    } else {
+
+      const NewAddress = createRandomNumber(0, maxAddress);
+      setAddress(NewAddress);
+    }
   }
-
-
 
   function isCacheHit(): boolean {
     const cacheBlock = cache.sets[parseInt(setIndexBits, 2)].lines[lineIndex];
-    if (cacheBlock.valid === 1 && cacheBlock.tag === parseInt(tagBits, 2)) {
+    if (cacheBlock.valid === 1 && cacheBlock.tag === parseInt(tagBits, 2) && cacheBlock.blockSizeStr === 'Mem[' + address + '-' + (address + cache.blockSize - 1) + ']') {
       return true
     }
     return false
@@ -367,7 +360,7 @@ function App() {
     if (!isCacheEmpty() && Math.random() <= probability / 100) {
       cacheLookUp('hit')
     } else {
-      cacheLookUp('miss')
+      cacheLookUp('miss') 
     }
   }
 
@@ -405,10 +398,12 @@ function App() {
 
     setCache(prevState => {
       const newCache = { ...prevState };
-      newCache.sets[set].lines[lineIndex].tag = tag;
-      newCache.sets[set].lines[lineIndex].valid = 1;
-      newCache.sets[set].lines[lineIndex].empty = 0;
-      newCache.sets[set].lines[lineIndex].blockSizeStr = `Mem[${address}-${address + 7}]`;
+      const cacheBlock = newCache.sets[set].lines[lineIndex];
+
+      cacheBlock.tag = tag;
+      cacheBlock.valid = 1;
+      cacheBlock.empty = 0;
+      cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
 
       return newCache
     })
