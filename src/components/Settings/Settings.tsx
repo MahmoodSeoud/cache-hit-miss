@@ -137,7 +137,7 @@ export default function Settings({
                             ></Button>
                         </div>
                     </div>
-                </Sidebar >
+                </Sidebar>
             </div >
         </>
     );

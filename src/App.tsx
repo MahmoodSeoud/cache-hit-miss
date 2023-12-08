@@ -7,6 +7,7 @@ import { ColorResult, HuePicker } from 'react-color';
 import './Laratheme.css'
 import './App.css'
 import './components/Cache_input_table/Cache_input_table.css'
+import { Button } from 'primereact/button';
 
 export const InputFieldsMap = {
   /*   VirtualAddress: 'VirtualAddress',
@@ -446,12 +447,13 @@ function App() {
         <div className='input-header'>
           <div className="input-buttons">
 
-            <button
-              className='reset-color-btn'
+            <Button
+              severity='warning'
               onClick={resetColors}
+              style={{ margin: '1rem' }}
             >
               Reset the colors
-            </button>
+            </Button>
 
           </div>
           <HuePicker
