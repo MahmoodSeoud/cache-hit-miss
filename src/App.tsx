@@ -193,7 +193,7 @@ function App() {
       const NewAddress = createRandomNumber(0, maxAddress);
       const newAddressInBits = [...NewAddress.toString(2).padStart(addressBitWidth, '0')];
       const valid: Bit = 1;
-      const newtagBits: string = newAddressInBits.toSpliced(0, -(Math.log2(blockSize) + Math.log2(numSets))).join('');
+      const newtagBits: string = newAddressInBits.slice(0, -(Math.log2(blockSize) + Math.log2(numSets))).join('');
       const tag: number = Number('0b' + newtagBits);
       const blockSizeStr: string = `Mem[${NewAddress} - ${NewAddress + blockSize - 1}]`;
 
