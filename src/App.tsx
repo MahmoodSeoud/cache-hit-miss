@@ -139,14 +139,37 @@ function App() {
 
   useEffect(() => {
     console.log('-----------------------------------')
-    /*     console.log('cache', cache)
-        console.log('address', address)
-        console.log('addressInBits', address.toString(2).padStart(addressBitWidth, '0')) */
+    console.log('cache', cache)
+    console.log('address', address)
+    console.log('addressInBits', address.toString(2).padStart(addressBitWidth, '0'))
   });
 
-  function isCacheEmpty(): boolean {
-    return cache.sets.every(set => set.lines.every(line => line.empty === 1));
+
+
+  /**
+  * Displays a success toast notification.
+  */
+  function showSuccess(cacheAssignmentType: string): void {
+    toast.current?.show({
+      severity: 'success',
+      summary: 'Correct!',
+      detail: 'Correct! The address: ' + address.toString(2).padStart(addressBitWidth, '0') + '\nwas a cache ' + cacheAssignmentType + ' assignment',
+      life: 3000
+    });
   }
+
+  /**
+  * Displays a failure toast notification.
+  */
+  function showFailure(cacheAssignmentType: string): void {
+    toast.current?.show({
+      severity: 'error',
+      summary: 'Wrong',
+      detail: 'Not right, The address: ' + address.toString(2).padStart(addressBitWidth, '0') + '\nwas a cache ' + cacheAssignmentType + ' assignment',
+      life: 3000
+    });
+  }
+
 
   // Function to initialize the cache
   function initEmptyCache(numSets: number, blockSize: number, linesPerSet: number): Cache {
@@ -198,18 +221,10 @@ function App() {
       const address_ = createRandomNumber(0, maxAddress);
       const addressInBits_ = address_.toString(2).padStart(addressBitWidth, '0');
       const tagBits_: string = addressInBits_.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
-      const setIndexBits_: string = addressInBits_.slice(tagBits_.length, -Math.log2(blockSize));
 
       const valid_: Bit = 1;
       const tag_: number = tagBits_.length
-      const setIndex_: number = setIndexBits_.length
       const blockSizeStr_: string = `Mem[${address_} - ${address_ + blockSize - 1}]`;
-      console.log('----------ferrrrooo----------')
-      console.log('tag:', tag_);
-      console.log('set:', setIndex_);
-      console.log('addressInBits:', addressInBits_);
-      console.log('tagBits:', tagBits_);
-      console.log('setIndexBits:', setIndexBits_);
 
       for (let j = 0; j < linesPerSet; j++) {
         const block: CacheBlock = {
@@ -227,29 +242,6 @@ function App() {
   }
 
 
-  /**
-  * Displays a success toast notification.
-  */
-  function showSuccess(cacheAssignmentType: string): void {
-    toast.current?.show({
-      severity: 'success',
-      summary: 'Correct!',
-      detail: 'Correct! The address: ' + address.toString(2).padStart(addressBitWidth, '0') + '\nwas a cache ' + cacheAssignmentType + ' assignment',
-      life: 3000
-    });
-  }
-
-  /**
-  * Displays a failure toast notification.
-  */
-  function showFailure(cacheAssignmentType: string): void {
-    toast.current?.show({
-      severity: 'error',
-      summary: 'Wrong',
-      detail: 'Not right, The address: ' + address.toString(2).padStart(addressBitWidth, '0') + '\nwas a cache ' + cacheAssignmentType + ' assignment',
-      life: 3000
-    });
-  }
 
 
   /**
@@ -300,33 +292,6 @@ function App() {
     }
   };
 
-
-
-  /*   function getRandomValidEntry(cacheEntries: CACHE_TABLE_ENTRY[][]): [CACHE_TABLE_ENTRY, number] {
-      // find all valid entries
-      const validEntries = cacheEntries.flat().filter(entry => entry.valid === 1 && entry.block !== '');
-  
-      // Find a random valid entry
-      const validRandomEntry = validEntries[Math.floor(Math.random() * validEntries.length)]
-      let validRandomEntryIndex;
-      if (!isCacheEmpty()) {
-        validRandomEntryIndex = cacheEntries.flat().findIndex((x) => deepEqual(x, validRandomEntry))
-      } else {
-        validRandomEntryIndex = cacheEntries.flat().findIndex((x) => validRandomEntry);
-      }
-  
-      return [validRandomEntry, validRandomEntryIndex];
-    } */
-
-  function padZeroOnBitsToFitBitLength(entryIndex: number) {
-    if (entryIndex.toString(2).length === setIndex) {
-      return entryIndex.toString(2);
-    }
-
-    return entryIndex.toString(2).padStart(setIndex, '0');
-  }
-
-
   function cacheLookUp(assigmentType: string) {
     if (assigmentType === 'hit') {
       const cacheHitBlock = cache.sets[parseInt(setIndexBits, 2)].lines[lineIndex];
@@ -354,15 +319,37 @@ function App() {
     return false
   }
 
+  function isCacheEmpty(): boolean {
+    return cache.sets.every(set => set.lines.every(line => line.empty === 1));
+  }
+
   // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
   function randomAssignment(probability: number) {
     // If you try to do a hit assignment on a cold cache, it will be a miss
     if (!isCacheEmpty() && Math.random() <= probability / 100) {
       cacheLookUp('hit')
     } else {
-      cacheLookUp('miss') 
+      cacheLookUp('miss')
     }
   }
+
+  function insertAddressInCache(): void {
+    const set = parseInt(setIndexBits, 2)
+    const tag: number = Number('0b' + tagBits);
+
+    setCache(prevState => {
+      const newCache = { ...prevState };
+      const cacheBlock = newCache.sets[set].lines[lineIndex];
+
+      cacheBlock.tag = tag;
+      cacheBlock.valid = 1;
+      cacheBlock.empty = 0;
+      cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
+
+      return newCache
+    })
+  }
+
 
   function handleCacheButtonClick(userGuessedHit: boolean) {
     const propability = 50;
@@ -391,24 +378,6 @@ function App() {
     }
 
   }
-
-  function insertAddressInCache(): void {
-    const set = parseInt(setIndexBits, 2)
-    const tag: number = Number('0b' + tagBits);
-
-    setCache(prevState => {
-      const newCache = { ...prevState };
-      const cacheBlock = newCache.sets[set].lines[lineIndex];
-
-      cacheBlock.tag = tag;
-      cacheBlock.valid = 1;
-      cacheBlock.empty = 0;
-      cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
-
-      return newCache
-    })
-  }
-
 
   /**
  * Handles changes in color selection.
@@ -468,14 +437,7 @@ function App() {
         numSets={cache.numSets}
         setCache={setCache}
         linesPerSet={cache.linesPerSet}
-        cacheShouldBeCold={cacheShouldBeCold}
         setCacheShouldBeCold={setCacheShouldBeCold}
-        isCacheEmpty={isCacheEmpty}
-        initEmptyCache={initEmptyCache}
-        initNonEmptyCache={initNonEmptyCache}
-        cache={cache}
-
-
       />
 
 

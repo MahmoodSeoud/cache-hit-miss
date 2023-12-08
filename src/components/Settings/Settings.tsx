@@ -22,16 +22,20 @@ interface SettingsProps {
     numSets: number;
     linesPerSet: number;
     setCache: React.Dispatch<SetStateAction<Cache>>;
-    cacheShouldBeCold: boolean;
     setCacheShouldBeCold: React.Dispatch<SetStateAction<boolean>>;
-    cache: Cache;
-    isCacheEmpty: () => boolean;
-    initEmptyCache: (numSets: number, blockSize: number, linesPerSet: number) => Cache;
-    initNonEmptyCache: (numSets: number, blockSize: number, linesPerSet: number) => Cache;
-    //setCacheEntries: React.Dispatch<SetStateAction<CACHE_TABLE_ENTRY[][]>>;
 }
 
-export default function Settings(props: SettingsProps) {
+export default function Settings({
+    maxAddress,
+    setMaxAddress,
+    addressBitWidth,
+    setAddressBitWidth,
+    numSets,
+    linesPerSet,
+    setCache,
+    setCacheShouldBeCold,
+
+}: SettingsProps) {
     const [showSettings, setShowSettings] = useState<boolean>(false);
     const lineOptions: string[] = ['1', '2'];
 
@@ -41,7 +45,7 @@ export default function Settings(props: SettingsProps) {
         const index = setMarks.findIndex(mark => value === mark.value);
         const numSets = Number(setMarks[index].label)
 
-        props.setCache((prevState: Cache) => {
+        setCache((prevState: Cache) => {
             let newCache: Cache = { ...prevState };
             newCache.numSets = numSets;
             return newCache;
@@ -50,7 +54,7 @@ export default function Settings(props: SettingsProps) {
     }
 
     function handleSetNumLines(linesPerSet: number) {
-        props.setCache((prevState: Cache) => {
+        setCache((prevState: Cache) => {
             let newCache: Cache = { ...prevState };
             newCache.linesPerSet = linesPerSet
             return newCache;
@@ -70,13 +74,13 @@ export default function Settings(props: SettingsProps) {
                         <div className="input-card">
                             <label htmlFor="AddressValue">Address Max Value</label>
                             <InputNumber
-                                value={props.maxAddress}
+                                value={maxAddress}
                                 disabled
                             />
 
                             <PrimeSlider
-                                value={props.maxAddress}
-                                onChange={(e: PrimeSliderChangeEvent) => props.setMaxAddress(e.value as number)}
+                                value={maxAddress}
+                                onChange={(e: PrimeSliderChangeEvent) => setMaxAddress(e.value as number)}
                                 max={1024}
                                 min={1}
                                 className="w-14rem"
@@ -88,20 +92,20 @@ export default function Settings(props: SettingsProps) {
                         <div className="input-card">
                             <label htmlFor="numSets">Number of sets</label>
                             <InputNumber
-                                value={props.numSets}
+                                value={numSets}
                                 disabled
                             />
 
                             <DiscreteSliderValues
                                 handleSetNumSets={handleSetNumSets}
                                 marks={setMarks}
-                                value={props.numSets}
+                                value={numSets}
                             />
                         </div>
 
                         <label htmlFor="linesPerSet">Number of lines</label>
                         <div className="input-card">
-                            <SelectButton value={props.linesPerSet.toString()}
+                            <SelectButton value={linesPerSet.toString()}
                                 onChange={(e: SelectButtonChangeEvent) => handleSetNumLines(e.value)}
                                 options={lineOptions}
                             />
@@ -109,25 +113,15 @@ export default function Settings(props: SettingsProps) {
                         </div>
 
                         <label htmlFor="linesPerSet"></label>
-                        <div className="input-card">
-                            <Button
-                                severity="danger"
-                                label="Clear Cache"
-                            onClick={() => props.setCacheShouldBeCold(true)}
-                            //onClick={(e) => props.setCacheEntries(createEmptyTableEntries(props.numSets, props.linesPerSet, { tag: 0, valid: 0, block: "" }))}
-                            ></Button>
-
-
-                        </div>
 
                         <label htmlFor="addressBitWidth">Address bit width</label>
                         <div className="input-card">
                             <InputNumber
-                                value={props.addressBitWidth}
+                                value={addressBitWidth}
                                 disabled />
                             <PrimeSlider
-                                value={props.addressBitWidth}
-                                onChange={(e: PrimeSliderChangeEvent) => props.setAddressBitWidth(e.value as number)}
+                                value={addressBitWidth}
+                                onChange={(e: PrimeSliderChangeEvent) => setAddressBitWidth(e.value as number)}
                                 max={14}
                                 min={10}
                                 className="w-14rem"
@@ -135,7 +129,13 @@ export default function Settings(props: SettingsProps) {
 
                             />
                         </div>
-                        <button onClick={() => setShowSettings(false)}>Cancel</button>
+                        <div className="input-card">
+                            <Button
+                                severity="danger"
+                                label="Clear Cache"
+                                onClick={() => setCacheShouldBeCold(true)}
+                            ></Button>
+                        </div>
                     </div>
                 </Sidebar >
             </div >
@@ -182,16 +182,16 @@ interface DiscreteSliderValuesProps {
 }
 
 
-function DiscreteSliderValues(props: DiscreteSliderValuesProps) {
-    const defaultValue = props.marks.find((mark) => mark.label === props.value.toString())?.value
+function DiscreteSliderValues({ handleSetNumSets, marks, value }: DiscreteSliderValuesProps) {
+    const defaultValue = marks.find((mark) => mark.label === value.toString())?.value
     return (
         <Box>
             <Slider
                 defaultValue={defaultValue}
                 step={null}
                 style={{ width: '203px' }}
-                onChange={(e, value) => props.handleSetNumSets(value as number)}
-                marks={props.marks}
+                onChange={(e, value) => handleSetNumSets(value as number)}
+                marks={marks}
             />
         </Box>
     );
@@ -307,7 +307,7 @@ background-color: ${theme.palette.mode === 'light' ? blue[500] : blue[400]};
 }
 
 & .${sliderClasses.markLabel} {
-font-family: IBM Plex Sans;
+font-family: Arial, sans-serif;
 font-weight: 600;
 font-size: 12px;
 position: absolute;
