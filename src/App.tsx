@@ -1,13 +1,12 @@
-import { SetStateAction, useEffect, useRef, useState } from 'react'
-import { CACHE_TABLE_ENTRY, InputFields } from './components/Cache_input_table/Cache_input_table'
-import './App.css'
-import './components/Cache_input_table/Cache_input_table.css'
+import { useEffect, useRef, useState } from 'react'
+import { CACHE_TABLE_ENTRY } from './components/Cache_input_table/Cache_input_table'
 import Cache_visual_table from './components/Cache_visual_table/Cache_visual_table';
 import Settings from './components/Settings/Settings';
 import { Toast } from 'primereact/toast';
 import { ColorResult, HuePicker } from 'react-color';
 import './Laratheme.css'
-
+import './App.css'
+import './components/Cache_input_table/Cache_input_table.css'
 
 export const InputFieldsMap = {
   /*   VirtualAddress: 'VirtualAddress',
@@ -141,24 +140,22 @@ function App() {
   const [maxAddress, setMaxAddress] = useState<number>(createRandomNumber(0, 256));
   const [address, setAddress] = useState<number>(maxAddress);
 
-  // TODO: Make the numSets a variable that is calculated aswell as the block size
-  const [cache, setCache] = useState<Cache>(initNonEmptyCache(4, 64, 2 ** createRandomNumber(0, 1)));
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
 
+  const [cache, setCache] = useState<Cache>(initNonEmptyCache(4, 64, 2 ** createRandomNumber(0, 1)));
   const blockOffset: number = Math.log2(cache.blockSize);
   const setIndex: number = Math.log2(cache.numSets);
   const tag: number = addressBitWidth - (setIndex + blockOffset);
   const lineIndex: number = Math.floor(Math.random() * cache.linesPerSet);
 
-  const addressInBits: string[] = ([...address.toString(2).padStart(addressBitWidth, '0')]);
+  const addressInBits: string[] = [...address.toString(2).padStart(addressBitWidth, '0')];
   const setIndexBits: string = addressInBits.toSpliced(- (blockOffset + setIndex)).join('');
-  const tagBits: string = (addressInBits.toSpliced(0, -(blockOffset + setIndex)).join(''));
+  const tagBits: string = addressInBits.toSpliced(0, -(blockOffset + setIndex)).join('');
 
 
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
   const toast = useRef<Toast>(null);
-
 
 
   useEffect(() => {
@@ -168,14 +165,18 @@ function App() {
 
   useEffect(() => {
     let cache_;
-    //setSetIndex(Math.log2(numSets));
 
-    cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet);
+    if (cacheShouldBeCold) {
+      cache_ = initEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet);
+    } else {
+      cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet);
+      setCacheShouldBeCold(false);
+    }
+
     console.log('cache', cache_)
-
     setCache(cache_);
 
-  }, [cache.numSets, cache.linesPerSet, cache.blockSize])
+  }, [cache.numSets, cache.linesPerSet, cache.blockSize, cacheShouldBeCold])
 
   function isCacheEmpty(): boolean {
     return cache.sets.every(set => set.lines.every(line => line.empty === 1));
@@ -350,7 +351,7 @@ function App() {
   }
 
 
-  function newAssignment(assigmentType: string) {
+  function cacheLookUp(assigmentType: string) {
     /*     let tagBits_copy = "";
         if (assigmentType === 'hit') {
           const [entry, entryIndex]: [CACHE_TABLE_ENTRY, number] = getRandomValidEntry(cacheEntries);
@@ -384,7 +385,7 @@ function App() {
         const findMatchTag = cacheEntries.flat().some(line => line.tag === Number('0b' + tagBits_copy))
         console.log('findMatchTag', findMatchTag)
         if (!findMatchTag) {
-          newAssignment(assigmentType)
+          cacheLookUp(assigmentType)
         } */
   }
 
@@ -403,9 +404,9 @@ function App() {
   function randomAssignment(probability: number) {
     // If you try to do a hit assignment on a cold cache, it will be a miss
     if (!isCacheEmpty() && Math.random() <= probability / 100) {
-      newAssignment('hit')
+      cacheLookUp('hit')
     } else {
-      newAssignment('miss')
+      cacheLookUp('miss')
     }
   }
 

@@ -113,6 +113,7 @@ export default function Settings(props: SettingsProps) {
                             <Button
                                 severity="danger"
                                 label="Clear Cache"
+                            onClick={() => props.setCacheShouldBeCold(true)}
                             //onClick={(e) => props.setCacheEntries(createEmptyTableEntries(props.numSets, props.linesPerSet, { tag: 0, valid: 0, block: "" }))}
                             ></Button>
 
