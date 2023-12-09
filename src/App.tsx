@@ -57,8 +57,6 @@ export interface Cache {
   sets: CacheSet[];  // The sets in the cache
 }
 
-
-
 export type BaseConversion = typeof baseConversionMap[keyof typeof baseConversionMap];
 export type AddressPrefix = typeof addressPrefixMap[keyof typeof addressPrefixMap];
 export type InputField = typeof InputFieldsMap[keyof typeof InputFieldsMap];
@@ -521,7 +519,6 @@ function App() {
 
         <Cache_visual_table
           cache={cache}
-          setCache={setCache}
           tag={tag}
         />
       </div>

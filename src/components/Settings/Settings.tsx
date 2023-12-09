@@ -5,12 +5,12 @@ import { InputNumber } from "primereact/inputnumber";
 import { SelectButton, SelectButtonChangeEvent } from 'primereact/selectbutton';
 import { styled, alpha, Box } from '@mui/system';
 import { Slider as BaseSlider, sliderClasses } from '@mui/base/Slider';
-import 'primereact/resources/themes/bootstrap4-light-blue/theme.css';
+import 'primereact/resources/themes/lara-dark-indigo/theme.css';
 import { Button } from 'primereact/button';
 import { Sidebar } from 'primereact/sidebar';
 import './Settings.css';
 import 'primeicons/primeicons.css';
-import { Cache, CacheSet } from "../../App";
+import { Cache } from "../../App";
 
 
 interface SettingsProps {
@@ -25,6 +25,11 @@ interface SettingsProps {
     setCacheShouldBeCold: React.Dispatch<SetStateAction<boolean>>;
 }
 
+interface CacheTypeOption {
+    label: string;
+    value: string;
+}
+
 export default function Settings({
     maxAddress,
     setMaxAddress,
@@ -37,10 +42,17 @@ export default function Settings({
 
 }: SettingsProps) {
     const [showSettings, setShowSettings] = useState<boolean>(false);
-    const lineOptions: string[] = ['1', '2'];
+    const [value, setValue] = useState<CacheTypeOption>();
+    const [setAssociativityIsAcitve, setSetAssociativityIsAcitve] = useState<boolean>(false);
 
 
-    function handleSetNumSets(value: number | number[]): void {
+    const lineOptions: CacheTypeOption[] = [
+        { label: 'Direct Mapped', value: 'directmapped' },
+        { label: 'Set Associative', value: 'setassociative' },
+        { label: 'Fully Associative', value: 'fullyassociative' }
+    ];
+
+    function handleSetState(value: number | number[]): void {
 
         const index = setMarks.findIndex(mark => value === mark.value);
         const numSets = Number(setMarks[index].label)
@@ -53,26 +65,56 @@ export default function Settings({
 
     }
 
-    function handleSetNumLines(linesPerSet: number) {
-        setCache((prevState: Cache) => {
+    function handleNumLines(value: number | number[]) {
+
+        const index = setMarks.findIndex(mark => value === mark.value);
+        const linesPerSet = Number(setMarks[index].label)
+
+        linesPerSet && setCache((prevState: Cache) => {
             let newCache: Cache = { ...prevState };
-            newCache.linesPerSet = linesPerSet
+            newCache.linesPerSet = linesPerSet;
             return newCache;
         });
     }
+
+    function handleSetCacheType(cacheType: string) {
+        if (cacheType === 'directmapped') {
+            setCache((prevState: Cache) => {
+                let newCache: Cache = { ...prevState };
+                newCache.linesPerSet = 1;
+                return newCache;
+            });
+            setSetAssociativityIsAcitve(false);
+        }
+        else if (cacheType === 'fullyassociative') {
+            setCache((prevState: Cache) => {
+                let newCache: Cache = { ...prevState };
+                newCache.numSets = 1;
+                return newCache;
+            });
+            setSetAssociativityIsAcitve(false);
+        } else if (cacheType === 'setassociative') {
+            setSetAssociativityIsAcitve(true);
+        }
+
+        setValue({ label: cacheType, value: cacheType });
+    }
+
 
     return (
         <>
             <div className="settings-window">
                 <Button icon="pi pi-cog" onClick={() => setShowSettings(true)} />
-                <Sidebar visible={showSettings}
+                <Sidebar
+                    visible={showSettings}
                     onHide={() => setShowSettings(false)}
-                    style={{ backgroundColor: 'var(--highlight-bg)' }}
+                    style={{ backgroundColor: 'var(--highlight-bg)', width: '30rem' }}
                 >
 
                     <div className="card flex justify-content-center" >
+                    <h1>Settings</h1>
                         <div className="input-card">
-                            <label htmlFor="AddressValue">Address Max Value</label>
+                            <h3>Address Max Value</h3>
                             <InputNumber
                                 value={maxAddress}
                                 disabled
@@ -90,35 +132,49 @@ export default function Settings({
 
 
                         <div className="input-card">
-                            <label htmlFor="numSets">Number of sets</label>
+                            <h3>Number of sets</h3>
                             <InputNumber
                                 value={numSets}
                                 disabled
                             />
 
                             <DiscreteSliderValues
-                                handleSetNumSets={handleSetNumSets}
+                                handleSetState={handleSetState}
                                 marks={setMarks}
                                 value={numSets}
                             />
                         </div>
 
-                        <label htmlFor="linesPerSet">Number of lines</label>
                         <div className="input-card">
-                            <SelectButton value={linesPerSet.toString()}
-                                onChange={(e: SelectButtonChangeEvent) => handleSetNumLines(e.value)}
+                            <h3>Number of lines</h3>
+                            <SelectButton
+                                value={value}
+                                onChange={(e: SelectButtonChangeEvent) => handleSetCacheType(e.value)}
+                                style={{ width: 'fit-content', display: 'flex', marginBottom: '1rem' }}
                                 options={lineOptions}
                             />
+                            {setAssociativityIsAcitve && (
+                                <>
+                                    <InputNumber
+                                        value={linesPerSet}
+                                        disabled
+                                    />
 
+                                    <DiscreteSliderValues
+                                        handleSetState={handleNumLines}
+                                        marks={lineMarks}
+                                        value={linesPerSet}
+                                    />
+                                </>
+                            )}
                         </div>
 
-                        <label htmlFor="linesPerSet"></label>
-
-                        <label htmlFor="addressBitWidth">Address bit width</label>
                         <div className="input-card">
+                            <h3>Address bit width</h3>
                             <InputNumber
                                 value={addressBitWidth}
-                                disabled />
+                                disabled
+                            />
                             <PrimeSlider
                                 value={addressBitWidth}
                                 onChange={(e: PrimeSliderChangeEvent) => setAddressBitWidth(e.value as number)}
@@ -175,14 +231,37 @@ const setMarks: Mark[] = [
     },
 ];
 
+const lineMarks: Mark[] = [
+    {
+        value: 0,
+        label: '4',
+    },
+    {
+        value: 25,
+        label: '8',
+    },
+    {
+        value: 50,
+        label: '16',
+    },
+    {
+        value: 75,
+        label: '32',
+    },
+    {
+        value: 100,
+        label: '64',
+    },
+];
+
 interface DiscreteSliderValuesProps {
-    handleSetNumSets: (value: number | number[]) => void;
+    handleSetState: (value: number | number[]) => void;
     marks: Mark[];
     value: number;
 }
 
 
-function DiscreteSliderValues({ handleSetNumSets, marks, value }: DiscreteSliderValuesProps) {
+function DiscreteSliderValues({ handleSetState, marks, value }: DiscreteSliderValuesProps) {
     const defaultValue = marks.find((mark) => mark.label === value.toString())?.value
     return (
         <Box>
@@ -190,7 +269,7 @@ function DiscreteSliderValues({ handleSetNumSets, marks, value }: DiscreteSlider
                 defaultValue={defaultValue}
                 step={null}
                 style={{ width: '203px' }}
-                onChange={(e, value) => handleSetNumSets(value as number)}
+                onChange={(e, value) => handleSetState(value as number)}
                 marks={marks}
             />
         </Box>

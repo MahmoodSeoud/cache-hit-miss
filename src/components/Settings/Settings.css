@@ -1,4 +1,7 @@
 .input-card {
+    display: flex;
+    flex-direction: column;
     margin-bottom: 15px;
     width: 203px;
+    padding: 10px;
 }

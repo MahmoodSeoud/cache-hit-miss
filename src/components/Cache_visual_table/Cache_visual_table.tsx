@@ -1,9 +1,8 @@
 
-import { AddressPrefix, BaseConversion, Bit, InputField, InputFieldsMap } from '../../App';
-import { useState, useEffect } from 'react';
-import './Cache_visual_table.css'
+import { Bit } from '../../App';
 import React from 'react';
 import { Cache } from '../../App';
+import './Cache_visual_table.css';
 
 export type InputFields = {
     VirtualAddress: string;
@@ -22,17 +21,11 @@ export type CACHE_TABLE_ENTRY = {
 
 type cache_tableProps = {
     cache: Cache;
-    setCache: React.Dispatch<React.SetStateAction<Cache>>
     tag: number;
 }
 
 
-function Cache_visual_table({ cache, setCache, tag}: cache_tableProps) {
-
-    function checkInput(): boolean {
-        return true
-    }
-
+function Cache_visual_table({ cache, tag }: cache_tableProps) {
 
     return (
         <div>
@@ -42,7 +35,7 @@ function Cache_visual_table({ cache, setCache, tag}: cache_tableProps) {
                     <tr>
                         <th>Set</th>
                         {cache && cache.linesPerSet > 0 && Array(cache.linesPerSet).fill(null).map((_, s) => (
-                            
+
                             <React.Fragment key={s}>
                                 <th>Valid</th>
                                 <th>Tag</th>
@@ -62,7 +55,7 @@ function Cache_visual_table({ cache, setCache, tag}: cache_tableProps) {
                                     <React.Fragment key={j}>
                                         <td>{line.valid}</td>
                                         <td>{line.tag.toString(2).padStart(tag, '0')}</td>
-                                         <td>{line.blockSizeStr}</td> 
+                                        <td>{line.blockSizeStr}</td>
                                     </React.Fragment >
                                 ))}
                             </tr>
