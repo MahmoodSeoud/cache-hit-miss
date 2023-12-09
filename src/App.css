@@ -55,7 +55,7 @@
 
 .list-item-wrapper {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
   align-items: center;
   user-select: none;
   width: 100%;

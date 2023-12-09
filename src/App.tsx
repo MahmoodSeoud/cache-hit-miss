@@ -111,7 +111,8 @@ function App() {
   const lineIndex: number = Math.floor(Math.random() * cache.linesPerSet);
 
   const addressInBits: string = address.toString(2).padStart(addressBitWidth, '0');
-  const setIndexBits: string = addressInBits.slice(tag, - blockOffset);
+  const blockOffsetBits: string = addressInBits.slice(-blockOffset);
+  const setIndexBits: string = addressInBits.slice(tag, -blockOffset);
   const tagBits: string = addressInBits.slice(0, tag);
 
   const [isMouseDown, setIsMouseDown] = useState(false);
@@ -295,16 +296,24 @@ function App() {
 
   function cacheLookUp(assigmentType: string) {
     if (assigmentType === 'hit') {
-      const cacheHitBlock = cache.sets[parseInt(setIndexBits, 2)].lines[lineIndex];
-      const addressForCacheHitOnLookUp: string = (cacheHitBlock.tag.toString(2) +
-        setIndexBits +
-        createRandomNumberWith(blockOffset)
-          .toString(2))
-        .padStart(addressBitWidth, '0');
-
-      const NewAddress = Number("0b" + addressForCacheHitOnLookUp)
-
+      // TODO: Discuss with Phillips about this approach
+      for (let i = 0; i < cache.numSets; i++) {
+        for (let j = 0; j < cache.linesPerSet; j++) {
+          if (cache.sets[i].lines[j].valid === 1) {
+            const cacheHitBlock: CacheBlock = cache.sets[i].lines[j];
+            const tagBits: string = cacheHitBlock.tag.toString(2).padStart(tag, '0');
+            const setIndexBits: string = i.toString(2).padStart(setIndex, '0');
+            const blockOffsetBits: string = j.toString(2).padStart(blockOffset, '0');
+            const addressForCacheHitOnLookUp = parseInt(tagBits + setIndexBits + blockOffsetBits, 2);
+            setAddress(addressForCacheHitOnLookUp);
+            return;
+          }
+        }
+      }
+      // If no valid block is found, perform a miss
+      const NewAddress = createRandomNumber(0, maxAddress);
       setAddress(NewAddress);
+
     } else {
 
       const NewAddress = createRandomNumber(0, maxAddress);
@@ -324,15 +333,7 @@ function App() {
     return cache.sets.every(set => set.lines.every(line => line.empty === 1));
   }
 
-  // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
-  function randomAssignment(probability: number) {
-    // If you try to do a hit assignment on a cold cache, it will be a miss
-    if (!isCacheEmpty() && Math.random() <= probability / 100) {
-      cacheLookUp('hit')
-    } else {
-      cacheLookUp('miss')
-    }
-  }
+
 
   function insertAddressInCache(): void {
     const set = parseInt(setIndexBits, 2)
@@ -351,15 +352,25 @@ function App() {
     })
   }
 
+  // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
+  function randomAssignment(probability: number) {
+    // If you try to do a hit assignment on a cold cache, it will be a miss
+    if (!isCacheEmpty() && Math.random() <= probability / 100) {
+      console.log('i created a hit')
+      cacheLookUp('hit')
+    } else {
+      cacheLookUp('miss')
+    }
+  }
 
   function handleCacheButtonClick(userGuessedHit: boolean) {
-    const propability = 50;
+    const probabilityOfGettingACacheHit = 70;
     const wasAHit = isCacheHit();
     const wasAMiss = !wasAHit;
 
     if (userGuessedHit) {
       if (wasAHit) {
-        randomAssignment(propability);
+        randomAssignment(probabilityOfGettingACacheHit);
         showSuccess('hit');
         // TODO: add to log
       } else {
@@ -369,7 +380,7 @@ function App() {
       if (wasAMiss) {
         insertAddressInCache();
         //setCacheEntries(cache);
-        randomAssignment(propability);
+        randomAssignment(probabilityOfGettingACacheHit);
         showSuccess('miss');
         // TODO: add to log
 
