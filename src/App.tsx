@@ -294,23 +294,18 @@ function App() {
 
   function cacheLookUp(assigmentType: string) {
     if (assigmentType === 'hit') {
-      // TODO: Discuss with Phillips about this approach
-      for (let i = 0; i < cache.numSets; i++) {
-        for (let j = 0; j < cache.linesPerSet; j++) {
-          if (cache.sets[i].lines[j].valid === 1) {
-            const cacheHitBlock: CacheBlock = cache.sets[i].lines[j];
-            const tagBits: string = cacheHitBlock.tag.toString(2).padStart(tag, '0');
-            const setIndexBits: string = i.toString(2).padStart(setIndex, '0');
-            const blockOffsetBits: string = j.toString(2).padStart(blockOffset, '0');
-            const addressForCacheHitOnLookUp = parseInt(tagBits + setIndexBits + blockOffsetBits, 2);
-            setAddress(addressForCacheHitOnLookUp);
-            return;
-          }
-        }
-      }
-      // If no valid block is found, perform a miss
-      const NewAddress = createRandomNumber(0, maxAddress);
-      setAddress(NewAddress);
+      const validCacheBlocks = cache.sets.flatMap(set => set.lines.filter(line => line.valid === 1));
+      const randomValidBlock = validCacheBlocks[Math.floor(Math.random() * validCacheBlocks.length)]
+
+      const NewAddress: number = parseInt(randomValidBlock.blockSizeStr.slice(4, randomValidBlock.blockSizeStr.indexOf('-')));
+      const NewAddressInBits: string = NewAddress.toString(2).padStart(addressBitWidth, '0');
+      
+      const tagBits_: string = NewAddressInBits.slice(0, -(Math.log2(cache.blockSize) + Math.log2(cache.numSets)));
+      const setIndexBits_: string = NewAddressInBits.slice(tagBits_.length, -Math.log2(cache.blockSize));
+      const blockOffsetBits_: string = NewAddressInBits.slice(-Math.log2(cache.blockSize));
+      const address_ = Number('0b' + tagBits_ + setIndexBits_ + blockOffsetBits_);
+
+      setAddress(address_);
 
     } else {
 
@@ -321,7 +316,7 @@ function App() {
 
   function isCacheHit(): boolean {
     const cacheBlock = cache.sets[parseInt(setIndexBits, 2)].lines[lineIndex];
-    if (cacheBlock.valid === 1 && cacheBlock.tag === parseInt(tagBits, 2) && cacheBlock.blockSizeStr === 'Mem[' + address + '-' + (address + cache.blockSize - 1) + ']') {
+    if (cacheBlock.valid === 1 && cacheBlock.tag === parseInt(tagBits, 2)) {
       return true
     }
     return false
