@@ -328,21 +328,11 @@ function App() {
 
     // Flatten the cache sets into a single array
     console.log('I made a hit')
-    const validCacheBlocks = cache.sets.flatMap(set => set.lines.filter(line => line.valid === 1 && line.tag === parseInt(tagBits, 2)));
-    if (validCacheBlocks.length === 0) {
-      console.log('No valid cache blocks available');
-      debugger
-      return;
-    }
-    const randomValidBlock = validCacheBlocks[Math.floor(Math.random() * validCacheBlocks.length)]
-    const NewAddress: number = parseInt(randomValidBlock.blockSizeStr.slice(4, randomValidBlock.blockSizeStr.indexOf('-')));
-    const NewAddressInBits: string = NewAddress.toString(2).padStart(addressBitWidth, '0');
-
-    const tagBits_: string = NewAddressInBits.slice(0, -(Math.log2(cache.blockSize) + Math.log2(cache.numSets)));
-    const setIndexBits_: string = NewAddressInBits.slice(tagBits_.length, -Math.log2(cache.blockSize));
-    const blockOffsetBits_: string = NewAddressInBits.slice(-Math.log2(cache.blockSize));
-    const address_ = Number('0b' + tagBits_ + setIndexBits_ + blockOffsetBits_);
-    setAddress(address_);
+    const cacheEntry: CacheBlock[] = cache.sets.flatMap(cacheBlock => cacheBlock.lines);
+    const randCacheHitAddress = cacheEntry[Math.floor(Math.random() * cacheEntry.length)];
+    const cacheHitAddrress = parseInt(randCacheHitAddress.blockSizeStr.slice(4, randCacheHitAddress.blockSizeStr.indexOf('-')));
+    debugger
+    setAddress(cacheHitAddrress);
   }
 
   function createCacheMissAssigment() {
