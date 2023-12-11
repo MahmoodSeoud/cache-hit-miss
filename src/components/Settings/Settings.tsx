@@ -66,9 +66,8 @@ export default function Settings({
     }
 
     function handleNumLines(value: number | number[]) {
-
-        const index = setMarks.findIndex(mark => value === mark.value);
-        const linesPerSet = Number(setMarks[index].label)
+        const index = lineMarks.findIndex(mark => value === mark.value);
+        const linesPerSet = Number(lineMarks[index].label)
 
         linesPerSet && setCache((prevState: Cache) => {
             let newCache: Cache = { ...prevState };
@@ -95,6 +94,11 @@ export default function Settings({
             setSetAssociativityIsAcitve(false);
         } else if (cacheType === 'setassociative') {
             setSetAssociativityIsAcitve(true);
+            setCache((prevState: Cache) => {
+                let newCache: Cache = { ...prevState };
+                newCache.linesPerSet = 2;
+                return newCache;
+            });
         }
 
         setValue({ label: cacheType, value: cacheType });
@@ -112,7 +116,7 @@ export default function Settings({
                 >
 
                     <div className="card flex justify-content-center" >
-                    <h1>Settings</h1>
+                        <h1>Settings</h1>
                         <div className="input-card">
                             <h3>Address Max Value</h3>
                             <InputNumber
@@ -156,6 +160,7 @@ export default function Settings({
                             {setAssociativityIsAcitve && (
                                 <>
                                     <InputNumber
+                                        defaultValue={2}
                                         value={linesPerSet}
                                         disabled
                                     />
@@ -234,19 +239,19 @@ const setMarks: Mark[] = [
 const lineMarks: Mark[] = [
     {
         value: 0,
-        label: '4',
+        label: '2',
     },
     {
         value: 25,
-        label: '8',
+        label: '4',
     },
     {
         value: 50,
-        label: '16',
+        label: '8',
     },
     {
         value: 75,
-        label: '32',
+        label: '16',
     },
     {
         value: 100,
@@ -266,7 +271,7 @@ function DiscreteSliderValues({ handleSetState, marks, value }: DiscreteSliderVa
     return (
         <Box>
             <Slider
-                defaultValue={defaultValue}
+                value={defaultValue}
                 step={null}
                 style={{ width: '203px' }}
                 onChange={(e, value) => handleSetState(value as number)}

@@ -8,7 +8,6 @@ import './Laratheme.css'
 import './App.css'
 import './components/Cache_input_table/Cache_input_table.css'
 import { Button } from 'primereact/button';
-import { keys } from '@mui/system';
 
 export const InputFieldsMap = {
   /*   VirtualAddress: 'VirtualAddress',
@@ -101,14 +100,22 @@ export interface LogEntry {
   cacheEntries: CACHE_TABLE_ENTRY[][]
 }
 
+
+
 function App() {
+  const validAdresses: number[] = [];
+  const NUMSETS = 4;
+  const BLOCKSIZE = 8;
+  const LINESPERSET = 1;
   const [addressBitWidth, setAddressBitWidth] = useState<number>(createRandomNumber(10, 14));
-  const [maxAddress, setMaxAddress] = useState<number>(noOverlapAddressCreation(0, 256, 8));
+  const maxFerro = createRandomNumber(0, 256)
+  const [maxAddress, setMaxAddress] = useState<number>(maxFerro);
   const [address, setAddress] = useState<number>(maxAddress);
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
 
-  const [cache, setCache] = useState<Cache>(initNonEmptyCache(4, 8, 2 ** createRandomNumber(0, 1)));
+  const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
+
   const blockOffset: number = Math.log2(cache.blockSize);
   const setIndex: number = Math.log2(cache.numSets);
   const tag: number = addressBitWidth - (setIndex + blockOffset);
@@ -123,19 +130,28 @@ function App() {
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
   const toast = useRef<Toast>(null);
 
-
   useEffect(() => {
-    setAddress(noOverlapAddressCreation(0, maxAddress, cache.blockSize));
+    setAddress(createRandomNumber(0, maxAddress));
 
   }, [addressBitWidth, maxAddress])
 
   useEffect(() => {
+    if (maxAddress / cache.blockSize > cache.numSets * cache.linesPerSet * cache.blockSize) {
+      for (let k = 0; k < maxAddress; k += cache.blockSize) {
+        validAdresses.push(k);
+      }
+    } else {
+      for (let k = 0; k < cache.numSets * cache.linesPerSet * cache.blockSize; k += cache.blockSize) {
+        validAdresses.push(k);
+      }
+    }
+    
     let cache_;
-
+    
     if (cacheShouldBeCold) {
       cache_ = initEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet);
     } else {
-      cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet);
+      cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, validAdresses);
       setCacheShouldBeCold(false);
     }
 
@@ -208,14 +224,7 @@ function App() {
   }
 
 
-  // Function to initialize the cache
-  function initNonEmptyCache(numSets: number, blockSize: number, linesPerSet: number): Cache {
-
-    const validAdresses: number[] = [];
-    for (let k = 0; k < maxAddress; k += blockSize) {
-      validAdresses.push(k);
-    }
-
+  function initNonEmptyCache(numSets: number, blockSize: number, linesPerSet: number, validAdresses: number[]): Cache {
     const cache: Cache = {
       numSets: numSets,
       blockSize: blockSize,
@@ -227,15 +236,13 @@ function App() {
       const set: CacheSet = {
         lines: [],
       };
-      let addressAlreadyExists: boolean = false;
-      if (addressAlreadyExists) {
-        addressAlreadyExists = set.lines.some(line => line.blockSizeStr === blockSizeStr_);
-        
-      }
 
       for (let j = 0; j < linesPerSet; j++) {
-        let alreadyExists: boolean = false;
-        let address_: number = noOverlapAddressCreation(0, maxAddress, blockSize);
+        const randomIndex = Math.floor(Math.random() * validAdresses.length);
+        const aValidCacheAddress: number = validAdresses[randomIndex];
+        validAdresses.splice(randomIndex, 1); // Remove the used address from the array
+
+        let address_: number = aValidCacheAddress;
         let addressInBits_: string = address_.toString(2).padStart(addressBitWidth, '0');
         let tagBits_: string = addressInBits_.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
 
@@ -243,26 +250,7 @@ function App() {
         let tag_: number = Number('0b' + tagBits_);
         let blockSizeStr_: string = `Mem[${address_} - ${address_ + blockSize - 1}]`;
 
-        // block.tag og block.valid findes i blocken, så lav ny
-        alreadyExists = set.lines.some(line => line.tag === tag_ && line.valid === valid_ && line.empty === 0);
-
-
-
-        if (alreadyExists) {
-          const availableAddresses = validAdresses.filter(address => address !== address_);
-          address_ = availableAddresses[Math.floor(Math.random() * availableAddresses.length)];
-          addressInBits_ = address_.toString(2).padStart(addressBitWidth, '0');
-          tagBits_ = addressInBits_.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
-          valid_ = 1;
-          tag_ = Number('0b' + tagBits_);
-          blockSizeStr_ = `Mem[${address_} - ${address_ + blockSize - 1}]`;
-
-          // block.tag og block.valid findes i blocken, så lav ny
-          alreadyExists = set.lines.some(line => line.tag === tag_ && line.valid === valid_ && line.empty === 0);
-        }
-
         const block: CacheBlock = {
-
           tag: tag_,
           valid: valid_,
           empty: 0,
@@ -270,11 +258,11 @@ function App() {
         };
         set.lines.push(block);
       }
-
       cache.sets.push(set);
     }
-    return cache
+    return cache;
   }
+
 
 
   /**
@@ -343,21 +331,9 @@ function App() {
     } else {
       // TODO: Check that the address does not exists in table already
 
-      const NewAddress = noOverlapAddressCreation(0, maxAddress, cache.blockSize)
+      const NewAddress = createRandomNumber(0, maxAddress);
       setAddress(NewAddress);
     }
-  }
-
-  /***
-  * @Param maxAddress: the max address that can be created 
-  * @Param randomStart: the start of the random number
-  * @Return a random number that is not overlapping with the block size
-   */
-  function noOverlapAddressCreation(randomStart: number, maxAddress: number, blocksize: number): number {
-    // in order to not create overlap, we will divide the random number max 
-    // limit with block size, create the random number and times with the block
-    // size. This will just create every number in between
-    return createRandomNumber(randomStart, maxAddress / blocksize) * blocksize;
   }
 
   function isCacheHit(): boolean {

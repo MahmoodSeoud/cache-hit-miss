@@ -46,7 +46,7 @@ function Cache_visual_table({ cache, tag }: cache_tableProps) {
                 </thead>
                 <tbody>
 
-                    {cache && cache.sets.map((set, i) => {
+                    {cache.sets && cache.sets.map((set, i) => {
 
                         return (
                             <tr key={i}>
