@@ -8,6 +8,7 @@ import './Laratheme.css'
 import './App.css'
 import './components/Cache_input_table/Cache_input_table.css'
 import { Button } from 'primereact/button';
+import { keys } from '@mui/system';
 
 export const InputFieldsMap = {
   /*   VirtualAddress: 'VirtualAddress',
@@ -210,6 +211,11 @@ function App() {
   // Function to initialize the cache
   function initNonEmptyCache(numSets: number, blockSize: number, linesPerSet: number): Cache {
 
+    const validAdresses: number[] = [];
+    for (let k = 0; k < maxAddress; k += blockSize) {
+      validAdresses.push(k);
+    }
+
     const cache: Cache = {
       numSets: numSets,
       blockSize: blockSize,
@@ -221,20 +227,42 @@ function App() {
       const set: CacheSet = {
         lines: [],
       };
-
+      let addressAlreadyExists: boolean = false;
+      if (addressAlreadyExists) {
+        addressAlreadyExists = set.lines.some(line => line.blockSizeStr === blockSizeStr_);
+        
+      }
 
       for (let j = 0; j < linesPerSet; j++) {
-        // TODO: check the line, and if there is the same tag AND valid bit,
-        // do it again or change the address
-        const address_ = noOverlapAddressCreation(0, maxAddress, blockSize);
-        const addressInBits_ = address_.toString(2).padStart(addressBitWidth, '0');
-        const tagBits_: string = addressInBits_.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
+        let alreadyExists: boolean = false;
+        let address_: number = noOverlapAddressCreation(0, maxAddress, blockSize);
+        let addressInBits_: string = address_.toString(2).padStart(addressBitWidth, '0');
+        let tagBits_: string = addressInBits_.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
 
-        const valid_: Bit = 1;
-        const tag_: number = Number('0b' + tagBits_);
-        const blockSizeStr_: string = `Mem[${address_} - ${address_ + blockSize - 1}]`;
+        let valid_: Bit = 1;
+        let tag_: number = Number('0b' + tagBits_);
+        let blockSizeStr_: string = `Mem[${address_} - ${address_ + blockSize - 1}]`;
+
+        // block.tag og block.valid findes i blocken, så lav ny
+        alreadyExists = set.lines.some(line => line.tag === tag_ && line.valid === valid_ && line.empty === 0);
+
+
+
+        if (alreadyExists) {
+          const availableAddresses = validAdresses.filter(address => address !== address_);
+          address_ = availableAddresses[Math.floor(Math.random() * availableAddresses.length)];
+          addressInBits_ = address_.toString(2).padStart(addressBitWidth, '0');
+          tagBits_ = addressInBits_.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
+          valid_ = 1;
+          tag_ = Number('0b' + tagBits_);
+          blockSizeStr_ = `Mem[${address_} - ${address_ + blockSize - 1}]`;
+
+          // block.tag og block.valid findes i blocken, så lav ny
+          alreadyExists = set.lines.some(line => line.tag === tag_ && line.valid === valid_ && line.empty === 0);
+        }
 
         const block: CacheBlock = {
+
           tag: tag_,
           valid: valid_,
           empty: 0,
@@ -314,9 +342,8 @@ function App() {
 
     } else {
       // TODO: Check that the address does not exists in table already
-      //TODO: Creates address uniqly spread with blocckSize apart
 
-      const NewAddress = createRandomNumber(0, maxAddress / 8) * 8;
+      const NewAddress = noOverlapAddressCreation(0, maxAddress, cache.blockSize)
       setAddress(NewAddress);
     }
   }
@@ -335,10 +362,7 @@ function App() {
 
   function isCacheHit(): boolean {
     const cacheBlock = cache.sets[parseInt(setIndexBits, 2)].lines[lineIndex];
-    if (cacheBlock.valid === 1 && cacheBlock.tag === parseInt(tagBits, 2)) {
-      return true
-    }
-    return false
+    return (cacheBlock.valid === 1 && cacheBlock.tag === parseInt(tagBits, 2))
   }
 
   function isCacheEmpty(): boolean {
