@@ -113,7 +113,7 @@ function App() {
   const [addressBitWidth, setAddressBitWidth] = useState<number>(createRandomNumber(10, 14));
 
   const [maxAddress, setMaxAddress] = useState<number>(availbeAddresses.length > 0 ? availbeAddresses[availbeAddresses.length - 1] : MAXADDRESS);
-  const [address, setAddress] = useState<number>(maxAddress);
+  const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress / BLOCKSIZE) * 8);
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
@@ -134,25 +134,26 @@ function App() {
 
   useEffect(() => {
     const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
-    if (diff.length === 0) setAddress(createRandomNumber(0, maxAddress));
+    if (diff.length === 0) setAddress(createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize);
     else {
       setAddress(diff[Math.floor(Math.random() * diff.length)]);
-
     }
   }, [addressBitWidth, maxAddress])
 
   useEffect(() => {
-    if (maxAddress / cache.blockSize > cache.numSets * cache.linesPerSet * cache.blockSize) {
+    const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize;
+    if (maxAddress / cache.blockSize > totalCacheSize) {
       for (let k = 0; k < maxAddress; k += cache.blockSize) {
         availbeAddresses.push(k);
         allAddresses.push(k);
       }
     } else {
-      for (let k = 0; k < cache.numSets * cache.linesPerSet * cache.blockSize; k += cache.blockSize) {
+      for (let k = 0; k < totalCacheSize; k += cache.blockSize) {
         availbeAddresses.push(k);
         allAddresses.push(k);
       }
     }
+
 
     let cache_;
 
@@ -168,10 +169,12 @@ function App() {
   }, [cache.numSets, cache.linesPerSet, cache.blockSize, cacheShouldBeCold])
 
   useEffect(() => {
-    console.log('-----------------------------------')
-    console.log('cache', cache)
-    console.log('address', address)
-    console.log('addressInBits', address.toString(2).padStart(addressBitWidth, '0'))
+    /*     console.log('-----------------------------------')
+        console.log('cache', cache)
+        console.log('address', address)
+        console.log('addressInBits', address.toString(2).padStart(addressBitWidth, '0')) */
+    /*     console.log('allAddresses', allAddresses)
+        console.log('availbeAddresses', availbeAddresses) */
   });
 
 
@@ -321,27 +324,49 @@ function App() {
     }
   };
 
-  function cacheLookUp(assigmentType: string) {
-    if (assigmentType === 'hit') {
-      /*      const validCacheBlocks = cache.sets.flatMap(set => set.lines.filter(line => line.valid === 1));
-           const randomValidBlock = validCacheBlocks[Math.floor(Math.random() * validCacheBlocks.length)]
-     
-           const NewAddress: number = parseInt(randomValidBlock.blockSizeStr.slice(4, randomValidBlock.blockSizeStr.indexOf('-')));
-           const NewAddressInBits: string = NewAddress.toString(2).padStart(addressBitWidth, '0');
-     
-           const tagBits_: string = NewAddressInBits.slice(0, -(Math.log2(cache.blockSize) + Math.log2(cache.numSets)));
-           const setIndexBits_: string = NewAddressInBits.slice(tagBits_.length, -Math.log2(cache.blockSize));
-           const blockOffsetBits_: string = NewAddressInBits.slice(-Math.log2(cache.blockSize));
-           const address_ = Number('0b' + tagBits_ + setIndexBits_ + blockOffsetBits_); */
-      const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
-      setAddress(diff[Math.floor(Math.random() * diff.length)]);
+  function createCacheHitAssignment() {
 
-    } else {
-      // TODO: Check that the address does not exists in table already
-
-      const NewAddress = createRandomNumber(0, maxAddress);
-      setAddress(NewAddress);
+    // Flatten the cache sets into a single array
+    console.log('I made a hit')
+    const validCacheBlocks = cache.sets.flatMap(set => set.lines.filter(line => line.valid === 1 && line.tag === parseInt(tagBits, 2)));
+    if (validCacheBlocks.length === 0) {
+      console.log('No valid cache blocks available');
+      debugger
+      return;
     }
+    const randomValidBlock = validCacheBlocks[Math.floor(Math.random() * validCacheBlocks.length)]
+    const NewAddress: number = parseInt(randomValidBlock.blockSizeStr.slice(4, randomValidBlock.blockSizeStr.indexOf('-')));
+    const NewAddressInBits: string = NewAddress.toString(2).padStart(addressBitWidth, '0');
+
+    const tagBits_: string = NewAddressInBits.slice(0, -(Math.log2(cache.blockSize) + Math.log2(cache.numSets)));
+    const setIndexBits_: string = NewAddressInBits.slice(tagBits_.length, -Math.log2(cache.blockSize));
+    const blockOffsetBits_: string = NewAddressInBits.slice(-Math.log2(cache.blockSize));
+    const address_ = Number('0b' + tagBits_ + setIndexBits_ + blockOffsetBits_);
+    setAddress(address_);
+  }
+
+  function createCacheMissAssigment() {
+    // TODO: Check that the address does not exists in table already
+    // Flatten the cache sets into a single array
+    console.log('I made a miss')
+    const cacheAddresses: number[] = cache.sets.flatMap(cacheBlock => cacheBlock
+      .lines
+      .map(line => parseInt(line.blockSizeStr
+        .slice(4, line.blockSizeStr.indexOf('-')).trim())));
+
+    // Create a new array that only includes addresses not in cache.sets
+    const cacheMissAddresses = allAddresses.filter(address => !cacheAddresses.includes(address));
+    if (cacheMissAddresses.length === 0) {
+      console.log('No cache miss addresses available');
+      debugger
+      return;
+    }
+
+
+    // Select a random address from the available addresses
+    const randCacheMissAddress = cacheMissAddresses[Math.floor(Math.random() * cacheMissAddresses.length)];
+    setAddress(randCacheMissAddress);
+
   }
 
   function isCacheHit(): boolean {
@@ -374,10 +399,9 @@ function App() {
   function randomAssignment(probability: number) {
     // If you try to do a hit assignment on a cold cache, it will be a miss
     if (!isCacheEmpty() && Math.random() <= probability / 100) {
-      console.log('i created a hit')
-      cacheLookUp('hit')
+      createCacheHitAssignment();
     } else {
-      cacheLookUp('miss')
+      createCacheMissAssigment();
     }
   }
 
