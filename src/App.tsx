@@ -102,18 +102,20 @@ export interface LogEntry {
 
 
 
+const allAddresses: number[] = []
+const availbeAddresses: number[] = []
+const NUMSETS = 4 as const;
+const BLOCKSIZE = 8 as const;
+const LINESPERSET = 1 as const;
+const MAXADDRESS = 256 as const;
+
 function App() {
-  const validAdresses: number[] = [];
-  const NUMSETS = 4;
-  const BLOCKSIZE = 8;
-  const LINESPERSET = 1;
   const [addressBitWidth, setAddressBitWidth] = useState<number>(createRandomNumber(10, 14));
-  const maxFerro = createRandomNumber(0, 256)
-  const [maxAddress, setMaxAddress] = useState<number>(maxFerro);
+
+  const [maxAddress, setMaxAddress] = useState<number>(availbeAddresses.length > 0 ? availbeAddresses[availbeAddresses.length - 1] : MAXADDRESS);
   const [address, setAddress] = useState<number>(maxAddress);
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
-
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
 
   const blockOffset: number = Math.log2(cache.blockSize);
@@ -131,27 +133,33 @@ function App() {
   const toast = useRef<Toast>(null);
 
   useEffect(() => {
-    setAddress(createRandomNumber(0, maxAddress));
+    const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
+    if (diff.length === 0) setAddress(createRandomNumber(0, maxAddress));
+    else {
+      setAddress(diff[Math.floor(Math.random() * diff.length)]);
 
+    }
   }, [addressBitWidth, maxAddress])
 
   useEffect(() => {
     if (maxAddress / cache.blockSize > cache.numSets * cache.linesPerSet * cache.blockSize) {
       for (let k = 0; k < maxAddress; k += cache.blockSize) {
-        validAdresses.push(k);
+        availbeAddresses.push(k);
+        allAddresses.push(k);
       }
     } else {
       for (let k = 0; k < cache.numSets * cache.linesPerSet * cache.blockSize; k += cache.blockSize) {
-        validAdresses.push(k);
+        availbeAddresses.push(k);
+        allAddresses.push(k);
       }
     }
-    
+
     let cache_;
-    
+
     if (cacheShouldBeCold) {
       cache_ = initEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet);
     } else {
-      cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, validAdresses);
+      cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, availbeAddresses);
       setCacheShouldBeCold(false);
     }
 
@@ -224,7 +232,7 @@ function App() {
   }
 
 
-  function initNonEmptyCache(numSets: number, blockSize: number, linesPerSet: number, validAdresses: number[]): Cache {
+  function initNonEmptyCache(numSets: number, blockSize: number, linesPerSet: number, availbeAddresses: number[]): Cache {
     const cache: Cache = {
       numSets: numSets,
       blockSize: blockSize,
@@ -238,9 +246,9 @@ function App() {
       };
 
       for (let j = 0; j < linesPerSet; j++) {
-        const randomIndex = Math.floor(Math.random() * validAdresses.length);
-        const aValidCacheAddress: number = validAdresses[randomIndex];
-        validAdresses.splice(randomIndex, 1); // Remove the used address from the array
+        const randomIndex = Math.floor(Math.random() * availbeAddresses.length);
+        const aValidCacheAddress: number = availbeAddresses[randomIndex];
+        availbeAddresses.splice(randomIndex, 1); // Remove the used address from the array
 
         let address_: number = aValidCacheAddress;
         let addressInBits_: string = address_.toString(2).padStart(addressBitWidth, '0');
@@ -315,18 +323,18 @@ function App() {
 
   function cacheLookUp(assigmentType: string) {
     if (assigmentType === 'hit') {
-      const validCacheBlocks = cache.sets.flatMap(set => set.lines.filter(line => line.valid === 1));
-      const randomValidBlock = validCacheBlocks[Math.floor(Math.random() * validCacheBlocks.length)]
-
-      const NewAddress: number = parseInt(randomValidBlock.blockSizeStr.slice(4, randomValidBlock.blockSizeStr.indexOf('-')));
-      const NewAddressInBits: string = NewAddress.toString(2).padStart(addressBitWidth, '0');
-
-      const tagBits_: string = NewAddressInBits.slice(0, -(Math.log2(cache.blockSize) + Math.log2(cache.numSets)));
-      const setIndexBits_: string = NewAddressInBits.slice(tagBits_.length, -Math.log2(cache.blockSize));
-      const blockOffsetBits_: string = NewAddressInBits.slice(-Math.log2(cache.blockSize));
-      const address_ = Number('0b' + tagBits_ + setIndexBits_ + blockOffsetBits_);
-
-      setAddress(address_);
+      /*      const validCacheBlocks = cache.sets.flatMap(set => set.lines.filter(line => line.valid === 1));
+           const randomValidBlock = validCacheBlocks[Math.floor(Math.random() * validCacheBlocks.length)]
+     
+           const NewAddress: number = parseInt(randomValidBlock.blockSizeStr.slice(4, randomValidBlock.blockSizeStr.indexOf('-')));
+           const NewAddressInBits: string = NewAddress.toString(2).padStart(addressBitWidth, '0');
+     
+           const tagBits_: string = NewAddressInBits.slice(0, -(Math.log2(cache.blockSize) + Math.log2(cache.numSets)));
+           const setIndexBits_: string = NewAddressInBits.slice(tagBits_.length, -Math.log2(cache.blockSize));
+           const blockOffsetBits_: string = NewAddressInBits.slice(-Math.log2(cache.blockSize));
+           const address_ = Number('0b' + tagBits_ + setIndexBits_ + blockOffsetBits_); */
+      const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
+      setAddress(diff[Math.floor(Math.random() * diff.length)]);
 
     } else {
       // TODO: Check that the address does not exists in table already
