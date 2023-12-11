@@ -1,5 +1,6 @@
 td {
-    width: 100px;
+    width: fit-content;
     text-align: left;
     align-self: left;
+    white-space: nowrap;
 }
