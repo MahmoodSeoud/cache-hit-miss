@@ -229,6 +229,17 @@ function App() {
   }
 
 
+  function generateAddress(availbeAddresses: number[]): { address: number, index: number } {
+    const index = Math.floor(Math.random() * availbeAddresses.length);
+    const address = availbeAddresses[index];
+    return { address, index };
+  }
+
+  function generateTagBits(address: number, blockSize: number, numSets: number): string {
+    const addressInBits = address.toString(2).padStart(addressBitWidth, '0');
+    return addressInBits.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
+  }
+
   function initNonEmptyCache(numSets: number, blockSize: number, linesPerSet: number, availbeAddresses: number[]): Cache {
     const cache: Cache = {
       numSets: numSets,
@@ -238,32 +249,23 @@ function App() {
     }
 
     for (let i = 0; i < numSets; i++) {
-      const set: CacheSet = {
-        lines: [],
-      };
-
+      const set: CacheSet = { lines: [] };
       const knownTagsInSet: { tagBits: string, valid: Bit }[] = [];
 
       for (let j = 0; j < linesPerSet; j++) {
-        let randomIndex = Math.floor(Math.random() * availbeAddresses.length);
-        const aValidCacheAddress: number = availbeAddresses[randomIndex];
-
-        let address_: number = aValidCacheAddress;
-        let addressInBits_: string = address_.toString(2).padStart(addressBitWidth, '0');
-        let tagBits_: string = addressInBits_.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
+        let { address: address_, index: randomIndex } = generateAddress(availbeAddresses);
+        let tagBits_ = generateTagBits(address_, blockSize, numSets);
 
         let valid_: Bit = 1;
         let tag_: number = Number('0b' + tagBits_);
         let blockSizeStr_: string = `Mem[${address_} - ${address_ + blockSize - 1}]`;
+
         const existingTag = knownTagsInSet.find(tag => tag.tagBits === tagBits_);
         if (existingTag) {
           let newTagBits: string;
           do {
-            randomIndex = Math.floor(Math.random() * availbeAddresses.length);
-            const aValidCacheAddress: number = availbeAddresses[randomIndex];
-            address_ = aValidCacheAddress;
-            addressInBits_ = address_.toString(2).padStart(addressBitWidth, '0');
-            newTagBits = addressInBits_.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
+            ({ address: address_, index: randomIndex } = generateAddress(availbeAddresses));
+            newTagBits = generateTagBits(address_, blockSize, numSets);
           } while (knownTagsInSet.some(tag => tag.tagBits === newTagBits));
           tagBits_ = newTagBits;
           tag_ = Number('0b' + tagBits_);
@@ -271,9 +273,8 @@ function App() {
         }
 
         knownTagsInSet.push({ tagBits: tagBits_, valid: valid_ });
-
-
         availbeAddresses.splice(randomIndex, 1); // Remove the used address from the array
+
         const block: CacheBlock = {
           tag: tag_,
           valid: valid_,
@@ -281,7 +282,6 @@ function App() {
           blockSizeStr: blockSizeStr_,
         };
         set.lines.push(block);
-        console.log("knwon  ", knownTagsInSet)
       }
       cache.sets.push(set);
     }
