@@ -117,6 +117,7 @@ function App() {
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
+  const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize;
 
   const blockOffset: number = Math.log2(cache.blockSize);
   const setIndex: number = Math.log2(cache.numSets);
@@ -141,17 +142,10 @@ function App() {
   }, [addressBitWidth, maxAddress])
 
   useEffect(() => {
-    const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize;
-    if (maxAddress / cache.blockSize > totalCacheSize) {
-      for (let k = 0; k < maxAddress; k += cache.blockSize) {
-        availbeAddresses.push(k);
-        allAddresses.push(k);
-      }
-    } else {
-      for (let k = 0; k < totalCacheSize; k += cache.blockSize) {
-        availbeAddresses.push(k);
-        allAddresses.push(k);
-      }
+    const maximum: number = Math.max(maxAddress, totalCacheSize);
+    for (let k = 0; k < maximum; k += cache.blockSize) {
+      availbeAddresses.push(k);
+      allAddresses.push(k);
     }
 
 
@@ -248,10 +242,11 @@ function App() {
         lines: [],
       };
 
+      const knownTagsInSet: { tagBits: string, valid: Bit }[] = [];
+
       for (let j = 0; j < linesPerSet; j++) {
-        const randomIndex = Math.floor(Math.random() * availbeAddresses.length);
+        let randomIndex = Math.floor(Math.random() * availbeAddresses.length);
         const aValidCacheAddress: number = availbeAddresses[randomIndex];
-        availbeAddresses.splice(randomIndex, 1); // Remove the used address from the array
 
         let address_: number = aValidCacheAddress;
         let addressInBits_: string = address_.toString(2).padStart(addressBitWidth, '0');
@@ -260,7 +255,25 @@ function App() {
         let valid_: Bit = 1;
         let tag_: number = Number('0b' + tagBits_);
         let blockSizeStr_: string = `Mem[${address_} - ${address_ + blockSize - 1}]`;
+        const existingTag = knownTagsInSet.find(tag => tag.tagBits === tagBits_);
+        if (existingTag) {
+          let newTagBits: string;
+          do {
+            randomIndex = Math.floor(Math.random() * availbeAddresses.length);
+            const aValidCacheAddress: number = availbeAddresses[randomIndex];
+            address_ = aValidCacheAddress;
+            addressInBits_ = address_.toString(2).padStart(addressBitWidth, '0');
+            newTagBits = addressInBits_.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
+          } while (knownTagsInSet.some(tag => tag.tagBits === newTagBits));
+          tagBits_ = newTagBits;
+          tag_ = Number('0b' + tagBits_);
+          blockSizeStr_ = `Mem[${address_} - ${address_ + blockSize - 1}]`;
+        }
 
+        knownTagsInSet.push({ tagBits: tagBits_, valid: valid_ });
+
+
+        availbeAddresses.splice(randomIndex, 1); // Remove the used address from the array
         const block: CacheBlock = {
           tag: tag_,
           valid: valid_,
@@ -268,6 +281,7 @@ function App() {
           blockSizeStr: blockSizeStr_,
         };
         set.lines.push(block);
+        console.log("knwon  ", knownTagsInSet)
       }
       cache.sets.push(set);
     }
@@ -346,7 +360,8 @@ function App() {
 
     // Create a new array that only includes addresses not in cache.sets
     const arr = []
-    for (let k = 0; k < maxAddress; k += cache.blockSize) {
+    const maximum: number = Math.max(maxAddress, totalCacheSize);
+    for (let k = 0; k < maximum; k += cache.blockSize) {
       arr.push(k);
     }
 
