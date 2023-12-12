@@ -331,7 +331,7 @@ function App() {
     const cacheEntry: CacheBlock[] = cache.sets.flatMap(cacheBlock => cacheBlock.lines);
     const randCacheHitAddress = cacheEntry[Math.floor(Math.random() * cacheEntry.length)];
     const cacheHitAddrress = parseInt(randCacheHitAddress.blockSizeStr.slice(4, randCacheHitAddress.blockSizeStr.indexOf('-')));
-    debugger
+    console.log("cachehit address in Hit", cacheHitAddrress)
     setAddress(cacheHitAddrress);
   }
 
@@ -345,13 +345,12 @@ function App() {
         .slice(4, line.blockSizeStr.indexOf('-')).trim())));
 
     // Create a new array that only includes addresses not in cache.sets
-    const cacheMissAddresses = allAddresses.filter(address => !cacheAddresses.includes(address));
-    if (cacheMissAddresses.length === 0) {
-      console.log('No cache miss addresses available');
-      debugger
-      return;
+    const arr = []
+    for (let k = 0; k < maxAddress; k += cache.blockSize) {
+      arr.push(k);
     }
 
+    const cacheMissAddresses = arr.filter(address => !cacheAddresses.includes(address));
 
     // Select a random address from the available addresses
     const randCacheMissAddress = cacheMissAddresses[Math.floor(Math.random() * cacheMissAddresses.length)];
