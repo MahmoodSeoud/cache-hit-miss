@@ -5,3 +5,5 @@ TODO:
 - [] Liens må IKKE have de samme tag og være valid 1 
 More todo:
 - [x] Deep equal skal slettes og i stedet skal du tjekke om empty == 1
+
+ligenu så er lineIndex random, men er dette hvad vi ønsker? -Mahmood
