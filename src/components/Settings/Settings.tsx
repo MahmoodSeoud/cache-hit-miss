@@ -117,24 +117,7 @@ export default function Settings({
 
                     <div className="card flex justify-content-center" >
                         <h1>Settings</h1>
-                        <div className="input-card">
-                            <h3>Address Max Value</h3>
-                            <InputNumber
-                                value={maxAddress}
-                                disabled
-                            />
-
-                            <PrimeSlider
-                                value={maxAddress}
-                                onChange={(e: PrimeSliderChangeEvent) => setMaxAddress(e.value as number)}
-                                max={1024}
-                                min={1}
-                                className="w-14rem"
-                                step={1}
-                            />
-                        </div>
-
-
+              
                         <div className="input-card">
                             <h3>Number of sets</h3>
                             <InputNumber
