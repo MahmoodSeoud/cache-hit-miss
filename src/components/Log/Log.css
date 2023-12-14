@@ -1,0 +1,19 @@
+.log {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid rgb(46, 108, 162);
+    margin: 5px;
+    padding: 10px;
+    transition: all 0.3s ease-in-out; /* Add transition for smooth effect */
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); /* Add shadow for 3D effect */
+    border-radius: 10px; /* Add border radius for rounded corners */
+}
+
+.log:hover {
+    background-color: blue;
+    transform: scale(1.05); /* Add scale effect on hover */
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2); /* Increase shadow size on hover */
+    cursor: pointer;
+}
