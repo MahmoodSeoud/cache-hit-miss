@@ -529,7 +529,10 @@ function App() {
         setCacheShouldBeCold={setCacheShouldBeCold}
       />
 
-      <Log log={log} />
+      <Log 
+      log={log}
+      tag={tag}
+      />
 
       <h1>Cache Assignment</h1>
       <div className='logAssignmentWrapper'>
