@@ -6,8 +6,10 @@ import { Toast } from 'primereact/toast';
 import { ColorResult, HuePicker } from 'react-color';
 import './Laratheme.css'
 import './App.css'
+import 'primeicons/primeicons.css';
 import './components/Cache_input_table/Cache_input_table.css'
 import { Button } from 'primereact/button';
+import Log from './components/Log/Log';
 
 export const InputFieldsMap = {
   /*   VirtualAddress: 'VirtualAddress',
@@ -100,13 +102,15 @@ function replaceChars(str: string, start: number, numChars: number, replacement:
   return before + replacement + after;
 }
 
-export interface LogEntry {
+interface LogEntry {
   address: number;
   hit: boolean;
-  cacheBlocks: CACHE_TABLE_ENTRY[][]
+  cache: Cache
 }
 
-
+export interface LogHistory {
+  logEntries: LogEntry[]
+}
 
 const allAddresses: number[] = []
 const availbeAddresses: number[] = []
@@ -134,6 +138,8 @@ function App() {
   const blockOffsetBits: string = addressInBits.slice(-blockOffset);
   const setIndexBits: string = addressInBits.slice(tag, -blockOffset);
   const tagBits: string = addressInBits.slice(0, tag);
+
+  const [log, setLog] = useState<LogHistory>({ logEntries: [] })
 
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
@@ -163,18 +169,17 @@ function App() {
       cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, availbeAddresses);
       setCacheShouldBeCold(false);
     }
-
+    setLog({ logEntries: [] })
     setCache(cache_);
 
   }, [cache.numSets, cache.linesPerSet, cache.blockSize, cacheShouldBeCold])
 
   useEffect(() => {
-    /*     console.log('-----------------------------------')
-        console.log('cache', cache)
-        console.log('address', address)
-        console.log('addressInBits', address.toString(2).padStart(addressBitWidth, '0')) */
-    /*     console.log('allAddresses', allAddresses)
-        console.log('availbeAddresses', availbeAddresses) */
+    console.log('-----------------------------------')
+    console.log('cache', cache)
+    console.log('address', address)
+    console.log('addressInBits', address.toString(2).padStart(addressBitWidth, '0'))
+    console.log('log', log)
   });
 
 
@@ -365,7 +370,6 @@ function App() {
     // Flatten the cache sets into a single array
     console.log('I made a hit')
     const cacheBlocks: CacheBlock[] = cache.sets.flatMap(cacheBlock => cacheBlock.lines);
-    debugger
     const cacheHitBlock = cacheBlocks[Math.floor(Math.random() * cacheBlocks.length)];
     const cacheHitAddress = parseInt(cacheHitBlock.blockSizeStr.slice(4, cacheHitBlock.blockSizeStr.indexOf('-')));
     console.log("cachehit address in Hit", cacheHitAddress)
@@ -436,28 +440,29 @@ function App() {
   function handleCacheButtonClick(userGuessedHit: boolean) {
     const probabilityOfGettingACacheHit = 70;
     const wasAHit = isCacheHit();
-    const wasAMiss = !wasAHit;
 
-    if (userGuessedHit) {
-      if (wasAHit) {
-        randomAssignment(probabilityOfGettingACacheHit);
-        showSuccess('hit');
-        // TODO: add to log
+    const showResultAndLog = (hit: boolean) => {
+      const result = hit ? 'hit' : 'miss';
+      if (userGuessedHit === hit) {
+        showSuccess(result);
+        setLog(prevState => {
+          const newLog = { ...prevState };
+          newLog.logEntries.push({ address: address, hit: hit, cache: cache });
+          return newLog;
+        });
       } else {
-        showFailure('hit');
+        showFailure(result);
       }
+    };
+
+    if (wasAHit) {
+      showResultAndLog(true);
     } else {
-      if (wasAMiss) {
-        insertAddressInCache();
-        randomAssignment(probabilityOfGettingACacheHit);
-        showSuccess('miss');
-        // TODO: add to log
-
-      } else {
-        showFailure('miss');
-      }
+      insertAddressInCache();
+      showResultAndLog(false);
     }
 
+    randomAssignment(probabilityOfGettingACacheHit);
   }
 
   /**
@@ -508,12 +513,9 @@ function App() {
   }
 
 
-  interface Log {
-    logs: LogEntry[]
-
-  }
   return (
     <>
+      <Toast ref={toast} />
 
       <Settings
         maxAddress={maxAddress}
@@ -527,8 +529,9 @@ function App() {
         setCacheShouldBeCold={setCacheShouldBeCold}
       />
 
+      <Log log={log} />
 
-      <Toast ref={toast} />
+      <h1>Cache Assignment</h1>
       <div className='logAssignmentWrapper'>
         <div className='input-header'>
           <div className="input-buttons">
