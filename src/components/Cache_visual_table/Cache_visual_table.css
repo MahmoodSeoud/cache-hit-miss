@@ -1,6 +1,25 @@
 td {
-    width: fit-content;
-    text-align: left;
-    align-self: left;
-    white-space: nowrap;
+  width: fit-content;
+  text-align: left;
+  align-self: left;
+  white-space: nowrap;
+}
+
+.changed-set {
+  animation: changeHighlight 1s forwards;
+  background-color: transparent;
+}
+
+table:hover .changed-set {
+  background-color: green;
+}
+
+@keyframes changeHighlight {
+  0% {
+    background-color: transparent;
+  }
+
+  50% {
+    background-color: green;
+  }
 }

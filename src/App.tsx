@@ -124,26 +124,27 @@ function App() {
   const [maxAddress, setMaxAddress] = useState<number>(availbeAddresses.length > 0 ? availbeAddresses[availbeAddresses.length - 1] : MAXADDRESS);
   const [addressBitWidth, setAddressBitWidth] = useState<number>(maxAddress.toString(2).padStart(14, '0').length);
   const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress / BLOCKSIZE) * 8);
-
+  
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
   const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize;
-
+  
   const blockOffset: number = Math.log2(cache.blockSize);
   const setIndex: number = Math.log2(cache.numSets);
   const tag: number = addressBitWidth - (setIndex + blockOffset);
   const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet);
-
+  
   const addressInBits: string = address.toString(2).padStart(addressBitWidth, '0');
   const blockOffsetBits: string = addressInBits.slice(-blockOffset);
   const setIndexBits: string = addressInBits.slice(tag, -blockOffset);
   const tagBits: string = addressInBits.slice(0, tag);
-
+  
   const [log, setLog] = useState<LogHistory>({ logEntries: [] })
-
+  
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
   const toast = useRef<Toast>(null);
+  const [changedSet, setChangedSet] = useState<number | null>(null);
 
   useEffect(() => {
     const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
@@ -266,7 +267,6 @@ function App() {
       const set: CacheSet = { lines: [] };
       const knownTagsInSet: { tagBits: string, valid: Bit }[] = [];
 
-      const usedSetIndices = new Set<number>();
 
       for (let j = 0; j < linesPerSet; j++) {
         let { address: address_, index: randomIndex } = generateAddress(availbeAddresses);
@@ -403,7 +403,7 @@ function App() {
 
   function isCacheHit(): boolean {
     const set = parseInt(setIndexBits, 2)
-    return cache.sets[set].lines.some(line => line.tag === parseInt(tagBits, 2));
+    return cache.sets[set].lines.some(line => line.tag === parseInt(tagBits, 2) && line.valid === 1);
   }
 
   function isCacheEmpty(): boolean {
@@ -411,7 +411,7 @@ function App() {
   }
 
   function insertAddressInCache(): void {
-    const set = parseInt(setIndexBits, 2)
+    const set = parseInt(setIndexBits, 2);
     const tag: number = Number('0b' + tagBits);
 
     setCache(prevState => {
@@ -425,6 +425,8 @@ function App() {
 
       return newCache
     })
+
+    setChangedSet(set);
   }
 
   // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
@@ -440,29 +442,38 @@ function App() {
   function handleCacheButtonClick(userGuessedHit: boolean) {
     const probabilityOfGettingACacheHit = 70;
     const wasAHit = isCacheHit();
+    const wasAMiss = !wasAHit;
 
-    const showResultAndLog = (hit: boolean) => {
-      const result = hit ? 'hit' : 'miss';
-      if (userGuessedHit === hit) {
-        showSuccess(result);
+    const cacheCopy = JSON.parse(JSON.stringify(cache));
+
+    if (userGuessedHit) {
+      if (wasAHit) {
+        randomAssignment(probabilityOfGettingACacheHit);
+        showSuccess('hit');
         setLog(prevState => {
           const newLog = { ...prevState };
-          newLog.logEntries.push({ address: address, hit: hit, cache: cache });
+          newLog.logEntries.push({ address: address, hit: true, cache: cacheCopy });
           return newLog;
         });
       } else {
-        showFailure(result);
+        showFailure('hit');
       }
-    };
-
-    if (wasAHit) {
-      showResultAndLog(true);
     } else {
-      insertAddressInCache();
-      showResultAndLog(false);
+      if (wasAMiss) {
+        randomAssignment(probabilityOfGettingACacheHit);
+        showSuccess('miss');
+        insertAddressInCache();
+        setLog(prevState => {
+          const newLog = { ...prevState };
+          newLog.logEntries.push({ address: address, hit: false, cache: cacheCopy });
+          return newLog;
+        });
+
+      } else {
+        showFailure('miss');
+      }
     }
 
-    randomAssignment(probabilityOfGettingACacheHit);
   }
 
   /**
@@ -529,9 +540,10 @@ function App() {
         setCacheShouldBeCold={setCacheShouldBeCold}
       />
 
-      <Log 
-      log={log}
-      tag={tag}
+      <Log
+        log={log}
+        tag={tag}
+        changedSet={changedSet}
       />
 
       <h1>Cache Assignment</h1>
@@ -603,6 +615,7 @@ function App() {
         <Cache_visual_table
           cache={cache}
           tag={tag}
+          changedSet={changedSet}
         />
       </div>
 

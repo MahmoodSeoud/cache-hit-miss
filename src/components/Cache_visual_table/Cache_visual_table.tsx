@@ -4,29 +4,14 @@ import React from 'react';
 import { Cache } from '../../App';
 import './Cache_visual_table.css';
 
-export type InputFields = {
-    VirtualAddress: string;
-    Offset: string;
-    Index: string;
-    Tag: string;
-    Valid: Bit;
-    Hit: Bit;
-}
-
-export type CACHE_TABLE_ENTRY = {
-    tag: number;
-    block: string;
-    valid: Bit;
-};
-
 type cache_tableProps = {
     cache: Cache;
     tag: number;
+    changedSet: number | null;
 }
 
 
-function Cache_visual_table({ cache, tag }: cache_tableProps) {
-
+function Cache_visual_table({ cache, tag, changedSet }: cache_tableProps) {
     return (
         <div>
             <h2>Cache</h2>
@@ -47,9 +32,10 @@ function Cache_visual_table({ cache, tag }: cache_tableProps) {
                 <tbody>
 
                     {cache.sets && cache.sets.map((set, i) => {
+                        const rowClass = i === changedSet ? 'changed-set' : '';
 
                         return (
-                            <tr key={i}>
+                            <tr key={i} className={rowClass}>
                                 <td>{i}</td>
                                 {set && set.lines.length > 0 && set.lines.map((line, j) => (
                                     <React.Fragment key={j}>

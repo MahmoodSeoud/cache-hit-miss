@@ -9,9 +9,10 @@ import Cache_visual_table from '../Cache_visual_table/Cache_visual_table';
 
 interface ILogProps {
     log: LogHistory;
-    tag: number
+    tag: number;
+    changedSet: number | null;
 }
-export default function Log({ log, tag }: ILogProps) {
+export default function Log({ log, tag, changedSet }: ILogProps) {
     const [visible, setVisible] = useState(false);
     const op = useRef<OverlayPanel>(null);
 
@@ -38,11 +39,12 @@ export default function Log({ log, tag }: ILogProps) {
                         </div>
                         <OverlayPanel
                             ref={op}
-                            style={{ backgroundColor: 'blac' }}
+                            style={{ backgroundColor: 'black' }}
                         >
                             <Cache_visual_table
                                 cache={logEntry.cache}
                                 tag={tag}
+                                changedSet={changedSet}
                             />
                         </OverlayPanel>
                     </>
