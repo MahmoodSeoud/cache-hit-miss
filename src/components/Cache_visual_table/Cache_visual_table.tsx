@@ -1,5 +1,4 @@
 
-import { Bit } from '../../App';
 import React from 'react';
 import { Cache } from '../../App';
 import './Cache_visual_table.css';
