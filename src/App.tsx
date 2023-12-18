@@ -124,23 +124,23 @@ function App() {
   const [maxAddress, setMaxAddress] = useState<number>(availbeAddresses.length > 0 ? availbeAddresses[availbeAddresses.length - 1] : MAXADDRESS);
   const [addressBitWidth, setAddressBitWidth] = useState<number>(maxAddress.toString(2).padStart(14, '0').length);
   const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress / BLOCKSIZE) * 8);
-  
+
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
   const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize;
-  
+
   const blockOffset: number = Math.log2(cache.blockSize);
   const setIndex: number = Math.log2(cache.numSets);
   const tag: number = addressBitWidth - (setIndex + blockOffset);
   const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet);
-  
+
   const addressInBits: string = address.toString(2).padStart(addressBitWidth, '0');
   const blockOffsetBits: string = addressInBits.slice(-blockOffset);
   const setIndexBits: string = addressInBits.slice(tag, -blockOffset);
   const tagBits: string = addressInBits.slice(0, tag);
-  
+
   const [log, setLog] = useState<LogHistory>({ logEntries: [] })
-  
+
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
   const toast = useRef<Toast>(null);
@@ -527,24 +527,26 @@ function App() {
   return (
     <>
       <Toast ref={toast} />
+    <div style={{ display: 'flex', justifyContent:'space-between', alignItems:'center'  }}>
 
-      <Settings
-        maxAddress={maxAddress}
-        setMaxAddress={setMaxAddress}
-        assignmentType={''}
-        addressBitWidth={addressBitWidth}
-        setAddressBitWidth={setAddressBitWidth}
-        numSets={cache.numSets}
-        setCache={setCache}
-        linesPerSet={cache.linesPerSet}
-        setCacheShouldBeCold={setCacheShouldBeCold}
-      />
+        <Settings
+          maxAddress={maxAddress}
+          setMaxAddress={setMaxAddress}
+          assignmentType={''}
+          addressBitWidth={addressBitWidth}
+          setAddressBitWidth={setAddressBitWidth}
+          numSets={cache.numSets}
+          setCache={setCache}
+          linesPerSet={cache.linesPerSet}
+          setCacheShouldBeCold={setCacheShouldBeCold}
+        />
 
-      <Log
-        log={log}
-        tag={tag}
-        changedSet={changedSet}
-      />
+        <Log
+          log={log}
+          tag={tag}
+          changedSet={changedSet}
+        />
+      </div>
 
       <h1>Cache Assignment</h1>
       <div className='logAssignmentWrapper'>
@@ -552,7 +554,7 @@ function App() {
           <div className="input-buttons">
 
             <Button
-              severity='warning'
+              severity='danger'
               onClick={resetColors}
               style={{ margin: '1rem' }}
             >

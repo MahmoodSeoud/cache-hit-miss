@@ -108,7 +108,11 @@ export default function Settings({
     return (
         <>
             <div className="settings-window">
-                <Button icon="pi pi-cog" onClick={() => setShowSettings(true)} />
+                <Button 
+                icon="pi pi-cog"
+                 onClick={() => setShowSettings(true)} 
+                 severity="info"
+                 />
                 <Sidebar
                     visible={showSettings}
                     onHide={() => setShowSettings(false)}

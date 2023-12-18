@@ -12,7 +12,7 @@
 }
 
 .log:hover {
-    background-color: blue;
+    background-color: rgb(118, 118, 154);
     transform: scale(1.05); /* Add scale effect on hover */
     box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2); /* Increase shadow size on hover */
     cursor: pointer;

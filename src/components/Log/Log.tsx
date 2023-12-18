@@ -51,7 +51,11 @@ export default function Log({ log, tag, changedSet }: ILogProps) {
                 ))}
 
             </Sidebar >
-            <Button icon="pi pi-database" onClick={() => setVisible(true)} />
+            <Button 
+            icon="pi pi-database"
+             onClick={() => setVisible(true)}
+             severity='help'
+             />
 
         </div>
     );
