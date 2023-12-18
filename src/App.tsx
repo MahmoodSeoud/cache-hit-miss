@@ -621,37 +621,39 @@ function App() {
           <h3>offset bits:{blockOffset}</h3>
         </div>
         <div className='virtual-wrapper'>
-          <div className={`list-item-wrapper`}>
-            <Button
-              onClick={() => handleCacheButtonClick(true)}
-              severity='success'
-              label='Cache Hit'
-            />
-            <Button
-              onClick={() => handleCacheButtonClick(false)}
-              severity='danger'
-              label='Cache Miss'
-            />
-          </div>
-
           <SelectButton value={cacheValue}
             onChange={(e: SelectButtonChangeEvent) => handleCacheValueChange(e)}
             options={cacheOptions}
           />
+          {cacheValue === 'guess' &&
+            <div className={`list-item-wrapper`}>
+              <Button
+                onClick={() => handleCacheButtonClick(true)}
+                severity='success'
+                label='Cache Hit'
+              />
+              <Button
+                onClick={() => handleCacheButtonClick(false)}
+                severity='danger'
+                label='Cache Miss'
+              />
+            </div>
+          }
+
         </div>
 
 
         {cacheValue === 'guess' ?
-            <Cache_visual_table
-              cache={cache}
-              tag={tag}
-              changedSet={changedSet}
-              changedLine={changedLine}
-            />
-            :
-            <Cache_input_table
-              cache={cache}
-            />
+          <Cache_visual_table
+            cache={cache}
+            tag={tag}
+            changedSet={changedSet}
+            changedLine={changedLine}
+          />
+          :
+          <Cache_input_table
+            cache={cache}
+          />
         }
       </div>
 
