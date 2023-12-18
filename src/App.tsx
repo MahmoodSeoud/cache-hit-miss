@@ -562,6 +562,7 @@ function App() {
           log={log}
           tag={tag}
           changedSet={changedSet}
+          changedLine={changedLine}
         />
       </div>
 

@@ -11,8 +11,9 @@ interface ILogProps {
     log: LogHistory;
     tag: number;
     changedSet: number | null;
+    changedLine: number | null;
 }
-export default function Log({ log, tag, changedSet }: ILogProps) {
+export default function Log({ log, tag, changedSet, changedLine }: ILogProps) {
     const [visible, setVisible] = useState(false);
     const op = useRef<OverlayPanel>(null);
 
@@ -45,6 +46,7 @@ export default function Log({ log, tag, changedSet }: ILogProps) {
                                 cache={logEntry.cache}
                                 tag={tag}
                                 changedSet={changedSet}
+                                changedLine={changedLine}
                             />
                         </OverlayPanel>
                     </>
