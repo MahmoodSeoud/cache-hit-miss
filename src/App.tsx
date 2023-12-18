@@ -41,7 +41,7 @@ const bitMap = {
 
 
 // Cache block structure
-interface CacheBlock {
+export interface CacheBlock {
   valid: Bit;  // Whether this block is valid
   empty: Bit;  // Whether this block is empty
   tag: number;     // The tag of this block
@@ -168,7 +168,6 @@ function App() {
       allAddresses.push(k);
     }
 
-
     let cache_;
 
     if (cacheShouldBeCold) {
@@ -182,14 +181,10 @@ function App() {
 
   }, [cache.numSets, cache.linesPerSet, cache.blockSize, cacheShouldBeCold])
 
-  useEffect(() => {
-    console.log('-----------------------------------')
-    console.log('cache', cache)
-    console.log('address', address)
-    console.log('addressInBits', address.toString(2).padStart(addressBitWidth, '0'))
-    console.log('log', log)
-  });
 
+  useEffect(() => {
+    console.log('cache', cache)
+  }, [cache])
 
 
   /**
@@ -653,6 +648,8 @@ function App() {
           :
           <Cache_input_table
             cache={cache}
+            tag={tag}
+            setCache={setCache}
           />
         }
       </div>
