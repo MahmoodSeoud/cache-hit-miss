@@ -1,5 +1,36 @@
+/* Tlb table */
+.cache-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.cache-table th,
+.cache-table td {
+    padding: 8px;
+    text-align: center;
+    width: 25%;
+    border-bottom: 1px solid rgb(177, 177, 177);
+    border-right: 1px solid rgb(177, 177, 177);
+}
+
+
+.cache-table th:last-child,
+.cache-table td:last-child {
+    border-right: none !important;
+}
+
+.cache-table th:first-child,
+.cache-table td:first-child {
+    border-left: none;
+}
+
+.cache-table th:nth-child(3n+1),
+.cache-table td:nth-child(3n+1) {
+    border-right: 1px solid rgb(177, 177, 177);
+}
+
 td {
-  width: fit-content;
+  width:200px;
   text-align: left;
   align-self: left;
   white-space: nowrap;
@@ -23,3 +54,4 @@ td {
 table:hover .changed-block{
   background-color: green;
 }
+

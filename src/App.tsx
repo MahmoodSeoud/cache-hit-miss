@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import Cache_visual_table from './components/Cache_visual_table/Cache_visual_table';
+import Cache_input_table from './components/Cache_input_table/Cache_input_table';
 import Settings from './components/Settings/Settings';
 import { Toast } from 'primereact/toast';
 import { SelectButton, SelectButtonChangeEvent } from 'primereact/selectbutton';
 import { ColorResult, HuePicker } from 'react-color';
-import './Laratheme.css'
-import './App.css'
-import 'primeicons/primeicons.css';
-import './components/Cache_input_table/Cache_input_table.css'
 import { Button } from 'primereact/button';
 import Log from './components/Log/Log';
-import Cache_input_table from './components/Cache_input_table/Cache_input_table';
+
+import './Laratheme.css'
+import './components/Cache_input_table/Cache_input_table.css'
+import './App.css'
+import 'primeicons/primeicons.css';
 
 export const InputFieldsMap = {
   /*   VirtualAddress: 'VirtualAddress',
@@ -639,8 +640,7 @@ function App() {
         </div>
 
 
-        {
-          cacheValue === 'guess' ?
+        {cacheValue === 'guess' ?
             <Cache_visual_table
               cache={cache}
               tag={tag}
