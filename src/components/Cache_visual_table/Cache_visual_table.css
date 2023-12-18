@@ -5,15 +5,6 @@ td {
   white-space: nowrap;
 }
 
-.changed-set {
-  animation: changeHighlight 1s forwards;
-  background-color: transparent;
-}
-
-table:hover .changed-set {
-  background-color: green;
-}
-
 @keyframes changeHighlight {
   0% {
     background-color: transparent;
@@ -22,4 +13,13 @@ table:hover .changed-set {
   50% {
     background-color: green;
   }
+}
+
+.changed-block {
+  animation: changeHighlight 1s forwards;
+  background-color: transparent;
+}
+
+table:hover .changed-block{
+  background-color: green;
 }

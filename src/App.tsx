@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { CACHE_TABLE_ENTRY } from './components/Cache_input_table/Cache_input_table'
 import Cache_visual_table from './components/Cache_visual_table/Cache_visual_table';
 import Settings from './components/Settings/Settings';
 import { Toast } from 'primereact/toast';
@@ -10,6 +9,7 @@ import 'primeicons/primeicons.css';
 import './components/Cache_input_table/Cache_input_table.css'
 import { Button } from 'primereact/button';
 import Log from './components/Log/Log';
+import Cache_input_table from './components/Cache_input_table/Cache_input_table';
 
 export const InputFieldsMap = {
   /*   VirtualAddress: 'VirtualAddress',
@@ -145,6 +145,8 @@ function App() {
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
   const toast = useRef<Toast>(null);
   const [changedSet, setChangedSet] = useState<number | null>(null);
+  const [changedLine, setChangedLine] = useState<number | null>(null);
+  
 
   useEffect(() => {
     const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
@@ -277,7 +279,7 @@ function App() {
         addressInBits = replaceChars(addressInBits, tag, setIndex, setIndexBits_);
         address_ = parseInt(addressInBits, 2);
         let tagBits_ = generateTagBits(address_, blockSize, numSets);
-        let valid_: Bit = 1;
+        let valid_: Bit = Math.floor(Math.random() * 2) as Bit;
         let tag_: number = Number('0b' + tagBits_);
         let blockSizeStr_: string = `Mem[${address_} - ${address_ + blockSize - 1}]`;
 
@@ -294,7 +296,7 @@ function App() {
             tagBits_ = generateTagBits(address_, blockSize, numSets);
 
           } while (knownTagsInSet.some(tag => tag.tagBits === newTagBits));
-          valid_ = 1;
+          valid_ = Math.floor(Math.random() * 2) as Bit;
           tag_ = Number('0b' + tagBits_);
           blockSizeStr_ = `Mem[${address_} - ${address_ + blockSize - 1}]`;
         }
@@ -413,6 +415,7 @@ function App() {
   function insertAddressInCache(): void {
     const set = parseInt(setIndexBits, 2);
     const tag: number = Number('0b' + tagBits);
+    const line = randomLineIndex;
 
     setCache(prevState => {
       const newCache = { ...prevState };
@@ -427,6 +430,7 @@ function App() {
     })
 
     setChangedSet(set);
+    setChangedLine(line);
   }
 
   // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
@@ -527,7 +531,7 @@ function App() {
   return (
     <>
       <Toast ref={toast} />
-    <div style={{ display: 'flex', justifyContent:'space-between', alignItems:'center'  }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
         <Settings
           maxAddress={maxAddress}
@@ -618,7 +622,11 @@ function App() {
           cache={cache}
           tag={tag}
           changedSet={changedSet}
+          changedLine={changedLine}
         />
+
+        {/* 
+        <Cache_input_table cache={cache} changedSet={changedSet} /> */}
       </div>
 
     </>
