@@ -53,22 +53,20 @@
   margin: 0;
 }
 
+.virtual-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* adjust this value to increase or decrease the space */
+}
+
 .list-item-wrapper {
   display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-  user-select: none;
-  width: 100%;
-  white-space: nowrap;
+  justify-content: space-around;
+  gap: 10px; /* adjust this value to increase or decrease the space between buttons */
 }
 
 .list-item-bit-input-wrapper {
   display: flex;
-}
-
-.virtual-wrapper {
-  padding: 1em;
-  margin: 5em;
 }
 
 .table th {

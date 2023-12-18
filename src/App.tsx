@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Cache_visual_table from './components/Cache_visual_table/Cache_visual_table';
 import Settings from './components/Settings/Settings';
 import { Toast } from 'primereact/toast';
+import { SelectButton, SelectButtonChangeEvent } from 'primereact/selectbutton';
 import { ColorResult, HuePicker } from 'react-color';
 import './Laratheme.css'
 import './App.css'
@@ -146,7 +147,10 @@ function App() {
   const toast = useRef<Toast>(null);
   const [changedSet, setChangedSet] = useState<number | null>(null);
   const [changedLine, setChangedLine] = useState<number | null>(null);
-  
+
+  const cacheOptions: string[] = ['guess', 'input'];
+  const [cacheValue, setCacheValue] = useState<string>(cacheOptions[0]);
+
 
   useEffect(() => {
     const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
@@ -316,8 +320,6 @@ function App() {
     }
     return cache;
   }
-
-
 
   /**
  * Handles the mouse enter event on an element.
@@ -528,6 +530,16 @@ function App() {
   }
 
 
+  function handleCacheValueChange(e: SelectButtonChangeEvent) {
+    setCacheValue(e.value);
+    if (e.target.value === 'guess') {
+      setCache(initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, availbeAddresses));
+    } else {
+      setCache(initEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet));
+    }
+    setLog({ logEntries: [] })
+  }
+
   return (
     <>
       <Toast ref={toast} />
@@ -608,25 +620,41 @@ function App() {
         </div>
         <div className='virtual-wrapper'>
           <div className={`list-item-wrapper`}>
-            <button
-              onClick={() => handleCacheButtonClick(true)}>
-              Cache Hit
-            </button>
-            <button
-              onClick={() => handleCacheButtonClick(false)}>Cache Miss</button>
+            <Button
+              onClick={() => handleCacheButtonClick(true)}
+              severity='success'
+              label='Cache Hit'
+            />
+            <Button
+              onClick={() => handleCacheButtonClick(false)}
+              severity='danger'
+              label='Cache Miss'
+            />
           </div>
 
+          <SelectButton value={cacheValue}
+            onChange={(e: SelectButtonChangeEvent) => handleCacheValueChange(e)}
+            options={cacheOptions}
+          />
         </div>
 
-        <Cache_visual_table
-          cache={cache}
-          tag={tag}
-          changedSet={changedSet}
-          changedLine={changedLine}
-        />
 
-        {/* 
-        <Cache_input_table cache={cache} changedSet={changedSet} /> */}
+        {
+          cacheValue === 'guess' ?
+            <Cache_visual_table
+              cache={cache}
+              tag={tag}
+              changedSet={changedSet}
+              changedLine={changedLine}
+            />
+            :
+            <Cache_input_table
+              cache={cache}
+              tag={tag}
+              changedSet={changedSet}
+              changedLine={changedLine}
+            />
+        }
       </div>
 
     </>

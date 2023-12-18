@@ -1,15 +1,17 @@
 import React from 'react';
 import { Cache } from '../../App';
 import './Cache_input_table.css';
-import { InputNumber } from 'primereact/inputnumber';
+import { InputText } from 'primereact/inputtext';
 
 type cache_tableProps = {
     cache: Cache;
+    tag: number;
     changedSet: number | null;
+    changedLine: number | null;
 }
 
 
-function Cache_visual_table({ cache, changedSet }: cache_tableProps) {
+function Cache_input_table({ cache, tag, changedSet, changedLine }: cache_tableProps) {
     return (
         <div>
             <h2>Cache</h2>
@@ -17,32 +19,30 @@ function Cache_visual_table({ cache, changedSet }: cache_tableProps) {
                 <thead>
                     <tr>
                         <th>Set</th>
-                        {cache && cache.linesPerSet > 0 && Array(cache.linesPerSet).fill(null).map((_, s) => (
-
+                        {cache.linesPerSet && cache.linesPerSet > 0 && Array(cache.linesPerSet).fill(null).map((_, s) => (
                             <React.Fragment key={s}>
                                 <th>Valid</th>
                                 <th>Tag</th>
                                 <th>Block</th>
-                            </React.Fragment >
+                            </React.Fragment>
                         ))}
                     </tr>
                 </thead>
                 <tbody>
 
                     {cache.sets && cache.sets.map((set, i) => {
-                        const rowClass = i === changedSet ? 'changed-set' : '';
-
                         return (
-                            <tr key={i} className={rowClass}>
+                            <tr key={i}>
                                 <td>{i}</td>
-                                {set && set.lines.length > 0 && set.lines.map((line, j) => (
-                                    <>
-                                        <td><InputNumber useGrouping={false} /></td>
-                                        <td><InputNumber useGrouping={false} /></td>
-                                        <td><InputNumber useGrouping={false} /></td>
-                                    </>
-
-                                ))}
+                                {set.lines && set.lines.length > 0 && set.lines.map((line, j) => {
+                                    return (
+                                        <React.Fragment key={j}>
+                                            <td>{line.valid}</td>
+                                            <td><InputText /></td>
+                                            <td><InputText /></td>
+                                        </React.Fragment>
+                                    )
+                                })}
                             </tr>
                         )
                     })}
@@ -52,5 +52,4 @@ function Cache_visual_table({ cache, changedSet }: cache_tableProps) {
         </div>);
 }
 
-export default Cache_visual_table;
-
+export default Cache_input_table;
