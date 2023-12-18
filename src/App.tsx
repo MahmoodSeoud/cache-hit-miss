@@ -650,9 +650,6 @@ function App() {
             :
             <Cache_input_table
               cache={cache}
-              tag={tag}
-              changedSet={changedSet}
-              changedLine={changedLine}
             />
         }
       </div>

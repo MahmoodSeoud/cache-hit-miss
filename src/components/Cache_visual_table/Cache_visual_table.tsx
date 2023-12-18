@@ -13,7 +13,7 @@ function Cache_visual_table({ cache, tag, changedSet, changedLine }: cache_table
     return (
         <div>
             <h2>Cache</h2>
-            <table className='cache-table'>
+            <table className='cache-visual-table'>
 
                 <tbody>
                     {cache.sets && cache.sets.map((set, i) => {

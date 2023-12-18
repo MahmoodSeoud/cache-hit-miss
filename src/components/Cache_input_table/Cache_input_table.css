@@ -8,10 +8,11 @@
 .cache-table td {
     padding: 8px;
     text-align: center;
+    width: 25%;
     border-bottom: 1px solid rgb(177, 177, 177);
     border-right: 1px solid rgb(177, 177, 177);
-
 }
+
 
 .cache-table th:last-child,
 .cache-table td:last-child {
@@ -27,3 +28,24 @@
 .cache-table td:nth-child(3n+1) {
     border-right: 1px solid rgb(177, 177, 177);
 }
+
+
+@keyframes changeHighlight {
+  0% {
+    background-color: transparent;
+  }
+
+  50% {
+    background-color: green;
+  }
+}
+
+.changed-block {
+  animation: changeHighlight 1s forwards;
+  background-color: transparent;
+}
+
+table:hover .changed-block{
+  background-color: green;
+}
+

@@ -1,40 +1,39 @@
 /* Tlb table */
-.cache-table {
+.cache-visual-table {
     border-collapse: collapse;
-    width: 100%;
 }
 
-.cache-table th,
-.cache-table td {
+.cache-visual-table th,
+.cache-visual-table td {
     padding: 8px;
     text-align: center;
-    width: 25%;
     border-bottom: 1px solid rgb(177, 177, 177);
     border-right: 1px solid rgb(177, 177, 177);
 }
 
+.cache-visual-table td:first-child {
+  width: 150px !important; /* adjust this value as needed */
+}
+.cache-visual-table td {
+  width: 620px !important;
+  overflow: auto; /* add a scrollbar if the content overflows */
+}
 
-.cache-table th:last-child,
-.cache-table td:last-child {
+
+.cache-visual-table th:last-child,
+.cache-visual-table td:last-child {
     border-right: none !important;
 }
 
-.cache-table th:first-child,
-.cache-table td:first-child {
+.cache-visual-table th:first-child{
     border-left: none;
 }
 
-.cache-table th:nth-child(3n+1),
-.cache-table td:nth-child(3n+1) {
+.cache-visual-table th:nth-child(3n+1),
+.cache-visual-table td:nth-child(3n+1) {
     border-right: 1px solid rgb(177, 177, 177);
 }
 
-td {
-  width:200px;
-  text-align: left;
-  align-self: left;
-  white-space: nowrap;
-}
 
 @keyframes changeHighlight {
   0% {
