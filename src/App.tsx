@@ -137,7 +137,7 @@ function App() {
   const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet);
 
   const addressInBits: string = address.toString(2).padStart(addressBitWidth, '0');
-  const blockOffsetBits: string = addressInBits.slice(-blockOffset);
+  //const blockOffsetBits: string = addressInBits.slice(-blockOffset);
   const setIndexBits: string = addressInBits.slice(tag, -blockOffset);
   const tagBits: string = addressInBits.slice(0, tag);
 

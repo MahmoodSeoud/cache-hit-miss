@@ -41,6 +41,8 @@ export default function Settings({
     setCacheShouldBeCold,
 
 }: SettingsProps) {
+    maxAddress
+    setMaxAddress
     const [showSettings, setShowSettings] = useState<boolean>(false);
     const [value, setValue] = useState<CacheTypeOption>();
     const [setAssociativityIsAcitve, setSetAssociativityIsAcitve] = useState<boolean>(false);
@@ -261,7 +263,7 @@ function DiscreteSliderValues({ handleSetState, marks, value }: DiscreteSliderVa
                 value={defaultValue}
                 step={null}
                 style={{ width: '203px' }}
-                onChange={(e, value) => handleSetState(value as number)}
+                onChange={(_, value) => handleSetState(value as number)}
                 marks={marks}
             />
         </Box>
