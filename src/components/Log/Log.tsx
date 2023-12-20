@@ -6,6 +6,7 @@ import { Button } from 'primereact/button';
 import 'primeicons/primeicons.css';
 import './Log.css';
 import Cache_visual_table from '../Cache_visual_table/Cache_visual_table';
+import React from 'react';
 
 interface ILogProps {
     log: LogHistory;
@@ -26,7 +27,7 @@ export default function Log({ log, tag, changedSet, changedLine }: ILogProps) {
             >
                 <h1>Log</h1>
                 {log.logEntries && log.logEntries.length > 0 && log.logEntries.map((logEntry, index) => (
-                    <>
+                    <React.Fragment key={index}>
                         <div
                             className='log'
                             key={index}
@@ -49,15 +50,15 @@ export default function Log({ log, tag, changedSet, changedLine }: ILogProps) {
                                 changedLine={changedLine}
                             />
                         </OverlayPanel>
-                    </>
+                    </React.Fragment>
                 ))}
 
             </Sidebar >
-            <Button 
-            icon="pi pi-database"
-             onClick={() => setVisible(true)}
-             severity='help'
-             />
+            <Button
+                icon="pi pi-database"
+                onClick={() => setVisible(true)}
+                severity='help'
+            />
 
         </div>
     );

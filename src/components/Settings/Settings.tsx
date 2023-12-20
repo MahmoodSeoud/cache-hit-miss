@@ -14,8 +14,6 @@ import { Cache } from "../../App";
 
 
 interface SettingsProps {
-    maxAddress: number;
-    setMaxAddress: React.Dispatch<SetStateAction<number>>;
     assignmentType: string;
     addressBitWidth: number;
     setAddressBitWidth: React.Dispatch<SetStateAction<number>>;
@@ -31,8 +29,6 @@ interface CacheTypeOption {
 }
 
 export default function Settings({
-    maxAddress,
-    setMaxAddress,
     addressBitWidth,
     setAddressBitWidth,
     numSets,
@@ -41,8 +37,6 @@ export default function Settings({
     setCacheShouldBeCold,
 
 }: SettingsProps) {
-    maxAddress
-    setMaxAddress
     const [showSettings, setShowSettings] = useState<boolean>(false);
     const [value, setValue] = useState<CacheTypeOption>();
     const [setAssociativityIsAcitve, setSetAssociativityIsAcitve] = useState<boolean>(false);

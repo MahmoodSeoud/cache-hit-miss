@@ -125,7 +125,7 @@ function App() {
 
   const [maxAddress, setMaxAddress] = useState<number>(availbeAddresses.length > 0 ? availbeAddresses[availbeAddresses.length - 1] : MAXADDRESS);
   const [addressBitWidth, setAddressBitWidth] = useState<number>(maxAddress.toString(2).padStart(14, '0').length);
-  const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress / BLOCKSIZE) * 8);
+  const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress));
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
@@ -155,11 +155,11 @@ function App() {
 
   useEffect(() => {
     const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
-    if (diff.length === 0) setAddress(createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize);
+    if (diff.length === 0) setAddress(createRandomNumber(0, maxAddress));
     else {
       setAddress(diff[Math.floor(Math.random() * diff.length)]);
     }
-  }, [addressBitWidth, maxAddress])
+  }, [addressBitWidth])
 
   useEffect(() => {
     const maximum: number = Math.max(maxAddress, totalCacheSize);
@@ -180,11 +180,6 @@ function App() {
     setCache(cache_);
 
   }, [cache.numSets, cache.linesPerSet, cache.blockSize, cacheShouldBeCold])
-
-
-  useEffect(() => {
-    console.log('cache', cache)
-  }, [cache])
 
 
   /**
@@ -257,7 +252,6 @@ function App() {
   }
 
   function initNonEmptyCache(numSets: number, blockSize: number, linesPerSet: number, availbeAddresses: number[]): Cache {
-    console.log('I made a non empty cache')
     const cache: Cache = {
       numSets: numSets,
       blockSize: blockSize,
@@ -367,43 +361,69 @@ function App() {
 
   function createCacheHitAssignment() {
 
-    // Flatten the cache sets into a single array
+    const set = parseInt(setIndexBits, 2);
+    const tag: number = parseInt(tagBits, 2);
+
+    function getCacheBlocks(cache: Cache, checkTag: boolean) {
+      return cache
+        .sets
+        .filter((_, index) => index !== set)
+        .flatMap(cacheBlock => cacheBlock.lines)
+        .filter(line => line.valid === 1 && (!checkTag || line.tag === tag));
+    }
+
+    // First try to get a cache block with the same tag
+    let cacheBlocks: CacheBlock[] = getCacheBlocks(cache, true);
+
+    if (cacheBlocks.length === 0) {
+      // If there are no cache blocks with the same tag, get any cache block that are valid
+      cacheBlocks = getCacheBlocks(cache, false);
+    }
+
+    // If there are no cache blocks, Make a miss instead
+    if (cacheBlocks.length === 0) {
+      createCacheMissAssigment();
+      return;
+    }
+
     console.log('I made a hit')
-    const cacheBlocks: CacheBlock[] = cache.sets.flatMap(cacheBlock => cacheBlock.lines);
+
     const cacheHitBlock = cacheBlocks[Math.floor(Math.random() * cacheBlocks.length)];
+    const line = cache.sets.findIndex(set => set.lines.includes(cacheHitBlock));
     const cacheHitAddress = parseInt(cacheHitBlock.blockSizeStr.slice(4, cacheHitBlock.blockSizeStr.indexOf('-')));
-    console.log("cachehit address in Hit", cacheHitAddress)
+    setChangedSet(set);
+    setChangedLine(line);
     setAddress(cacheHitAddress);
   }
 
   function createCacheMissAssigment() {
     // TODO: Check that the address does not exists in table already
     // Flatten the cache sets into a single array
-    console.log('I made a miss')
     const cacheTags: number[] = cache.sets.flatMap(cacheBlock => cacheBlock.lines.map(line => line.tag));
-    let randomAddress = createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize
-
+    let randomAddress = createRandomNumber(0, maxAddress);
+    
     // Create a new array that only includes addresses not in cache.sets
     const allAddressePossible = []
     const maximum: number = Math.max(maxAddress, totalCacheSize);
     for (let k = 0; k < maximum; k += cache.blockSize) {
       allAddressePossible.push(k);
     }
-
+    
     const tagsOnAllPossibleAddresses: number[] = allAddressePossible.map(address => parseInt(address.toString(2).padStart(addressBitWidth, '0').slice(0, tag), 2));
-
+    
     // Difference between all addresses and the addresses in cache
     const availableTagsForCacheMiss = tagsOnAllPossibleAddresses.filter(address => !cacheTags.includes(address));
     const randomAvailableTag = availableTagsForCacheMiss[Math.floor(Math.random() * availableTagsForCacheMiss.length)];
-
+    
+    console.log('I made a miss')
     randomAddress = parseInt(replaceChars(randomAddress.toString(2), 0, tag, randomAvailableTag.toString(2).padStart(tag, '0')), 2);
     setAddress(randomAddress);
-
   }
 
   function isCacheHit(): boolean {
-    const set = parseInt(setIndexBits, 2)
-    return cache.sets[set].lines.some(line => line.tag === parseInt(tagBits, 2) && line.valid === 1);
+    const set = parseInt(setIndexBits, 2);
+    const tag = parseInt(tagBits, 2);
+    return cache.sets[set].lines.some(line => line.tag ===  tag && line.valid === 1);
   }
 
   function isCacheEmpty(): boolean {
@@ -412,7 +432,7 @@ function App() {
 
   function insertAddressInCache(): void {
     const set = parseInt(setIndexBits, 2);
-    const tag: number = Number('0b' + tagBits);
+    const tag: number = parseInt(tagBits, 2);
     const line = randomLineIndex;
 
     setCache(prevState => {
@@ -463,8 +483,8 @@ function App() {
     } else {
       if (wasAMiss) {
         randomAssignment(probabilityOfGettingACacheHit);
-        showSuccess('miss');
         insertAddressInCache();
+        showSuccess('miss');
         setLog(prevState => {
           const newLog = { ...prevState };
           newLog.logEntries.push({ address: address, hit: false, cache: cacheCopy });
@@ -542,8 +562,6 @@ function App() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
         <Settings
-          maxAddress={maxAddress}
-          setMaxAddress={setMaxAddress}
           assignmentType={''}
           addressBitWidth={addressBitWidth}
           setAddressBitWidth={setAddressBitWidth}
