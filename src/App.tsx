@@ -488,9 +488,13 @@ function App() {
     cacheBlock.empty = 0;
     cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
 
-    setChangedSet(set);
-    setChangedLine(randomLineIndex);
+    highlightBlock(set, randomLineIndex);
     setCache(newCache);
+  }
+
+  function highlightBlock(set: number, line: number): void {
+    setChangedSet(set);
+    setChangedLine(line);
   }
 
   // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
@@ -511,6 +515,7 @@ function App() {
     if (userGuessedHit) {
       if (wasAHit) {
         showSuccess('hit');
+        highlightBlock(parseInt(setIndexBits, 2), randomLineIndex); // TODO: should not be randomLineIndex
         randomAssignment(probabilityOfGettingACacheHit);
       } else {
         showFailure('hit');
