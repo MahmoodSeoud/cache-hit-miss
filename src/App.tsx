@@ -155,7 +155,7 @@ function App() {
   const [cacheValue, setCacheValue] = useState<string>(cacheOptions[0]);
 
   useEffect(() => {
-    createCacheMissAssigment(true);
+    createCacheMissAssigment();
   }, [0]);
 
   useEffect(() => {
@@ -385,11 +385,6 @@ function App() {
       cacheBlocks = getCacheBlocks(cache, false);
     }
 
-    // If there are no cache blocks, Make a miss instead
-    if (cacheBlocks.length === 0) {
-      return createCacheMissAssigment();
-    }
-
     console.log('I made a hit')
 
     const cacheHitBlock = cacheBlocks[Math.floor(Math.random() * cacheBlocks.length)];
@@ -411,7 +406,7 @@ function App() {
   // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
   const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
 
-  function createCacheMissAssigment(firstTime?: boolean) {
+  function createCacheMissAssigment() {
     const set_ = parseInt(setIndexBits, 2);
     const tag_: number = parseInt(tagBits, 2);
     const line_ = randomLineIndex;
@@ -465,10 +460,14 @@ function App() {
     setAddress(parseInt(randomAvailableAddress, 2) / cache.blockSize);
   }
 
-  function isCacheHit(): boolean {
+  function isCacheHit(): [boolean, number | null] {
     const set = parseInt(setIndexBits, 2);
     const tag = parseInt(tagBits, 2);
-    return cache.sets[set].lines.some(line => line.tag === tag && line.valid === 1);
+    
+    const isCacheHit = cache.sets[set].lines.some(line => line.tag === tag && line.valid === 1)
+    const cacheBlock = cache.sets[set].lines.findIndex(line => line.tag === tag && line.valid === 1);
+
+    return [isCacheHit, cacheBlock];
   }
 
   function isCacheEmpty(): boolean {
@@ -488,7 +487,6 @@ function App() {
     cacheBlock.empty = 0;
     cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
 
-    highlightBlock(set, randomLineIndex);
     setCache(newCache);
   }
 
@@ -509,13 +507,14 @@ function App() {
 
   function handleCacheButtonClick(userGuessedHit: boolean) {
     const probabilityOfGettingACacheHit = 70;
-    const wasAHit = isCacheHit();
+    const [wasAHit, lineIndex] = isCacheHit();
     const wasAMiss = !wasAHit;
+    const set = parseInt(setIndexBits, 2);
 
     if (userGuessedHit) {
       if (wasAHit) {
         showSuccess('hit');
-        highlightBlock(parseInt(setIndexBits, 2), randomLineIndex); // TODO: should not be randomLineIndex
+        highlightBlock(set, lineIndex!); // TODO: should not be randomLineIndex
         randomAssignment(probabilityOfGettingACacheHit);
       } else {
         showFailure('hit');
@@ -524,6 +523,7 @@ function App() {
       if (wasAMiss) {
         showSuccess('miss');
         insertAddressInCache();
+        highlightBlock(set, randomLineIndex);
         randomAssignment(probabilityOfGettingACacheHit);
       } else {
         showFailure('miss');
