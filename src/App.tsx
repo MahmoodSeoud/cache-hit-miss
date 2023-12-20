@@ -134,7 +134,6 @@ function App() {
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
   const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize;
 
-  const [count, setCount] = useState<number>(0);
 
   const blockOffset: number = Math.log2(cache.blockSize);
   const setIndex: number = Math.log2(cache.numSets);
@@ -610,7 +609,6 @@ function App() {
 
   return (
     <>
-    <button onClick={() => setCount(2)}></button>
       <Toast ref={toast} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
