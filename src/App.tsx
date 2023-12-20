@@ -514,7 +514,7 @@ function App() {
     if (userGuessedHit) {
       if (wasAHit) {
         showSuccess('hit');
-        highlightBlock(set, lineIndex!); // TODO: should not be randomLineIndex
+        highlightBlock(set, lineIndex!);
         randomAssignment(probabilityOfGettingACacheHit);
       } else {
         showFailure('hit');
