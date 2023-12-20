@@ -461,12 +461,7 @@ function App() {
     });
 
     console.log('I made a miss')
-    insertAddressInCache(address, set_, tag_);
 
-    if (!firstTime) {
-      setChangedSet(set_);
-      setChangedLine(line_);
-    }
     setAddress(parseInt(randomAvailableAddress, 2) / cache.blockSize);
   }
 
@@ -480,18 +475,21 @@ function App() {
     return cache.sets.every(set => set.lines.every(line => line.empty === 1));
   }
 
-  function insertAddressInCache(address: number, set: number, tag: number): void {
+  function insertAddressInCache(): void {
+    const set: number = parseInt(setIndexBits, 2);
+    const tag: number = parseInt(tagBits, 2);
+
     const newCache = JSON.parse(JSON.stringify(cache));
-    console.log(set)
     const cacheBlock = newCache.sets[set].lines[randomLineIndex];
-    console.log(cacheBlock)
+    console.log('I insert')
 
     cacheBlock.tag = tag;
     cacheBlock.valid = 1;
     cacheBlock.empty = 0;
     cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
 
-    console.log(cacheBlock)
+    setChangedSet(set);
+    setChangedLine(randomLineIndex);
     setCache(newCache);
   }
 
@@ -520,6 +518,7 @@ function App() {
     } else {
       if (wasAMiss) {
         showSuccess('miss');
+        insertAddressInCache();
         randomAssignment(probabilityOfGettingACacheHit);
       } else {
         showFailure('miss');
