@@ -121,11 +121,11 @@ const availbeAddresses: number[] = []
 const NUMSETS = 4 as const;
 const BLOCKSIZE = 8 as const;
 const LINESPERSET = 1 as const;
-const MAXADDRESS = 256 as const//8192 as const;
+const MAXADDRESS = 8192 as const;
 
 function App() {
 
-  const [maxAddress, setMaxAddress] = useState<number>(availbeAddresses.length > 0 ? availbeAddresses[availbeAddresses.length - 1] : MAXADDRESS);
+  const [maxAddress, setMaxAddress] = useState<number>(MAXADDRESS); 
   const [addressBitWidth, setAddressBitWidth] = useState<number>(maxAddress.toString(2).padStart(14, '0').length);
   const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress));
 
@@ -440,6 +440,9 @@ function App() {
     .filter((tag) => !cacheTags.includes(tag));
 
     const randomAvailableTag = availableTags[Math.floor(Math.random() * availableTags.length)];
+    if(randomAvailableTag === undefined) debugger;
+
+
 
     let randomAvailableAddress = createRandomNumber(0, maxAddress)
     .toString(2)
