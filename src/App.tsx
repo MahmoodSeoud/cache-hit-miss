@@ -121,7 +121,7 @@ const availbeAddresses: number[] = []
 const NUMSETS = 4 as const;
 const BLOCKSIZE = 8 as const;
 const LINESPERSET = 1 as const;
-const MAXADDRESS = 8192 as const;
+const MAXADDRESS = 256 as const//8192 as const;
 
 function App() {
 
@@ -394,10 +394,11 @@ function App() {
     const line_ = cache.sets[set_].lines.findIndex(line => line === cacheHitBlock);
     const cacheHitAddress = parseInt(cacheHitBlock.blockSizeStr.slice(4, cacheHitBlock.blockSizeStr.indexOf('-')));
 
+    const newCache = JSON.parse(JSON.stringify(cache));
     // Updating the log
     setLog(prevState => {
       const newLog = { ...prevState };
-      newLog.logEntries.push({ address: address, hit: true, cache: JSON.parse(JSON.stringify(cache)), setIndexed: set_, lineIndexed: line_ });
+      newLog.logEntries.push({ address: address, hit: true, cache: newCache, setIndexed: set_, lineIndexed: line_ });
       return newLog;
     });
 
@@ -406,44 +407,64 @@ function App() {
     setAddress(cacheHitAddress);
   }
 
+  // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
+  const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
+
   function createCacheMissAssigment() {
     const set_ = parseInt(setIndexBits, 2);
     const tag_: number = parseInt(tagBits, 2);
     const line_ = randomLineIndex;
 
-    // Flatten the cache sets into a single array
-    const cacheTags: number[] = cache.sets.flatMap(cacheBlock => cacheBlock.lines.map(line => line.tag));
-    let randomAddress = createRandomNumber(0, maxAddress);
+    const newCache = insertAddressInCache(address, set_, tag_);
 
     // Create a new array that only includes addresses not in cache.sets
-    const allAddressePossible = []
-    const maximum: number = Math.max(maxAddress, totalCacheSize);
-    for (let k = 0; k < maximum; k += cache.blockSize) {
+    const allAddressePossible = [];
+    for (let k = 0; k < maxAddress; k++) {
       allAddressePossible.push(k);
     }
 
-    const tagsOnAllPossibleAddresses: number[] = allAddressePossible.map(address => parseInt(address.toString(2).padStart(addressBitWidth, '0').slice(0, tag), 2));
+    const allTags: Set<number> = new Set(
+      [...allAddressePossible]
+        .map(address => parseInt(address.toString(2)
+          .padStart(addressBitWidth, '0')
+          .slice(1, tag), 2)
+        ));
 
-    // Difference between all addresses and the addresses in cache
-    const availableTagsForCacheMiss = tagsOnAllPossibleAddresses.filter(address => !cacheTags.includes(address));
-    const randomAvailableTag = availableTagsForCacheMiss[Math.floor(Math.random() * availableTagsForCacheMiss.length)];
+    // Flatten the cache sets into a single array
+    const cacheTags: number[] = newCache
+    .sets
+    .flatMap(cacheBlock => cacheBlock.lines.map(line => line.tag));
 
-    console.log('I made a miss')
+    const availableTags = Array
+    .from(allTags)
+    .filter((tag) => !cacheTags.includes(tag));
+
+    const randomAvailableTag = availableTags[Math.floor(Math.random() * availableTags.length)];
+
+    let randomAvailableAddress = createRandomNumber(0, maxAddress)
+    .toString(2)
+    .padStart(addressBitWidth, '0');
+
+    // Calculate the address corresponding to the selected tag
+    randomAvailableAddress = 
+      replaceChars(randomAvailableAddress,
+        0,
+        tag,
+        randomAvailableTag
+          .toString(2)
+          .padStart(tag, '0'));
 
 
-    randomAddress = parseInt(replaceChars(randomAddress.toString(2), 0, tag, randomAvailableTag.toString(2).padStart(tag, '0')), 2);
-
-    const newCache = insertAddressInCache(set_, tag_);
     setLog(prevState => {
       const newLog = { ...prevState };
-      newLog.logEntries.push({ address: address, hit: false, cache: JSON.parse(JSON.stringify(newCache)), setIndexed: set_, lineIndexed: line_ });
+      newLog.logEntries.push({ address: address, hit: false, cache: newCache, setIndexed: set_, lineIndexed: line_ });
       return newLog;
     });
-
-
+    
+    console.log('I made a miss')
     setChangedSet(set_);
     setChangedLine(line_);
-    setAddress(randomAddress);
+    setAddress(parseInt(randomAvailableAddress, 2));
   }
 
   function isCacheHit(): boolean {
@@ -456,8 +477,9 @@ function App() {
     return cache.sets.every(set => set.lines.every(line => line.empty === 1));
   }
 
-  function insertAddressInCache(set: number, tag: number): Cache {
-    const newCache = { ...cache };
+  function insertAddressInCache(address: number, set: number, tag: number): Cache {
+    const newCache = JSON.parse(JSON.stringify(cache));
+
     const cacheBlock = newCache.sets[set].lines[randomLineIndex];
 
     cacheBlock.tag = tag;
@@ -465,8 +487,9 @@ function App() {
     cacheBlock.empty = 0;
     cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
 
-    setCache(newCache)
+    setCache(newCache);
     return newCache;
+
   }
 
   // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
@@ -488,14 +511,16 @@ function App() {
 
     if (userGuessedHit) {
       if (wasAHit) {
-        randomAssignment(probabilityOfGettingACacheHit);
+        //   randomAssignment(probabilityOfGettingACacheHit);
+        createCacheMissAssigment()
         showSuccess('hit');
       } else {
         showFailure('hit');
       }
     } else {
       if (wasAMiss) {
-        randomAssignment(probabilityOfGettingACacheHit);
+        //lkl  randomAssignment(probabilityOfGettingACacheHit);
+        createCacheMissAssigment()
         showSuccess('miss');
       } else {
         showFailure('miss');

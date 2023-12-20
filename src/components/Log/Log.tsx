@@ -16,11 +16,6 @@ interface ILogProps {
 export default function Log({ log, tag, addressBitWidth }: ILogProps) {
     const [visible, setVisible] = useState(false);
     const op = useRef<OverlayPanel>(null);
-    console.log("logs are all the same:", log.logEntries.every(logEntry => logEntry.cache === log.logEntries[0].cache))
-    log.logEntries.forEach(logEntry => {
-        console.log('-------------------')
-        logEntry.cache.sets.forEach(set => console.log(set))
-    })
     return (
         <div className="card flex justify-content-center">
             <Sidebar

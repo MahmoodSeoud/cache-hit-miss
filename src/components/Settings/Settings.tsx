@@ -199,23 +199,23 @@ interface Mark {
 const setMarks: Mark[] = [
     {
         value: 0,
-        label: '4',
+        label: '2',
     },
     {
         value: 25,
-        label: '8',
+        label: '4',
     },
     {
         value: 50,
-        label: '16',
+        label: '8',
     },
     {
         value: 75,
-        label: '32',
+        label: '16',
     },
     {
         value: 100,
-        label: '64',
+        label: '32',
     },
 ];
 
