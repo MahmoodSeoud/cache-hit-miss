@@ -34,6 +34,14 @@
     border-right: 1px solid rgb(177, 177, 177);
 }
 
+.changed-block {
+  animation: changeHighlight 1s forwards;
+  background-color: transparent;
+}
+
+table:hover .changed-block{
+  background-color: green;
+}
 
 @keyframes changeHighlight {
   0% {
@@ -43,14 +51,5 @@
   50% {
     background-color: green;
   }
-}
-
-.changed-block {
-  animation: changeHighlight 1s forwards;
-  background-color: transparent;
-}
-
-table:hover .changed-block{
-  background-color: green;
 }
 

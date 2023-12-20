@@ -11,10 +11,9 @@ import React from 'react';
 interface ILogProps {
     log: LogHistory;
     tag: number;
-    changedSet: number | null;
-    changedLine: number | null;
+    addressBitWidth: number;
 }
-export default function Log({ log, tag, changedSet, changedLine }: ILogProps) {
+export default function Log({ log, tag, addressBitWidth}: ILogProps) {
     const [visible, setVisible] = useState(false);
     const op = useRef<OverlayPanel>(null);
 
@@ -33,10 +32,8 @@ export default function Log({ log, tag, changedSet, changedLine }: ILogProps) {
                             key={index}
                             onClick={(event) => op.current!.toggle(event)}
                         >
-                            <p>Address: {logEntry.address.toString(2).padStart(14, '0')}</p>
+                            <p>Address: {logEntry.address.toString(2).padStart(addressBitWidth, '0')}</p>
                             <p>Cache hit? {logEntry.hit.toString()}</p>
-
-
 
                         </div>
                         <OverlayPanel
@@ -46,8 +43,8 @@ export default function Log({ log, tag, changedSet, changedLine }: ILogProps) {
                             <Cache_visual_table
                                 cache={logEntry.cache}
                                 tag={tag}
-                                changedSet={changedSet}
-                                changedLine={changedLine}
+                                changedSet={logEntry.setIndexed}
+                                changedLine={logEntry.lineIndexed}
                             />
                         </OverlayPanel>
                     </React.Fragment>

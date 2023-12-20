@@ -33,8 +33,10 @@ function Cache_visual_table({ cache, tag, changedSet, changedLine }: cache_table
                                         <tbody>
                                             {set.lines && set.lines.length > 0 && set.lines.map((line, j) => {
                                                 const blockClass = j === changedLine ? 'changed-block' : '';
+                                                const key = `${j}-${Date.now()}`;
+
                                                 return (
-                                                    <tr key={j}>
+                                                    <tr key={key}>
                                                         <td className={changedSet_ ? blockClass : ''}>{line.valid}</td>
                                                         <td className={changedSet_ ? blockClass : ''}>{line.tag.toString(2).padStart(tag, '0')}</td>
                                                         <td className={changedSet_ ? blockClass : ''}>{line.blockSizeStr}</td>

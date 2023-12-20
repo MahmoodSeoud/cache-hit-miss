@@ -108,6 +108,8 @@ interface LogEntry {
   address: number;
   hit: boolean;
   cache: Cache
+  setIndexed: number;
+  lineIndexed: number;
 }
 
 export interface LogHistory {
@@ -382,73 +384,89 @@ function App() {
 
     // If there are no cache blocks, Make a miss instead
     if (cacheBlocks.length === 0) {
-      createCacheMissAssigment();
-      return;
+      return createCacheMissAssigment();
     }
 
     console.log('I made a hit')
 
     const cacheHitBlock = cacheBlocks[Math.floor(Math.random() * cacheBlocks.length)];
-    const line = cache.sets.findIndex(set => set.lines.includes(cacheHitBlock));
+    const set_ = cache.sets.findIndex(set => set.lines.includes(cacheHitBlock));
+    const line_ = cache.sets[set_].lines.findIndex(line => line === cacheHitBlock);
     const cacheHitAddress = parseInt(cacheHitBlock.blockSizeStr.slice(4, cacheHitBlock.blockSizeStr.indexOf('-')));
-    setChangedSet(set);
-    setChangedLine(line);
+
+    // Updating the log
+    setLog(prevState => {
+      const newLog = { ...prevState };
+      newLog.logEntries.push({ address: address, hit: true, cache: JSON.parse(JSON.stringify(cache)), setIndexed: set_, lineIndexed: line_ });
+      return newLog;
+    });
+
+    setChangedSet(set_);
+    setChangedLine(line_);
     setAddress(cacheHitAddress);
   }
 
   function createCacheMissAssigment() {
-    // TODO: Check that the address does not exists in table already
+    const set_ = parseInt(setIndexBits, 2);
+    const tag_: number = parseInt(tagBits, 2);
+    const line_ = randomLineIndex;
+
     // Flatten the cache sets into a single array
     const cacheTags: number[] = cache.sets.flatMap(cacheBlock => cacheBlock.lines.map(line => line.tag));
     let randomAddress = createRandomNumber(0, maxAddress);
-    
+
     // Create a new array that only includes addresses not in cache.sets
     const allAddressePossible = []
     const maximum: number = Math.max(maxAddress, totalCacheSize);
     for (let k = 0; k < maximum; k += cache.blockSize) {
       allAddressePossible.push(k);
     }
-    
+
     const tagsOnAllPossibleAddresses: number[] = allAddressePossible.map(address => parseInt(address.toString(2).padStart(addressBitWidth, '0').slice(0, tag), 2));
-    
+
     // Difference between all addresses and the addresses in cache
     const availableTagsForCacheMiss = tagsOnAllPossibleAddresses.filter(address => !cacheTags.includes(address));
     const randomAvailableTag = availableTagsForCacheMiss[Math.floor(Math.random() * availableTagsForCacheMiss.length)];
-    
+
     console.log('I made a miss')
+
+
     randomAddress = parseInt(replaceChars(randomAddress.toString(2), 0, tag, randomAvailableTag.toString(2).padStart(tag, '0')), 2);
+
+    const newCache = insertAddressInCache(set_, tag_);
+    setLog(prevState => {
+      const newLog = { ...prevState };
+      newLog.logEntries.push({ address: address, hit: false, cache: JSON.parse(JSON.stringify(newCache)), setIndexed: set_, lineIndexed: line_ });
+      return newLog;
+    });
+
+
+    setChangedSet(set_);
+    setChangedLine(line_);
     setAddress(randomAddress);
   }
 
   function isCacheHit(): boolean {
     const set = parseInt(setIndexBits, 2);
     const tag = parseInt(tagBits, 2);
-    return cache.sets[set].lines.some(line => line.tag ===  tag && line.valid === 1);
+    return cache.sets[set].lines.some(line => line.tag === tag && line.valid === 1);
   }
 
   function isCacheEmpty(): boolean {
     return cache.sets.every(set => set.lines.every(line => line.empty === 1));
   }
 
-  function insertAddressInCache(): void {
-    const set = parseInt(setIndexBits, 2);
-    const tag: number = parseInt(tagBits, 2);
-    const line = randomLineIndex;
+  function insertAddressInCache(set: number, tag: number): Cache {
+    const newCache = { ...cache };
+    const cacheBlock = newCache.sets[set].lines[randomLineIndex];
 
-    setCache(prevState => {
-      const newCache = { ...prevState };
-      const cacheBlock = newCache.sets[set].lines[randomLineIndex];
+    cacheBlock.tag = tag;
+    cacheBlock.valid = 1;
+    cacheBlock.empty = 0;
+    cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
 
-      cacheBlock.tag = tag;
-      cacheBlock.valid = 1;
-      cacheBlock.empty = 0;
-      cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
-
-      return newCache
-    })
-
-    setChangedSet(set);
-    setChangedLine(line);
+    setCache(newCache)
+    return newCache;
   }
 
   // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
@@ -472,30 +490,17 @@ function App() {
       if (wasAHit) {
         randomAssignment(probabilityOfGettingACacheHit);
         showSuccess('hit');
-        setLog(prevState => {
-          const newLog = { ...prevState };
-          newLog.logEntries.push({ address: address, hit: true, cache: cacheCopy });
-          return newLog;
-        });
       } else {
         showFailure('hit');
       }
     } else {
       if (wasAMiss) {
         randomAssignment(probabilityOfGettingACacheHit);
-        insertAddressInCache();
         showSuccess('miss');
-        setLog(prevState => {
-          const newLog = { ...prevState };
-          newLog.logEntries.push({ address: address, hit: false, cache: cacheCopy });
-          return newLog;
-        });
-
       } else {
         showFailure('miss');
       }
     }
-
   }
 
   /**
@@ -574,8 +579,7 @@ function App() {
         <Log
           log={log}
           tag={tag}
-          changedSet={changedSet}
-          changedLine={changedLine}
+          addressBitWidth={addressBitWidth}
         />
       </div>
 
