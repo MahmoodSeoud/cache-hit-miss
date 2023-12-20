@@ -125,9 +125,9 @@ const MAXADDRESS = 8192 as const;
 
 function App() {
 
-  const [maxAddress, setMaxAddress] = useState<number>(MAXADDRESS); 
+  const [maxAddress, setMaxAddress] = useState<number>(MAXADDRESS);
   const [addressBitWidth, setAddressBitWidth] = useState<number>(maxAddress.toString(2).padStart(14, '0').length);
-  const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress));
+  const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress / BLOCKSIZE) * BLOCKSIZE);
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
@@ -154,10 +154,13 @@ function App() {
   const cacheOptions: string[] = ['guess', 'input'];
   const [cacheValue, setCacheValue] = useState<string>(cacheOptions[0]);
 
+  useEffect(() => {
+    createCacheMissAssigment(true);
+  }, [0]);
 
   useEffect(() => {
     const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
-    if (diff.length === 0) setAddress(createRandomNumber(0, maxAddress));
+    if (diff.length === 0) setAddress(createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize);
     else {
       setAddress(diff[Math.floor(Math.random() * diff.length)]);
     }
@@ -275,7 +278,7 @@ function App() {
         addressInBits = replaceChars(addressInBits, tag, setIndex, setIndexBits_);
         address_ = parseInt(addressInBits, 2);
         let tagBits_ = generateTagBits(address_, blockSize, numSets);
-        let valid_: Bit = Math.floor(Math.random() * 2) as Bit;
+        let valid_: Bit = 1;
         let tag_: number = Number('0b' + tagBits_);
         let blockSizeStr_: string = `Mem[${address_} - ${address_ + blockSize - 1}]`;
 
@@ -292,7 +295,7 @@ function App() {
             tagBits_ = generateTagBits(address_, blockSize, numSets);
 
           } while (knownTagsInSet.some(tag => tag.tagBits === newTagBits));
-          valid_ = Math.floor(Math.random() * 2) as Bit;
+          valid_ = 1;
           tag_ = Number('0b' + tagBits_);
           blockSizeStr_ = `Mem[${address_} - ${address_ + blockSize - 1}]`;
         }
@@ -402,20 +405,16 @@ function App() {
       return newLog;
     });
 
-    setChangedSet(set_);
-    setChangedLine(line_);
     setAddress(cacheHitAddress);
   }
 
   // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
   const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
 
-  function createCacheMissAssigment() {
+  function createCacheMissAssigment(firstTime?: boolean) {
     const set_ = parseInt(setIndexBits, 2);
     const tag_: number = parseInt(tagBits, 2);
     const line_ = randomLineIndex;
-
-    const newCache = insertAddressInCache(address, set_, tag_);
 
     // Create a new array that only includes addresses not in cache.sets
     const allAddressePossible = [];
@@ -431,25 +430,23 @@ function App() {
         ));
 
     // Flatten the cache sets into a single array
-    const cacheTags: number[] = newCache
-    .sets
-    .flatMap(cacheBlock => cacheBlock.lines.map(line => line.tag));
+    const cacheTags: number[] = cache
+      .sets
+      .flatMap(cacheBlock => cacheBlock.lines.map(line => line.tag));
 
     const availableTags = Array
-    .from(allTags)
-    .filter((tag) => !cacheTags.includes(tag));
+      .from(allTags)
+      .filter((tag) => !cacheTags.includes(tag));
 
     const randomAvailableTag = availableTags[Math.floor(Math.random() * availableTags.length)];
-    if(randomAvailableTag === undefined) debugger;
+    if (randomAvailableTag === undefined) debugger;
 
-
-
-    let randomAvailableAddress = createRandomNumber(0, maxAddress)
-    .toString(2)
-    .padStart(addressBitWidth, '0');
+    let randomAvailableAddress = (createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize)
+      .toString(2)
+      .padStart(addressBitWidth, '0');
 
     // Calculate the address corresponding to the selected tag
-    randomAvailableAddress = 
+    randomAvailableAddress =
       replaceChars(randomAvailableAddress,
         0,
         tag,
@@ -457,17 +454,20 @@ function App() {
           .toString(2)
           .padStart(tag, '0'));
 
-
     setLog(prevState => {
       const newLog = { ...prevState };
-      newLog.logEntries.push({ address: address, hit: false, cache: newCache, setIndexed: set_, lineIndexed: line_ });
+      newLog.logEntries.push({ address: address, hit: false, cache: JSON.parse(JSON.stringify(cache)), setIndexed: set_, lineIndexed: line_ });
       return newLog;
     });
-    
+
     console.log('I made a miss')
-    setChangedSet(set_);
-    setChangedLine(line_);
-    setAddress(parseInt(randomAvailableAddress, 2));
+    insertAddressInCache(address, set_, tag_);
+
+    if (!firstTime) {
+      setChangedSet(set_);
+      setChangedLine(line_);
+    }
+    setAddress(parseInt(randomAvailableAddress, 2) / cache.blockSize);
   }
 
   function isCacheHit(): boolean {
@@ -480,19 +480,19 @@ function App() {
     return cache.sets.every(set => set.lines.every(line => line.empty === 1));
   }
 
-  function insertAddressInCache(address: number, set: number, tag: number): Cache {
+  function insertAddressInCache(address: number, set: number, tag: number): void {
     const newCache = JSON.parse(JSON.stringify(cache));
-
+    console.log(set)
     const cacheBlock = newCache.sets[set].lines[randomLineIndex];
+    console.log(cacheBlock)
 
     cacheBlock.tag = tag;
     cacheBlock.valid = 1;
     cacheBlock.empty = 0;
     cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
 
+    console.log(cacheBlock)
     setCache(newCache);
-    return newCache;
-
   }
 
   // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
@@ -510,21 +510,17 @@ function App() {
     const wasAHit = isCacheHit();
     const wasAMiss = !wasAHit;
 
-    const cacheCopy = JSON.parse(JSON.stringify(cache));
-
     if (userGuessedHit) {
       if (wasAHit) {
-        //   randomAssignment(probabilityOfGettingACacheHit);
-        createCacheMissAssigment()
         showSuccess('hit');
+        randomAssignment(probabilityOfGettingACacheHit);
       } else {
         showFailure('hit');
       }
     } else {
       if (wasAMiss) {
-        //lkl  randomAssignment(probabilityOfGettingACacheHit);
-        createCacheMissAssigment()
         showSuccess('miss');
+        randomAssignment(probabilityOfGettingACacheHit);
       } else {
         showFailure('miss');
       }
