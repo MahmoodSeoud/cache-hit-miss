@@ -393,13 +393,6 @@ function App() {
     const line_ = cache.sets[set_].lines.findIndex(line => line === cacheHitBlock);
     const cacheHitAddress = parseInt(cacheHitBlock.blockSizeStr.slice(4, cacheHitBlock.blockSizeStr.indexOf('-')));
 
-    const newCache = JSON.parse(JSON.stringify(cache));
-    // Updating the log
-    setLog(prevState => {
-      const newLog = { ...prevState };
-      newLog.logEntries.push({ address: address, hit: true, cache: newCache, setIndexed: set_, lineIndexed: line_ });
-      return newLog;
-    });
 
     setAddress(cacheHitAddress);
   }
@@ -450,11 +443,6 @@ function App() {
           .toString(2)
           .padStart(tag, '0'));
 
-    setLog(prevState => {
-      const newLog = { ...prevState };
-      newLog.logEntries.push({ address: address, hit: false, cache: JSON.parse(JSON.stringify(cache)), setIndexed: set_, lineIndexed: line_ });
-      return newLog;
-    });
 
     console.log('I made a miss')
 
@@ -464,7 +452,7 @@ function App() {
   function isCacheHit(): [boolean, number | null] {
     const set = parseInt(setIndexBits, 2);
     const tag = parseInt(tagBits, 2);
-    
+
     const isCacheHit = cache.sets[set].lines.some(line => line.tag === tag && line.valid === 1)
     const cacheBlock = cache.sets[set].lines.findIndex(line => line.tag === tag && line.valid === 1);
 
@@ -512,11 +500,24 @@ function App() {
     const wasAMiss = !wasAHit;
     const set = parseInt(setIndexBits, 2);
 
+    const newCache = JSON.parse(JSON.stringify(cache));
     if (userGuessedHit) {
       if (wasAHit) {
         showSuccess('hit');
         highlightBlock(set, lineIndex!);
         randomAssignment(probabilityOfGettingACacheHit);
+        // Updating the log
+        setLog(prevState => {
+          const newLog = { ...prevState };
+          newLog.logEntries.push({
+            address: address,
+            hit: true,
+            cache: newCache,
+            setIndexed: set,
+            lineIndexed: lineIndex!
+          });
+          return newLog;
+        });
       } else {
         showFailure('hit');
       }
@@ -526,6 +527,17 @@ function App() {
         insertAddressInCache();
         highlightBlock(set, randomLineIndex);
         randomAssignment(probabilityOfGettingACacheHit);
+        setLog(prevState => {
+          const newLog = { ...prevState };
+          newLog.logEntries.push({
+            address: address,
+            hit: false,
+            cache: JSON.parse(JSON.stringify(cache)),
+            setIndexed: set,
+            lineIndexed: randomLineIndex
+          });
+          return newLog;
+        });
       } else {
         showFailure('miss');
       }
