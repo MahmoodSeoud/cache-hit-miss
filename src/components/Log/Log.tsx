@@ -6,6 +6,7 @@ import { Button } from 'primereact/button';
 import 'primeicons/primeicons.css';
 import './Log.css';
 import Cache_visual_table from '../Cache_visual_table/Cache_visual_table';
+import { Dialog } from 'primereact/dialog';
 import React from 'react';
 
 interface ILogProps {
@@ -15,7 +16,9 @@ interface ILogProps {
 }
 export default function Log({ log, tag, addressBitWidth }: ILogProps) {
     const [visible, setVisible] = useState(false);
-    const op = useRef<OverlayPanel>(null);
+    const [showCache, setShowCache] = useState(false);
+    const op = useRef<OverlayPanel[]>([]);
+
     return (
         <div className="card flex justify-content-center">
             <Sidebar
@@ -23,31 +26,37 @@ export default function Log({ log, tag, addressBitWidth }: ILogProps) {
                 onHide={() => setVisible(false)}
                 position="right"
             >
-                <h1>Log</h1>
-                {log.logEntries && log.logEntries.length > 0 && log.logEntries.map((logEntry, index) => (
-                    <React.Fragment key={index}>
-                        <div
-                            className='log'
-                            key={index}
-                            onClick={(event) => op.current!.toggle(event)}
-                        >
-                            <p>Address: {logEntry.address.toString(2).padStart(addressBitWidth, '0')}</p>
-                            <p>Cache hit? {logEntry.hit.toString()}</p>
 
-                        </div>
-                        <OverlayPanel
-                            ref={op}
-                            style={{ backgroundColor: 'black' }}
-                        >
-                            <Cache_visual_table
-                                cache={logEntry.cache}
-                                tag={tag}
-                                changedSet={logEntry.setIndexed}
-                                changedLine={logEntry.lineIndexed}
+                <h1>Log</h1>
+                {log.logEntries && log.logEntries.length > 0 && log.logEntries.map((logEntry, index) => {
+                    return (
+                        <React.Fragment key={index}>
+                            <div
+                                className='log'
+                                onClick={(event) => op.current[index].toggle(event) }
+                            >
+                                <p>Address: {logEntry.address.toString(2).padStart(addressBitWidth, '0')}</p>
+                                <p>Cache hit? {logEntry.hit.toString()}</p>
+
+                            </div>
+                            <OverlayPanel 
+                                ref={(el: OverlayPanel | null) => (op.current[index] = el as OverlayPanel)}
+                                showCloseIcon
+                                closeOnEscape
+                                dismissable
+                                key={index}
+                                style={{backgroundColor: 'black'}}
+                                >
+                                <Cache_visual_table
+                                    cache={logEntry.cache}
+                                    tag={tag}
+                                    changedSet={logEntry.setIndexed}
+                                    changedLine={logEntry.lineIndexed}
                             />
-                        </OverlayPanel>
-                    </React.Fragment>
-                ))}
+                            </OverlayPanel>
+                        </React.Fragment>
+                    );
+                })}
 
             </Sidebar >
             <Button

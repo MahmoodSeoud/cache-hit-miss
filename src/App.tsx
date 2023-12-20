@@ -123,6 +123,7 @@ const BLOCKSIZE = 8 as const;
 const LINESPERSET = 1 as const;
 const MAXADDRESS = 8192 as const;
 
+const log_: LogHistory = { logEntries: [] };
 function App() {
 
   const [maxAddress, setMaxAddress] = useState<number>(MAXADDRESS);
@@ -132,6 +133,8 @@ function App() {
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
   const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize;
+
+  const [count, setCount] = useState<number>(0);
 
   const blockOffset: number = Math.log2(cache.blockSize);
   const setIndex: number = Math.log2(cache.numSets);
@@ -143,7 +146,7 @@ function App() {
   const setIndexBits: string = addressInBits.slice(tag, -blockOffset);
   const tagBits: string = addressInBits.slice(0, tag);
 
-  const [log, setLog] = useState<LogHistory>({ logEntries: [] })
+  const [log, setLog] = useState<LogHistory>(log_)
 
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
@@ -181,7 +184,8 @@ function App() {
       cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, availbeAddresses);
       setCacheShouldBeCold(false);
     }
-    setLog({ logEntries: [] })
+    log_.logEntries.length = 0;
+    setLog(log_);
     setCache(cache_);
     setAddress(createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize);
 
@@ -507,17 +511,19 @@ function App() {
         highlightBlock(set, lineIndex!);
         randomAssignment(probabilityOfGettingACacheHit);
         // Updating the log
-        setLog(prevState => {
-          const newLog = { ...prevState };
-          newLog.logEntries.push({
-            address: address,
-            hit: true,
-            cache: newCache,
-            setIndexed: set,
-            lineIndexed: lineIndex!
-          });
-          return newLog;
-        });
+
+        const newobj: LogEntry = {
+          address: address,
+          hit: true,
+          cache: newCache,
+          setIndexed: set,
+          lineIndexed: lineIndex!
+        }
+
+        log_.logEntries.push(newobj);
+        setLog(log_);
+
+
       } else {
         showFailure('hit');
       }
@@ -527,17 +533,16 @@ function App() {
         insertAddressInCache();
         highlightBlock(set, randomLineIndex);
         randomAssignment(probabilityOfGettingACacheHit);
-        setLog(prevState => {
-          const newLog = { ...prevState };
-          newLog.logEntries.push({
-            address: address,
-            hit: false,
-            cache: JSON.parse(JSON.stringify(cache)),
-            setIndexed: set,
-            lineIndexed: randomLineIndex
-          });
-          return newLog;
-        });
+
+        const newobj: LogEntry = {
+          address: address,
+          hit: false,
+          cache: JSON.parse(JSON.stringify(cache)),
+          setIndexed: set,
+          lineIndexed: randomLineIndex
+        }
+        log_.logEntries.push(newobj);
+        setLog(log_);
       } else {
         showFailure('miss');
       }
@@ -599,11 +604,13 @@ function App() {
     } else {
       setCache(initEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet));
     }
-    setLog({ logEntries: [] })
+    log_.logEntries.length = 0;
+    setLog(log_);
   }
 
   return (
     <>
+    <button onClick={() => setCount(2)}></button>
       <Toast ref={toast} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
