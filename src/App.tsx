@@ -183,6 +183,7 @@ function App() {
     }
     setLog({ logEntries: [] })
     setCache(cache_);
+    setAddress(createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize);
 
   }, [cache.numSets, cache.linesPerSet, cache.blockSize, cacheShouldBeCold])
 
