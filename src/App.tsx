@@ -13,13 +13,11 @@ import './components/Cache_input_table/Cache_input_table.css'
 import './App.css'
 import 'primeicons/primeicons.css';
 
-export const InputFieldsMap = {
-  /*   VirtualAddress: 'VirtualAddress',
-    Offset: 'Offset',
-    Index: 'Index',
-    Tag: 'Tag',
-    Valid: 'Valid', */
+export const CacheInputFieldsMap = {
+  BlockOffset: 'BlockOffset',
   Hit: 'Hit',
+  Valid: 'Valid',
+  Tag: 'Tag',
 } as const;
 
 const baseConversionMap = {
@@ -63,8 +61,8 @@ export interface Cache {
 
 export type BaseConversion = typeof baseConversionMap[keyof typeof baseConversionMap];
 export type AddressPrefix = typeof addressPrefixMap[keyof typeof addressPrefixMap];
-export type InputField = typeof InputFieldsMap[keyof typeof InputFieldsMap];
-export type Result = Pick<typeof InputFieldsMap, 'Hit'>[keyof Pick<typeof InputFieldsMap, 'Hit'>];
+export type InputField = typeof CacheInputFieldsMap[keyof typeof CacheInputFieldsMap];
+export type Result = Pick<typeof CacheInputFieldsMap, 'Hit'>[keyof Pick<typeof CacheInputFieldsMap, 'Hit'>];
 export type Bit = typeof bitMap[keyof typeof bitMap];
 
 /**
@@ -125,8 +123,8 @@ const MAXADDRESS = 8192 as const;
 
 const log_: LogHistory = { logEntries: [] };
 
-  // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
-  // const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
+// TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
+// const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
 function App() {
 
   const [maxAddress, _] = useState<number>(MAXADDRESS);
@@ -260,6 +258,18 @@ function App() {
       life: 3000
     });
   }
+  function generateAddress(availbeAddresses: number[]): { address: number, index: number } {
+    let index;
+    let address;
+    index = Math.floor(Math.random() * availbeAddresses.length);
+    address = availbeAddresses[index];
+    return { address, index };
+  }
+
+  function generateTagBits(address: number, blockSize: number, numSets: number): string {
+    const addressInBits = address.toString(2).padStart(addressBitWidth, '0');
+    return addressInBits.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
+  }
 
 
   // Function to initialize the cache
@@ -292,19 +302,6 @@ function App() {
     return cache;
   }
 
-
-  function generateAddress(availbeAddresses: number[]): { address: number, index: number } {
-    let index;
-    let address;
-    index = Math.floor(Math.random() * availbeAddresses.length);
-    address = availbeAddresses[index];
-    return { address, index };
-  }
-
-  function generateTagBits(address: number, blockSize: number, numSets: number): string {
-    const addressInBits = address.toString(2).padStart(addressBitWidth, '0');
-    return addressInBits.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
-  }
 
   function initNonEmptyCache(numSets: number, blockSize: number, linesPerSet: number, availbeAddresses: number[]): Cache {
     const cache: Cache = {
@@ -365,6 +362,11 @@ function App() {
     }
     return cache;
   }
+
+  
+function initFacitCache()  {
+  
+}
 
   /**
  * Handles the mouse enter event on an element.
