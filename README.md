@@ -16,7 +16,7 @@ npm run dev
 ## Pushing to production
 1. Make your changes to the code
 2. Fix all the warnings and Run `npm run build`. This will create a `dist` folder in the root directory
-3. From here you will see a ìndex.html` file in the dist folder
+3. From here you will see a `index.html` file in the `dist` folder
 ```html
    <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
@@ -25,9 +25,8 @@ npm run dev
   <script type="module" crossorigin src="/assets/index-aeab2f56.js"></script>
   <link rel="stylesheet" href="/assets/index-b8a74404.css">
 ```
-change the the `href`s and `crossorigin src` to have a relative link instead of absolute link (by changing the `/` to a `./`)
-Here is an example
-Make sure that the favicon is also present in the dist folder
+change the the `href`s and `crossorigin src` to have a relative link instead of absolute link (by changing the `/` to a `./`). Make sure that the favicon is also present in the dist folder
+Here is an example:
 ```html
    <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="./sysMentorIcon.svg" />
@@ -36,5 +35,5 @@ Make sure that the favicon is also present in the dist folder
   <script type="module" crossorigin src="./assets/index-aeab2f56.js"></script>
   <link rel="stylesheet" href="./assets/index-b8a74404.css">
 ```
-4. Under `assets/xxx.css` run the command `:%s/\/assets/./g` to replace '/assets' with '.'
+4. Under `/dist/assets/xxx.css` run the command `:%s/\/assets/./g` to replace '/assets' with '.' (or do search and replace)
 5. Push the changes and the website will run automatically. 
