@@ -132,18 +132,16 @@ function App() {
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
-  const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize;
+  const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize; // S X L X B
 
+  const blockOffset: number = Math.log2(cache.blockSize); // The number of block offset bits
+  const setIndex: number = Math.log2(cache.numSets); //   The number of set index bits
+  const tag: number = addressBitWidth - (setIndex + blockOffset); // The number of tag bits
+  const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet); // The random line index
 
-  const blockOffset: number = Math.log2(cache.blockSize);
-  const setIndex: number = Math.log2(cache.numSets);
-  const tag: number = addressBitWidth - (setIndex + blockOffset);
-  const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet);
-
-  const addressInBits: string = address.toString(2).padStart(addressBitWidth, '0');
-  //const blockOffsetBits: string = addressInBits.slice(-blockOffset);
-  const setIndexBits: string = addressInBits.slice(tag, -blockOffset);
-  const tagBits: string = addressInBits.slice(0, tag);
+  const addressInBits: string = address.toString(2).padStart(addressBitWidth, '0'); // The address in bits
+  const setIndexBits: string = addressInBits.slice(tag, -blockOffset); // The set index bits
+  const tagBits: string = addressInBits.slice(0, tag); // The tag bits
 
   const [log, setLog] = useState<LogHistory>(log_)
 
@@ -155,6 +153,9 @@ function App() {
 
   const cacheOptions: string[] = ['guess', 'input'];
   const [cacheValue, setCacheValue] = useState<string>(cacheOptions[0]);
+  const setValue = parseInt(setIndexBits, 2);
+  const tagValue: number = parseInt(tagBits, 2);
+
 
   useEffect(() => {
     createCacheMissAssigment();
@@ -370,15 +371,13 @@ function App() {
 
   function createCacheHitAssignment() {
 
-    const set = parseInt(setIndexBits, 2);
-    const tag: number = parseInt(tagBits, 2);
 
     function getCacheBlocks(cache: Cache, checkTag: boolean) {
       return cache
         .sets
-        .filter((_, index) => index !== set)
+        .filter((_, index) => index !== setValue)
         .flatMap(cacheBlock => cacheBlock.lines)
-        .filter(line => line.valid === 1 && (!checkTag || line.tag === tag));
+        .filter(line => line.valid === 1 && (!checkTag || line.tag === tagValue));
     }
 
     // First try to get a cache block with the same tag
@@ -453,11 +452,9 @@ function App() {
   }
 
   function isCacheHit(): [boolean, number | null] {
-    const set = parseInt(setIndexBits, 2);
-    const tag = parseInt(tagBits, 2);
 
-    const isCacheHit = cache.sets[set].lines.some(line => line.tag === tag && line.valid === 1)
-    const cacheBlock = cache.sets[set].lines.findIndex(line => line.tag === tag && line.valid === 1);
+    const isCacheHit = cache.sets[setValue].lines.some(line => line.tag === tagValue && line.valid === 1)
+    const cacheBlock = cache.sets[setValue].lines.findIndex(line => line.tag === tagValue && line.valid === 1);
 
     return [isCacheHit, cacheBlock];
   }
@@ -467,14 +464,12 @@ function App() {
   }
 
   function insertAddressInCache(): void {
-    const set: number = parseInt(setIndexBits, 2);
-    const tag: number = parseInt(tagBits, 2);
 
     const newCache = JSON.parse(JSON.stringify(cache));
-    const cacheBlock = newCache.sets[set].lines[randomLineIndex];
+    const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
     console.log('I insert')
 
-    cacheBlock.tag = tag;
+    cacheBlock.tag = tagValue;
     cacheBlock.valid = 1;
     cacheBlock.empty = 0;
     cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
@@ -501,13 +496,12 @@ function App() {
     const probabilityOfGettingACacheHit = 70;
     const [wasAHit, lineIndex] = isCacheHit();
     const wasAMiss = !wasAHit;
-    const set = parseInt(setIndexBits, 2);
 
     const newCache = JSON.parse(JSON.stringify(cache));
     if (userGuessedHit) {
       if (wasAHit) {
         showSuccess('hit');
-        highlightBlock(set, lineIndex!);
+        highlightBlock(setValue, lineIndex!);
         randomAssignment(probabilityOfGettingACacheHit);
         // Updating the log
 
@@ -515,7 +509,7 @@ function App() {
           address: address,
           hit: true,
           cache: newCache,
-          setIndexed: set,
+          setIndexed: setValue,
           lineIndexed: lineIndex!
         }
 
@@ -530,14 +524,14 @@ function App() {
       if (wasAMiss) {
         showSuccess('miss');
         insertAddressInCache();
-        highlightBlock(set, randomLineIndex);
+        highlightBlock(setValue, randomLineIndex);
         randomAssignment(probabilityOfGettingACacheHit);
 
         const newobj: LogEntry = {
           address: address,
           hit: false,
           cache: JSON.parse(JSON.stringify(cache)),
-          setIndexed: set,
+          setIndexed: setValue,
           lineIndexed: randomLineIndex
         }
         log_.logEntries.push(newobj);
