@@ -12,6 +12,24 @@ import './Settings.css';
 import 'primeicons/primeicons.css';
 import { Cache } from "../../App";
 
+/**
+ * Enumeration for cache associativity types.
+ * @readonly
+ * @enum {number}
+ */
+const CacheAssociativity = {
+    /** Direct Mapped Cache */
+    DirectMapped: 0,
+    /** Set Associative Cache */
+    SetAssociative: 1,
+    /** Fully Associative Cache */
+    FullyAssociative: 2,
+} as const;
+
+interface CacheTypeOption {
+    label: string;
+    value: number;
+}
 
 interface SettingsProps {
     assignmentType: string;
@@ -23,10 +41,19 @@ interface SettingsProps {
     setCacheShouldBeCold: React.Dispatch<SetStateAction<boolean>>;
 }
 
-interface CacheTypeOption {
-    label: string;
-    value: string;
-}
+/**
+ * Array of options for cache associativity types.
+ * Each option is an object with a `label` and a `value`.
+ * `label` is a string that describes the cache associativity type.
+ * `value` is a number that represents the cache associativity type.
+ * @type {CacheTypeOption[]}
+ */
+const cacheOptions: CacheTypeOption[] = [
+    { label: 'Direct Mapped', value: 0 },
+    { label: 'Set Associative', value: 1 },
+    { label: 'Fully Associative', value: 2 }
+];
+
 
 export default function Settings({
     addressBitWidth,
@@ -38,15 +65,7 @@ export default function Settings({
 
 }: SettingsProps) {
     const [showSettings, setShowSettings] = useState<boolean>(false);
-    const [value, setValue] = useState<CacheTypeOption>();
-    const [setAssociativityIsAcitve, setSetAssociativityIsAcitve] = useState<boolean>(false);
-
-
-    const lineOptions: CacheTypeOption[] = [
-        { label: 'Direct Mapped', value: 'directmapped' },
-        { label: 'Set Associative', value: 'setassociative' },
-        { label: 'Fully Associative', value: 'fullyassociative' }
-    ];
+    const [cacheAssociativity, setCacheAssociativity] = useState<CacheTypeOption>(cacheOptions[0]);
 
     function handleSetState(value: number | number[]): void {
 
@@ -72,43 +91,40 @@ export default function Settings({
         });
     }
 
-    function handleSetCacheType(cacheType: string) {
-        if (cacheType === 'directmapped') {
+    function handleSetCacheType(cacheType: number) {
+        if (cacheType === 0) {
             setCache((prevState: Cache) => {
                 let newCache: Cache = { ...prevState };
                 newCache.linesPerSet = 1;
                 return newCache;
             });
-            setSetAssociativityIsAcitve(false);
         }
-        else if (cacheType === 'fullyassociative') {
-            setCache((prevState: Cache) => {
-                let newCache: Cache = { ...prevState };
-                newCache.numSets = 1;
-                return newCache;
-            });
-            setSetAssociativityIsAcitve(false);
-        } else if (cacheType === 'setassociative') {
-            setSetAssociativityIsAcitve(true);
+        else if (cacheType === 1) {
             setCache((prevState: Cache) => {
                 let newCache: Cache = { ...prevState };
                 newCache.linesPerSet = 2;
                 return newCache;
             });
+        } else if (cacheType === 2) {
+            setCache((prevState: Cache) => {
+                let newCache: Cache = { ...prevState };
+                newCache.numSets = 1;
+                return newCache;
+            });
         }
 
-        setValue({ label: cacheType, value: cacheType });
+        setCacheAssociativity(cacheOptions[cacheType]);
     }
 
 
     return (
         <>
             <div className="settings-window">
-                <Button 
-                icon="pi pi-cog"
-                 onClick={() => setShowSettings(true)} 
-                 severity="info"
-                 />
+                <Button
+                    icon="pi pi-cog"
+                    onClick={() => setShowSettings(true)}
+                    severity="info"
+                />
                 <Sidebar
                     visible={showSettings}
                     onHide={() => setShowSettings(false)}
@@ -117,31 +133,38 @@ export default function Settings({
 
                     <div className="card flex justify-content-center" >
                         <h1>Settings</h1>
-              
-                        <div className="input-card">
-                            <h3>Number of sets</h3>
-                            <InputNumber
-                                value={numSets}
-                                disabled
-                            />
 
-                            <DiscreteSliderValues
-                                handleSetState={handleSetState}
-                                marks={setMarks}
-                                value={numSets}
-                            />
-                        </div>
+
 
                         <div className="input-card">
-                            <h3>Number of lines</h3>
+                            <h3>Cache type</h3>
                             <SelectButton
-                                value={value}
+                                value={cacheAssociativity.value.toString()}
                                 onChange={(e: SelectButtonChangeEvent) => handleSetCacheType(e.value)}
                                 style={{ width: 'fit-content', display: 'flex', marginBottom: '1rem' }}
-                                options={lineOptions}
+                                options={cacheOptions}
                             />
-                            {setAssociativityIsAcitve && (
+                            
+
+                        {cacheAssociativity.value === 0 || cacheAssociativity.value === 1 && (
+                            <div className="input-card">
+                                <h3>Number of sets</h3>
+                                <InputNumber
+                                    value={numSets}
+                                    disabled
+                                />
+
+                                <DiscreteSliderValues
+                                    handleSetState={handleSetState}
+                                    marks={setMarks}
+                                    value={numSets}
+                                />
+                            </div>
+                        )}
+
+                            {cacheAssociativity.value === 1 && (
                                 <>
+                                    <h3>Number of lines</h3>
                                     <InputNumber
                                         defaultValue={2}
                                         value={linesPerSet}
@@ -156,6 +179,7 @@ export default function Settings({
                                 </>
                             )}
                         </div>
+
 
                         <div className="input-card">
                             <h3>Address bit width</h3>
