@@ -126,7 +126,7 @@ const MAXADDRESS = 8192 as const;
 const log_: LogHistory = { logEntries: [] };
 function App() {
 
-  const [maxAddress, setMaxAddress] = useState<number>(MAXADDRESS);
+  const [maxAddress, _] = useState<number>(MAXADDRESS);
   const [addressBitWidth, setAddressBitWidth] = useState<number>(maxAddress.toString(2).padStart(14, '0').length);
   const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress / BLOCKSIZE) * BLOCKSIZE);
 
@@ -392,8 +392,8 @@ function App() {
     console.log('I made a hit')
 
     const cacheHitBlock = cacheBlocks[Math.floor(Math.random() * cacheBlocks.length)];
-    const set_ = cache.sets.findIndex(set => set.lines.includes(cacheHitBlock));
-    const line_ = cache.sets[set_].lines.findIndex(line => line === cacheHitBlock);
+    //const set_ = cache.sets.findIndex(set => set.lines.includes(cacheHitBlock));
+    //const line_ = cache.sets[set_].lines.findIndex(line => line === cacheHitBlock);
     const cacheHitAddress = parseInt(cacheHitBlock.blockSizeStr.slice(4, cacheHitBlock.blockSizeStr.indexOf('-')));
 
 
@@ -401,12 +401,12 @@ function App() {
   }
 
   // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
-  const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
+  // const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
 
   function createCacheMissAssigment() {
-    const set_ = parseInt(setIndexBits, 2);
-    const tag_: number = parseInt(tagBits, 2);
-    const line_ = randomLineIndex;
+    //const set_ = parseInt(setIndexBits, 2);
+    //const tag_: number = parseInt(tagBits, 2);
+    //const line_ = randomLineIndex;
 
     // Create a new array that only includes addresses not in cache.sets
     const allAddressePossible = [];

@@ -6,7 +6,7 @@ import { Button } from 'primereact/button';
 import 'primeicons/primeicons.css';
 import './Log.css';
 import Cache_visual_table from '../Cache_visual_table/Cache_visual_table';
-import { Dialog } from 'primereact/dialog';
+//import { Dialog } from 'primereact/dialog';
 import React from 'react';
 
 interface ILogProps {
@@ -16,7 +16,7 @@ interface ILogProps {
 }
 export default function Log({ log, tag, addressBitWidth }: ILogProps) {
     const [visible, setVisible] = useState(false);
-    const [showCache, setShowCache] = useState(false);
+    //const [showCache, setShowCache] = useState(false);
     const op = useRef<OverlayPanel[]>([]);
 
     return (
