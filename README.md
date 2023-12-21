@@ -37,3 +37,4 @@ Here is an example:
 ```
 4. Under `/dist/assets/xxx.css` run the command `:%s/\/assets/./g` to replace '/assets' with '.' (or do search and replace)
 5. Push the changes and the website will run automatically. 
+6. If you don't see any results right away, do a hard reload (ctrl shift R or cmd shift R)
