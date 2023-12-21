@@ -133,17 +133,59 @@ function App() {
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
   const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize; // S X L X B
+  /**
+   * The number of block offset bits
+   * @type {number}
+   */
+  const blockOffset: number = Math.log2(cache.blockSize);
 
-  const blockOffset: number = Math.log2(cache.blockSize); // The number of block offset bits
-  const setIndex: number = Math.log2(cache.numSets); //   The number of set index bits
-  const tag: number = addressBitWidth - (setIndex + blockOffset); // The number of tag bits
-  const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet); // The random line index
+  /**
+   * The number of set index bits
+   * @type {number}
+   */
+  const setIndex: number = Math.log2(cache.numSets);
 
-  const addressInBits: string = address.toString(2).padStart(addressBitWidth, '0'); // The address in bits
-  const setIndexBits: string = addressInBits.slice(tag, -blockOffset); // The set index bits
-  const tagBits: string = addressInBits.slice(0, tag); // The tag bits
+  /**
+   * The number of tag bits
+   * @type {number}
+   */
+  const tag: number = addressBitWidth - (setIndex + blockOffset);
 
-  const [log, setLog] = useState<LogHistory>(log_)
+  /**
+   * The random line index
+   * @type {number}
+   */
+  const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet);
+
+  /**
+   * The address in bits
+   * @type {string}
+   */
+  const addressInBits: string = address.toString(2).padStart(addressBitWidth, '0');
+
+  /**
+   * The set index bits
+   * @type {string}
+   */
+  const setIndexBits: string = addressInBits.slice(tag, -blockOffset);
+
+  /**
+   * The tag bits
+   * @type {string}
+   */
+  const tagBits: string = addressInBits.slice(0, tag);
+
+  /**
+   * The value of the bits that represent the set index
+   * @type {number}
+   */
+  const setValue: number = parseInt(setIndexBits, 2);
+
+  /**
+   * The value of the bits that represent the tag
+   * @type {number}
+   */
+  const tagValue: number = parseInt(tagBits, 2);
 
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
@@ -153,8 +195,8 @@ function App() {
 
   const cacheOptions: string[] = ['guess', 'input'];
   const [cacheValue, setCacheValue] = useState<string>(cacheOptions[0]);
-  const setValue = parseInt(setIndexBits, 2);
-  const tagValue: number = parseInt(tagBits, 2);
+  const [log, setLog] = useState<LogHistory>(log_)
+
 
 
   useEffect(() => {
