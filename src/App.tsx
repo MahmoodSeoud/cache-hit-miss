@@ -124,6 +124,9 @@ const LINESPERSET = 1 as const;
 const MAXADDRESS = 8192 as const;
 
 const log_: LogHistory = { logEntries: [] };
+
+  // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
+  // const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
 function App() {
 
   const [maxAddress, _] = useState<number>(MAXADDRESS);
@@ -411,6 +414,7 @@ function App() {
     }
   };
 
+
   function createCacheHitAssignment() {
 
 
@@ -441,8 +445,6 @@ function App() {
     setAddress(cacheHitAddress);
   }
 
-  // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
-  // const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
 
   function createCacheMissAssigment() {
     //const set_ = parseInt(setIndexBits, 2);
@@ -493,7 +495,7 @@ function App() {
     setAddress(parseInt(randomAvailableAddress, 2) / cache.blockSize);
   }
 
-  function isCacheHit(): [boolean, number | null] {
+  function readCache(): [boolean, number | null] {
 
     const isCacheHit = cache.sets[setValue].lines.some(line => line.tag === tagValue && line.valid === 1)
     const cacheBlock = cache.sets[setValue].lines.findIndex(line => line.tag === tagValue && line.valid === 1);
@@ -505,7 +507,7 @@ function App() {
     return cache.sets.every(set => set.lines.every(line => line.empty === 1));
   }
 
-  function insertAddressInCache(): void {
+  function writeToCache(): void {
 
     const newCache = JSON.parse(JSON.stringify(cache));
     const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
@@ -519,13 +521,13 @@ function App() {
     setCache(newCache);
   }
 
-  function highlightBlock(set: number, line: number): void {
+  function markCacheBlock(set: number, line: number): void {
     setChangedSet(set);
     setChangedLine(line);
   }
 
   // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
-  function randomAssignment(probability: number) {
+  function generateRandomAssignment(probability: number) {
     // If you try to do a hit assignment on a cold cache, it will be a miss
     if (!isCacheEmpty() && Math.random() <= probability / 100) {
       createCacheHitAssignment();
@@ -536,18 +538,18 @@ function App() {
 
   function handleCacheButtonClick(userGuessedHit: boolean) {
     const probabilityOfGettingACacheHit = 70;
-    const [wasAHit, lineIndex] = isCacheHit();
+    const [wasAHit, lineIndex] = readCache();
     const wasAMiss = !wasAHit;
 
     const newCache = JSON.parse(JSON.stringify(cache));
     if (userGuessedHit) {
       if (wasAHit) {
         showSuccess('hit');
-        highlightBlock(setValue, lineIndex!);
-        randomAssignment(probabilityOfGettingACacheHit);
+        markCacheBlock(setValue, lineIndex!);
+        generateRandomAssignment(probabilityOfGettingACacheHit);
         // Updating the log
 
-        const newobj: LogEntry = {
+        const newLogEntry: LogEntry = {
           address: address,
           hit: true,
           cache: newCache,
@@ -555,7 +557,7 @@ function App() {
           lineIndexed: lineIndex!
         }
 
-        log_.logEntries.push(newobj);
+        log_.logEntries.push(newLogEntry);
         setLog(log_);
 
 
@@ -565,18 +567,18 @@ function App() {
     } else {
       if (wasAMiss) {
         showSuccess('miss');
-        insertAddressInCache();
-        highlightBlock(setValue, randomLineIndex);
-        randomAssignment(probabilityOfGettingACacheHit);
+        writeToCache();
+        markCacheBlock(setValue, randomLineIndex);
+        generateRandomAssignment(probabilityOfGettingACacheHit);
 
-        const newobj: LogEntry = {
+        const newLogEntry: LogEntry = {
           address: address,
           hit: false,
           cache: JSON.parse(JSON.stringify(cache)),
           setIndexed: setValue,
           lineIndexed: randomLineIndex
         }
-        log_.logEntries.push(newobj);
+        log_.logEntries.push(newLogEntry);
         setLog(log_);
       } else {
         showFailure('miss');
@@ -632,7 +634,7 @@ function App() {
   }
 
 
-  function handleCacheValueChange(e: SelectButtonChangeEvent) {
+  function handleAssignmentTypeSwitch(e: SelectButtonChangeEvent) {
     setCacheValue(e.value);
     if (e.target.value === 'guess') {
       setCache(initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, availbeAddresses));
@@ -721,7 +723,7 @@ function App() {
         </div>
         <div className='virtual-wrapper'>
           <SelectButton value={cacheValue}
-            onChange={(e: SelectButtonChangeEvent) => handleCacheValueChange(e)}
+            onChange={(e: SelectButtonChangeEvent) => handleAssignmentTypeSwitch(e)}
             options={cacheOptions}
           />
           {cacheValue === 'guess' &&
@@ -754,6 +756,7 @@ function App() {
             cache={cache}
             tag={tag}
             setCache={setCache}
+            facit={cache} // TODO: Make the facit
           />
         }
       </div>

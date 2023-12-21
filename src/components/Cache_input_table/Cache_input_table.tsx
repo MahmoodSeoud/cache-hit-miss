@@ -6,6 +6,7 @@ type cache_tableProps = {
     cache: Cache;
     tag: number;
     setCache: React.Dispatch<React.SetStateAction<Cache>>;
+    facit: Cache;
 }
 
 function Cache_input_table({ cache, setCache, tag }: cache_tableProps) {
