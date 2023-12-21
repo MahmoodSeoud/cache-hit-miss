@@ -679,9 +679,9 @@ function App() {
           </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3>tag bits:{tag}</h3>
-          <h3>set bits:{setIndex}</h3>
-          <h3>offset bits:{blockOffset}</h3>
+          <h3>tag bits: {tag}</h3>
+          <h3>set bits: {setIndex}</h3>
+          <h3>offset bits: {blockOffset}</h3>
         </div>
         <div className='virtual-wrapper'>
           <SelectButton value={cacheValue}
