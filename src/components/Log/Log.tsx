@@ -9,6 +9,7 @@ import './Log.css';
 import Cache_visual_table from '../Cache_visual_table/Cache_visual_table';
 //import { Dialog } from 'primereact/dialog';
 import React from 'react';
+import { Card } from 'primereact/card';
 
 interface ILogProps {
     log: LogHistory;
@@ -33,23 +34,27 @@ export default function Log({ log, tag, addressBitWidth }: ILogProps) {
                 {log.logEntries && log.logEntries.length > 0 && log.logEntries.map((logEntry, index) => {
                     return (
                         <React.Fragment key={index}>
-                            <div
-                                className='log'
+                            <Card
+                                title={`Log entry ${index}`}
                                 onClick={(event) => op.current[index].toggle(event)}
-                                style={{ backgroundColor: 'var(--highlight-bg)', color: 'var(--primary-color-text)' }}
+                                className='log'
+                                subTitle={`Set: ${logEntry.setIndexed} Line: ${logEntry.lineIndexed}`}
 
                             >
                                 <p>Address: {logEntry.address.toString(2).padStart(addressBitWidth, '0')}</p>
                                 <p>Cache hit? {logEntry.hit.toString()}</p>
 
-                            </div>
+                            </Card>
                             <OverlayPanel
                                 ref={(el: OverlayPanel | null) => (op.current[index] = el as OverlayPanel)}
                                 showCloseIcon
                                 closeOnEscape
                                 dismissable
                                 key={index}
+                                style={{ backgroundColor: 'black', color: 'var(--primary-color-text)' }}
                             >
+                                <h3>Set: {logEntry.setIndexed}</h3>
+                                <h3>Line: {logEntry.lineIndexed}</h3>
                                 <Cache_visual_table
                                     cache={logEntry.cache}
                                     tag={tag}

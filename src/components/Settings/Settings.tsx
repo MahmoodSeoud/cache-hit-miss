@@ -175,7 +175,10 @@ export default function Settings({
 
                         <Card
                             title="Address settings"
-                            style={{ margin: '1em', width: '20em' }}
+                            style={{
+                                margin: '1em',
+                                width: '20em',
+                            }}
                             subTitle="Address bit width"
                         >
                             <InputNumber
@@ -235,8 +238,6 @@ export default function Settings({
                                 />
                             </div>
                         </Card>
-
-
                     </div>
                 </Sidebar>
             </div >
@@ -245,13 +246,10 @@ export default function Settings({
 }
 
 
-
 interface Mark {
     value: number;
     label: string
 };
-
-
 
 const setMarks: Mark[] = [
     {
