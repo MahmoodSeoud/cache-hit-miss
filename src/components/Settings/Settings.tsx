@@ -200,7 +200,7 @@ export default function Settings({
                         <Card
                             title="Cache settings"
                         >
-                            <div className="card flex justify-content-center">
+                            <div className="card flex justify-content-center" >
                                 <SelectButton
                                     defaultValue={cacheOptions[0]}
                                     value={cacheAssociativity}
