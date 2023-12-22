@@ -12,24 +12,6 @@ import './Settings.css';
 import 'primereact/resources/themes/lara-light-teal/theme.css';
 import 'primeicons/primeicons.css';
 
-/**
- * Enumeration for cache associativity types.
- * @readonly
- * @enum {number}
- */
-const CacheAssociativity = {
-    /** Direct Mapped Cache */
-    DirectMapped: 0,
-    /** n-way Set Associative Cache */
-    SetAssociative: 1,
-    /** Fully Associative Cache */
-    FullyAssociative: 2,
-} as const;
-
-interface CacheTypeOption {
-    label: string;
-    value: number;
-}
 
 interface SettingsProps {
     assignmentType: string;
@@ -204,7 +186,7 @@ export default function Settings({
                                 <SelectButton
                                     defaultValue={cacheOptions[0]}
                                     value={cacheAssociativity}
-                                    onChange={(e) => handleSetCacheType(e.value)}
+                                    onChange={(e:SelectButtonChangeEvent) => handleSetCacheType(e.value)}
                                     options={cacheOptions}
                                 />
 

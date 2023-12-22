@@ -363,10 +363,6 @@ function App() {
     return cache;
   }
 
-  
-function initFacitCache()  {
-  
-}
 
   /**
  * Handles the mouse enter event on an element.
