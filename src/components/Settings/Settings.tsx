@@ -1,4 +1,3 @@
-
 import { SetStateAction, useState } from "react";
 import { Slider as PrimeSlider, SliderChangeEvent as PrimeSliderChangeEvent } from "primereact/slider";
 import { InputNumber } from "primereact/inputnumber";
@@ -20,7 +19,7 @@ import { Cache } from "../../App";
 const CacheAssociativity = {
     /** Direct Mapped Cache */
     DirectMapped: 0,
-    /** Set Associative Cache */
+    /** n-way Set Associative Cache */
     SetAssociative: 1,
     /** Fully Associative Cache */
     FullyAssociative: 2,
@@ -49,9 +48,9 @@ interface SettingsProps {
  * @type {CacheTypeOption[]}
  */
 const cacheOptions: CacheTypeOption[] = [
-    { label: 'Direct Mapped', value: 0 },
-    { label: 'Set Associative', value: 1 },
-    { label: 'Fully Associative', value: 2 }
+    { label: 'direct mapped', value: 0 },
+    { label: 'n-way set associative', value: 1 },
+    { label: 'fully associative', value: 2 }
 ];
 
 
@@ -92,29 +91,68 @@ export default function Settings({
     }
 
     function handleSetCacheType(cacheType: number) {
+        // direct mapped, where there can only be 1 linePerSet
         if (cacheType === 0) {
             setCache((prevState: Cache) => {
                 let newCache: Cache = { ...prevState };
+                newCache.numSets = 4;
                 newCache.linesPerSet = 1;
                 return newCache;
             });
         }
+        // n-way set associative, with default linesPerSet = 2
         else if (cacheType === 1) {
             setCache((prevState: Cache) => {
                 let newCache: Cache = { ...prevState };
+                newCache.numSets = 4;
                 newCache.linesPerSet = 2;
                 return newCache;
             });
+            // fully associative, where there can only be 1 set
         } else if (cacheType === 2) {
             setCache((prevState: Cache) => {
                 let newCache: Cache = { ...prevState };
                 newCache.numSets = 1;
+                newCache.linesPerSet = 4;
                 return newCache;
             });
         }
 
         setCacheAssociativity(cacheOptions[cacheType]);
     }
+
+    const setSliderJSX: JSX.Element = (
+        < div className="input-card">
+            <h3>Number of sets</h3>
+            <InputNumber
+                value={numSets}
+                disabled
+            />
+
+            <DiscreteSliderValues
+                handleSetState={handleSetState}
+                marks={setMarks}
+                value={numSets}
+            />
+        </div>
+    )
+
+    const lineSliderJSX: JSX.Element = (
+        <div className="input-card">
+            <h3>Number of lines</h3>
+            <InputNumber
+                defaultValue={2}
+                value={linesPerSet}
+                disabled
+            />
+
+            <DiscreteSliderValues
+                handleSetState={handleNumLines}
+                marks={lineMarks}
+                value={linesPerSet}
+            />
+        </div>
+    )
 
 
     return (
@@ -134,53 +172,6 @@ export default function Settings({
                     <div className="card flex justify-content-center" >
                         <h1>Settings</h1>
 
-
-
-                        <div className="input-card">
-                            <h3>Cache type</h3>
-                            <SelectButton
-                                value={cacheAssociativity.value.toString()}
-                                onChange={(e: SelectButtonChangeEvent) => handleSetCacheType(e.value)}
-                                style={{ width: 'fit-content', display: 'flex', marginBottom: '1rem' }}
-                                options={cacheOptions}
-                            />
-                            
-
-                        {cacheAssociativity.value === 0 || cacheAssociativity.value === 1 && (
-                            <div className="input-card">
-                                <h3>Number of sets</h3>
-                                <InputNumber
-                                    value={numSets}
-                                    disabled
-                                />
-
-                                <DiscreteSliderValues
-                                    handleSetState={handleSetState}
-                                    marks={setMarks}
-                                    value={numSets}
-                                />
-                            </div>
-                        )}
-
-                            {cacheAssociativity.value === 1 && (
-                                <>
-                                    <h3>Number of lines</h3>
-                                    <InputNumber
-                                        defaultValue={2}
-                                        value={linesPerSet}
-                                        disabled
-                                    />
-
-                                    <DiscreteSliderValues
-                                        handleSetState={handleNumLines}
-                                        marks={lineMarks}
-                                        value={linesPerSet}
-                                    />
-                                </>
-                            )}
-                        </div>
-
-
                         <div className="input-card">
                             <h3>Address bit width</h3>
                             <InputNumber
@@ -197,6 +188,44 @@ export default function Settings({
 
                             />
                         </div>
+
+
+                        <div className="input-card">
+                            <h3>Cache type</h3>
+                            <SelectButton
+                                value={cacheAssociativity.value.toString()}
+                                onChange={(e: SelectButtonChangeEvent) => handleSetCacheType(e.value)}
+                                style={{ width: 'fit-content', display: 'flex', marginBottom: '1rem' }}
+                                options={cacheOptions}
+                            />
+                        </div>
+
+
+                        {/* direct mapped */}
+                        {cacheAssociativity.value === 0 && (
+                            <div>
+                                {setSliderJSX}
+                            </div>
+
+                        )}
+
+                        {/* n-way set associative */}
+                        {cacheAssociativity.value === 1 && (
+                            console.log("sets div:", cacheAssociativity.value),
+                            <div>
+                                {setSliderJSX}
+                                {lineSliderJSX}
+                            </div>
+                        )}
+
+                        {/* fully associative */}
+                        {cacheAssociativity.value === 2 && (
+                            <div>
+                                {lineSliderJSX}
+                            </div>
+                        )}
+
+
                         <div className="input-card">
                             <Button
                                 severity="danger"
