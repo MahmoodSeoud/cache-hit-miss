@@ -8,7 +8,7 @@ import { ColorResult, HuePicker } from 'react-color';
 import { Button } from 'primereact/button';
 import Log from './components/Log/Log';
 
-import './Laratheme.css'
+import 'primereact/resources/themes/lara-light-teal/theme.css';
 import './components/Cache_input_table/Cache_input_table.css'
 import './App.css'
 import 'primeicons/primeicons.css';
@@ -762,7 +762,6 @@ function initFacitCache()  {
           />
         }
       </div>
-
     </>
   )
 }

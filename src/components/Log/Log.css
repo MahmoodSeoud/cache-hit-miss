@@ -8,7 +8,7 @@
     padding: 10px;
     transition: all 0.3s ease-in-out; /* Add transition for smooth effect */
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); /* Add shadow for 3D effect */
-    border-radius: 10px; /* Add border radius for rounded corners */
+    border-radius: var(--border-radius); /* Add border radius for rounded corners */
 }
 
 .log:hover {

@@ -70,7 +70,6 @@ function Cache_input_table({ cache, setCache, tag }: cache_tableProps) {
                                                             <InputText
                                                                 onChange={(ev: React.ChangeEvent<HTMLInputElement>) => handleInputChange(ev, i, j, 'valid')}
                                                                 value={block.valid.toString()}
-                                                                type='number'
                                                                 maxLength={1}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'

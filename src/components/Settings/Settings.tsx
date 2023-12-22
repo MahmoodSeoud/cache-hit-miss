@@ -4,12 +4,13 @@ import { InputNumber } from "primereact/inputnumber";
 import { SelectButton, SelectButtonChangeEvent } from 'primereact/selectbutton';
 import { styled, alpha, Box } from '@mui/system';
 import { Slider as BaseSlider, sliderClasses } from '@mui/base/Slider';
-import 'primereact/resources/themes/lara-dark-indigo/theme.css';
 import { Button } from 'primereact/button';
+import { Card } from 'primereact/card';
 import { Sidebar } from 'primereact/sidebar';
-import './Settings.css';
-import 'primeicons/primeicons.css';
 import { Cache } from "../../App";
+import './Settings.css';
+import 'primereact/resources/themes/lara-light-teal/theme.css';
+import 'primeicons/primeicons.css';
 
 /**
  * Enumeration for cache associativity types.
@@ -47,10 +48,10 @@ interface SettingsProps {
  * `value` is a number that represents the cache associativity type.
  * @type {CacheTypeOption[]}
  */
-const cacheOptions: CacheTypeOption[] = [
-    { label: 'direct mapped', value: 0 },
-    { label: 'n-way set associative', value: 1 },
-    { label: 'fully associative', value: 2 }
+const cacheOptions: string[] = [
+    'direct',
+    'n-way',
+    'fully'
 ];
 
 
@@ -64,7 +65,7 @@ export default function Settings({
 
 }: SettingsProps) {
     const [showSettings, setShowSettings] = useState<boolean>(false);
-    const [cacheAssociativity, setCacheAssociativity] = useState<CacheTypeOption>(cacheOptions[0]);
+    const [cacheAssociativity, setCacheAssociativity] = useState<string>(cacheOptions[0]);
 
     function handleSetState(value: number | number[]): void {
 
@@ -90,9 +91,9 @@ export default function Settings({
         });
     }
 
-    function handleSetCacheType(cacheType: number) {
+    function handleSetCacheType(cacheType: string) {
         // direct mapped, where there can only be 1 linePerSet
-        if (cacheType === 0) {
+        if (cacheType === cacheOptions[0]) {
             setCache((prevState: Cache) => {
                 let newCache: Cache = { ...prevState };
                 newCache.numSets = 4;
@@ -101,7 +102,7 @@ export default function Settings({
             });
         }
         // n-way set associative, with default linesPerSet = 2
-        else if (cacheType === 1) {
+        else if (cacheType === cacheOptions[1]) {
             setCache((prevState: Cache) => {
                 let newCache: Cache = { ...prevState };
                 newCache.numSets = 4;
@@ -109,7 +110,7 @@ export default function Settings({
                 return newCache;
             });
             // fully associative, where there can only be 1 set
-        } else if (cacheType === 2) {
+        } else if (cacheType === cacheOptions[2]) {
             setCache((prevState: Cache) => {
                 let newCache: Cache = { ...prevState };
                 newCache.numSets = 1;
@@ -118,7 +119,7 @@ export default function Settings({
             });
         }
 
-        setCacheAssociativity(cacheOptions[cacheType]);
+        setCacheAssociativity(cacheType);
     }
 
     const setSliderJSX: JSX.Element = (
@@ -166,14 +167,17 @@ export default function Settings({
                 <Sidebar
                     visible={showSettings}
                     onHide={() => setShowSettings(false)}
-                    style={{ backgroundColor: 'var(--highlight-bg)', width: '30rem' }}
+                    style={{ backgroundColor: 'var(--primary-color)', width: '30rem', color: 'var(--primary-color-text)' }}
                 >
 
                     <div className="card flex justify-content-center" >
                         <h1>Settings</h1>
 
-                        <div className="input-card">
-                            <h3>Address bit width</h3>
+                        <Card
+                            title="Address settings"
+                            style={{ margin: '1em', width: '20em' }}
+                            subTitle="Address bit width"
+                        >
                             <InputNumber
                                 value={addressBitWidth}
                                 disabled
@@ -183,56 +187,56 @@ export default function Settings({
                                 onChange={(e: PrimeSliderChangeEvent) => setAddressBitWidth(e.value as number)}
                                 max={14}
                                 min={10}
-                                className="w-14rem"
+                                style={{ backgroundColor: 'var(--highlight-bg)', width: '100%' }}
                                 step={1}
 
                             />
-                        </div>
+                        </Card>
 
 
-                        <div className="input-card">
-                            <h3>Cache type</h3>
-                            <SelectButton
-                                value={cacheAssociativity.value.toString()}
-                                onChange={(e: SelectButtonChangeEvent) => handleSetCacheType(e.value)}
-                                style={{ width: 'fit-content', display: 'flex', marginBottom: '1rem' }}
-                                options={cacheOptions}
-                            />
-                        </div>
+                        <Card
+                            title="Cache settings"
+                        >
+                            <div className="card flex justify-content-center">
+                                <SelectButton
+                                    defaultValue={cacheOptions[0]}
+                                    value={cacheAssociativity}
+                                    onChange={(e) => handleSetCacheType(e.value)}
+                                    options={cacheOptions}
+                                />
 
+                                {/* direct mapped */}
+                                {cacheAssociativity === cacheOptions[0] && (
+                                    <div>
+                                        {setSliderJSX}
+                                    </div>
 
-                        {/* direct mapped */}
-                        {cacheAssociativity.value === 0 && (
-                            <div>
-                                {setSliderJSX}
+                                )}
+
+                                {/* n-way set associative */}
+                                {cacheAssociativity === cacheOptions[1] && (
+                                    <div>
+                                        {setSliderJSX}
+                                        {lineSliderJSX}
+                                    </div>
+                                )}
+
+                                {/* fully associative */}
+                                {cacheAssociativity === cacheOptions[2] && (
+                                    <div>
+                                        {lineSliderJSX}
+                                    </div>
+                                )}
+
+                                <Button
+                                    severity="danger"
+                                    label="Clear Cache"
+                                    onClick={() => setCacheShouldBeCold(true)}
+                                />
                             </div>
-
-                        )}
-
-                        {/* n-way set associative */}
-                        {cacheAssociativity.value === 1 && (
-                            console.log("sets div:", cacheAssociativity.value),
-                            <div>
-                                {setSliderJSX}
-                                {lineSliderJSX}
-                            </div>
-                        )}
-
-                        {/* fully associative */}
-                        {cacheAssociativity.value === 2 && (
-                            <div>
-                                {lineSliderJSX}
-                            </div>
-                        )}
+                        </Card>
 
 
-                        <div className="input-card">
-                            <Button
-                                severity="danger"
-                                label="Clear Cache"
-                                onClick={() => setCacheShouldBeCold(true)}
-                            ></Button>
-                        </div>
                     </div>
                 </Sidebar>
             </div >
