@@ -1,6 +1,8 @@
 import { Bit, Cache } from '../../App';
 import './Cache_input_table.css';
 import { InputText } from 'primereact/inputtext';
+import { ToggleButton, ToggleButtonChangeEvent } from 'primereact/togglebutton';
+import 'primereact/resources/themes/lara-light-teal/theme.css';
 
 type cache_tableProps = {
     cache: Cache;
@@ -9,34 +11,43 @@ type cache_tableProps = {
     facit: Cache;
 }
 
+
 function Cache_input_table({ cache, setCache, tag }: cache_tableProps) {
 
-    function handleInputChange(event: React.ChangeEvent<HTMLInputElement>, set: number, line: number, field: string) {
-        const { value } = event.target;
+
+    function handleInputChange(event: React.ChangeEvent<HTMLInputElement> | ToggleButtonChangeEvent, set: number, line: number, field: string) {
+        const value = event.target.value;
         const regexBits = /^[01]*$/; // regular expression to match only 1's and 0's
 
         switch (field) {
             case 'valid':
-                if(!regexBits.test(value)) return;
+                const validBit: Bit = value ? 1 : 0;
+
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
-                    cacheCopy.sets[set].lines[line].valid = parseInt(value) as Bit;
+                    cacheCopy.sets[set].lines[line].valid = validBit;
+
                     return cacheCopy;
                 });
 
                 break;
             case 'tag':
-                if(!regexBits.test(value)) return;
+                debugger
+                if (!regexBits.test(value as string)) {
+                    // If the user inputs anything else than 1's and 0's we remove it
+                    event.target.value = cache.sets[set].lines[line].tag.toString(2);
+                    return;
+                }
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
-                    cacheCopy.sets[set].lines[line].tag = parseInt(value, 2);
+                    cacheCopy.sets[set].lines[line].tag = parseInt(value as string, 2);
                     return cacheCopy;
                 });
                 break;
-            case 'block':
+            case 'blockSizeStr':
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
-                    cacheCopy.sets[set].lines[line].blockSizeStr = value;
+                    cacheCopy.sets[set].lines[line].blockSizeStr = value as string;
                     return cacheCopy;
                 });
                 break;
@@ -63,19 +74,16 @@ function Cache_input_table({ cache, setCache, tag }: cache_tableProps) {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {set.lines && set.lines.length > 0 && set.lines.map((block, j) => {
+                                            {set.lines && set.lines.length > 0 && set.lines.map((_, j) => {
                                                 return (
                                                     <tr key={j}>
                                                         <td>
-                                                            <InputText
-                                                                onChange={(ev: React.ChangeEvent<HTMLInputElement>) => handleInputChange(ev, i, j, 'valid')}
-                                                                value={block.valid.toString()}
-                                                                maxLength={1}
-                                                                autoComplete='off'
-                                                                autoCorrect='off'
-                                                                autoSave='off'
-                                                                autoFocus={false}
-                                                                autoCapitalize='off'
+                                                            <ToggleButton
+                                                                checked={cache.sets[i].lines[j].valid === 1}
+                                                                onChange={(e: ToggleButtonChangeEvent) => handleInputChange(e, i, j, 'valid')}
+                                                                className="w-14rem"
+                                                                onLabel='1'
+                                                                offLabel='0'
                                                             />
                                                         </td>
                                                         <td>
@@ -87,11 +95,12 @@ function Cache_input_table({ cache, setCache, tag }: cache_tableProps) {
                                                                 autoFocus={false}
                                                                 maxLength={tag}
                                                                 autoCapitalize='off'
+                                                                className="p-inputtext-sm"
                                                             />
                                                         </td>
                                                         <td>
                                                             <InputText
-                                                                onChange={(ev: React.ChangeEvent<HTMLInputElement>) => handleInputChange(ev, i, j, 'block')}
+                                                                onChange={(ev: React.ChangeEvent<HTMLInputElement>) => handleInputChange(ev, i, j, 'blockSizeStr')}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'
                                                                 autoSave='off'

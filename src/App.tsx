@@ -12,6 +12,7 @@ import 'primereact/resources/themes/lara-light-teal/theme.css';
 import './components/Cache_input_table/Cache_input_table.css'
 import './App.css'
 import 'primeicons/primeicons.css';
+import { InputText } from 'primereact/inputtext';
 
 export const CacheInputFieldsMap = {
   BlockOffset: 'BlockOffset',
@@ -698,7 +699,6 @@ function App() {
                   className="input-text"
                   onMouseDown={handleMouseDown}
                   onMouseEnter={handleMouseEnter}
-
                 >
                   {addressBitWidth - index - 1}
                 </p>
@@ -758,9 +758,19 @@ function App() {
           />
         }
       </div>
+    
+    <SizesDemo />
     </>
   )
 }
-
+export function SizesDemo() {
+    return (
+        <div className="card flex flex-column align-items-center gap-3 ">
+            <InputText type="text" className="p-inputtext-sm" placeholder="Small" />
+            <InputText type="text" placeholder="Normal" />
+            <InputText type="text" className="p-inputtext-lg" placeholder="Large" />
+        </div>
+    )
+}
 export default App
 
