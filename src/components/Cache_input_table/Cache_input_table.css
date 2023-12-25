@@ -29,6 +29,9 @@
     border-right: 1px solid rgb(177, 177, 177);
 }
 
+.correct {
+    background-color: #b3ffb3;
+}
 
 @keyframes changeHighlight {
   0% {

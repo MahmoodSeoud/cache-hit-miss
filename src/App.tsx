@@ -14,10 +14,9 @@ import './App.css'
 import 'primeicons/primeicons.css';
 
 export const CacheInputFieldsMap = {
-  BlockOffset: 'BlockOffset',
-  Hit: 'Hit',
-  Valid: 'Valid',
-  Tag: 'Tag',
+  blockSizeStr: 'blockSizeStr',
+  valid: 'valid',
+  tag: 'tag',
 } as const;
 
 const baseConversionMap = {
@@ -62,7 +61,6 @@ export interface Cache {
 export type BaseConversion = typeof baseConversionMap[keyof typeof baseConversionMap];
 export type AddressPrefix = typeof addressPrefixMap[keyof typeof addressPrefixMap];
 export type InputField = typeof CacheInputFieldsMap[keyof typeof CacheInputFieldsMap];
-export type Result = Pick<typeof CacheInputFieldsMap, 'Hit'>[keyof Pick<typeof CacheInputFieldsMap, 'Hit'>];
 export type Bit = typeof bitMap[keyof typeof bitMap];
 
 /**
@@ -134,6 +132,8 @@ function App() {
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
   const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize; // S X L X B
+
+
   /**
    * The number of block offset bits
    * @type {number}
@@ -199,10 +199,12 @@ function App() {
   const [log, setLog] = useState<LogHistory>(log_)
 
 
+  const facit = createFacit();
 
   useEffect(() => {
     createCacheMissAssigment();
   }, [0]);
+
 
   useEffect(() => {
     const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
@@ -645,6 +647,80 @@ function App() {
     setLog(log_);
   }
 
+
+  function createFacit(): Cache {
+    const [cacheHit, _] = readCache();
+    const newCache = JSON.parse(JSON.stringify(cache));
+
+    if (!cacheHit) {
+      const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
+
+      cacheBlock.tag = tagValue;
+      cacheBlock.valid = 1;
+      cacheBlock.empty = 0;
+      cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
+
+      newCache.sets[setValue].lines[randomLineIndex] = cacheBlock;
+    }
+
+    return newCache
+  }
+
+  function validateCache(): boolean  {
+
+    return cache === facit
+
+  }
+
+  function handleInputCacheButtonClick(userGuessedHit: boolean) {
+    const probabilityOfGettingACacheHit = 70;
+    const [wasAHit, lineIndex] = readCache();
+    const wasAMiss = !wasAHit;
+
+    const newCache = JSON.parse(JSON.stringify(cache));
+    if (userGuessedHit) {
+      if (wasAHit && validateCache()) {
+        showSuccess('hit');
+        markCacheBlock(setValue, lineIndex!);
+        generateRandomAssignment(probabilityOfGettingACacheHit);
+        // Updating the log
+
+        const newLogEntry: LogEntry = {
+          address: address,
+          hit: true,
+          cache: newCache,
+          setIndexed: setValue,
+          lineIndexed: lineIndex!
+        }
+
+        log_.logEntries.push(newLogEntry);
+        setLog(log_);
+
+      } else {
+        showFailure('hit');
+      }
+    } else {
+      if (wasAMiss && validateCache()) {
+        showSuccess('miss');
+        markCacheBlock(setValue, randomLineIndex);
+        generateRandomAssignment(probabilityOfGettingACacheHit);
+
+        const newLogEntry: LogEntry = {
+          address: address,
+          hit: false,
+          cache: JSON.parse(JSON.stringify(cache)),
+          setIndexed: setValue,
+          lineIndexed: randomLineIndex
+        }
+        log_.logEntries.push(newLogEntry);
+        setLog(log_);
+      } else {
+        showFailure('miss');
+      }
+    }
+
+  }
+
   return (
     <>
       <Toast ref={toast} />
@@ -725,20 +801,30 @@ function App() {
             onChange={(e: SelectButtonChangeEvent) => handleAssignmentTypeSwitch(e)}
             options={cacheOptions}
           />
-          {cacheValue === 'guess' &&
-            <div className={`list-item-wrapper`}>
-              <Button
-                onClick={() => handleCacheButtonClick(true)}
-                severity='success'
-                label='Cache Hit'
-              />
-              <Button
-                onClick={() => handleCacheButtonClick(false)}
-                severity='danger'
-                label='Cache Miss'
-              />
-            </div>
-          }
+          <div className={`list-item-wrapper`}>
+            <Button
+              onClick={() => {
+                if (cacheValue === 'guess') {
+                  return handleCacheButtonClick(true)
+                }
+
+                return handleInputCacheButtonClick(true)
+              }}
+              severity='success'
+              label='Cache Hit'
+            />
+            <Button
+              onClick={() => {
+                if (cacheValue === 'guess') {
+                  return handleCacheButtonClick(false)
+                }
+
+                return handleInputCacheButtonClick(false)
+              }}
+              severity='danger'
+              label='Cache Miss'
+            />
+          </div>
 
         </div>
 
@@ -755,7 +841,7 @@ function App() {
             cache={cache}
             tag={tag}
             setCache={setCache}
-            facit={cache} // TODO: Make the facit
+            facit={facit} // TODO: Make the facit
             address={address}
           />
         }

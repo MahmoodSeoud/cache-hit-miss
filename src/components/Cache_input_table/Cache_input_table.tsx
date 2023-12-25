@@ -1,6 +1,5 @@
-import { Bit, Cache } from '../../App';
+import { Bit, Cache, CacheBlock, CacheInputFieldsMap, InputField } from '../../App';
 import './Cache_input_table.css';
-import { InputText } from 'primereact/inputtext';
 import { InputMask, InputMaskChangeEvent } from 'primereact/inputmask';
 import { ToggleButton, ToggleButtonChangeEvent } from 'primereact/togglebutton';
 import 'primereact/resources/themes/lara-light-teal/theme.css';
@@ -15,7 +14,9 @@ type cache_tableProps = {
 }
 
 
-function Cache_input_table({ cache, setCache, tag, address }: cache_tableProps) {
+function Cache_input_table({ cache, setCache, tag, address, facit }: cache_tableProps) {
+    console.log('facit', facit)
+
     const addressLength = address.toString().length;
     const blockSize = cache.blockSize;
     const addressLengthWithBlockSize = (address + blockSize).toString().length;
@@ -24,11 +25,6 @@ function Cache_input_table({ cache, setCache, tag, address }: cache_tableProps) 
     const blockSizeStrPlaceHolder = `Mem[${Array(addressLength).fill(null).map(x => 'x').join('')} - ${Array(addressLengthWithBlockSize).fill(null).map(x => 'x').join('')}]`;
     const tagMask = Array(tag).fill(null).map(x => '9').join('');
     const tagPlaceHolder = Array(tag).fill(null).map(x => 'x').join('');
-
-    useEffect(() => {
-        console.log(cache);
-    }, [cache]);
-
 
     function handleInputChange(event: ToggleButtonChangeEvent | InputMaskChangeEvent, set: number, line: number, field: string) {
         const value = event.target.value;
@@ -49,7 +45,7 @@ function Cache_input_table({ cache, setCache, tag, address }: cache_tableProps) 
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
                     cacheCopy.sets[set].lines[line].tag = parseInt(value as string, 2);
-                    
+
                     return cacheCopy;
                 });
                 break;
@@ -58,12 +54,13 @@ function Cache_input_table({ cache, setCache, tag, address }: cache_tableProps) 
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
                     cacheCopy.sets[set].lines[line].blockSizeStr = value as string;
-                    
+
                     return cacheCopy;
                 });
                 break;
         }
     }
+
 
     return (
         <div>
@@ -91,15 +88,15 @@ function Cache_input_table({ cache, setCache, tag, address }: cache_tableProps) 
                                                         <td>
                                                             <ToggleButton
                                                                 checked={cache.sets[i].lines[j].valid === 1}
-                                                                onChange={(e: ToggleButtonChangeEvent) => handleInputChange(e, i, j, 'valid')}
-                                                                className="w-14rem"
+                                                                onChange={(e: ToggleButtonChangeEvent) => handleInputChange(e, i, j, CacheInputFieldsMap.valid)}
                                                                 onLabel='1'
+                                                                className={"w-14rem"}
                                                                 offLabel='0'
                                                             />
                                                         </td>
                                                         <td>
                                                             <InputMask
-                                                                onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, 'tag')}
+                                                                onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.tag)}
                                                                 mask={tagMask}
                                                                 placeholder={tagPlaceHolder}
                                                                 autoComplete='off'
@@ -109,18 +106,16 @@ function Cache_input_table({ cache, setCache, tag, address }: cache_tableProps) 
                                                                 maxLength={tag}
                                                                 keyfilter={/[01]/}
                                                                 autoCapitalize='off'
-                                                                className="p-inputtext-sm"
                                                             />
                                                         </td>
                                                         <td>
                                                             <InputMask
-                                                                onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, 'blockSizeStr')}
+                                                                onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.blockSizeStr)}
                                                                 mask={blockSizeStrMask}
                                                                 placeholder={blockSizeStrPlaceHolder}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'
                                                                 autoSave='off'
-
                                                                 autoFocus={false}
                                                                 autoCapitalize='off'
                                                             />
