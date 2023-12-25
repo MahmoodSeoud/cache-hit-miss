@@ -1,9 +1,8 @@
-import { Bit, Cache, CacheBlock, CacheInputFieldsMap, InputField } from '../../App';
+import { Bit, Cache, CacheInputFieldsMap } from '../../App';
 import './Cache_input_table.css';
 import { InputMask, InputMaskChangeEvent } from 'primereact/inputmask';
 import { ToggleButton, ToggleButtonChangeEvent } from 'primereact/togglebutton';
 import 'primereact/resources/themes/lara-light-teal/theme.css';
-import { useEffect } from 'react';
 
 type cache_tableProps = {
     cache: Cache;
@@ -21,10 +20,10 @@ function Cache_input_table({ cache, setCache, tag, address, facit }: cache_table
     const blockSize = cache.blockSize;
     const addressLengthWithBlockSize = (address + blockSize).toString().length;
 
-    const blockSizeStrMask = `Mem[${Array(addressLength).fill(null).map(x => '9').join('')} - ${Array(addressLengthWithBlockSize).fill(null).map(x => '9').join('')}]`;
-    const blockSizeStrPlaceHolder = `Mem[${Array(addressLength).fill(null).map(x => 'x').join('')} - ${Array(addressLengthWithBlockSize).fill(null).map(x => 'x').join('')}]`;
-    const tagMask = Array(tag).fill(null).map(x => '9').join('');
-    const tagPlaceHolder = Array(tag).fill(null).map(x => 'x').join('');
+    const blockSizeStrMask = `Mem[${Array(addressLength).fill(null).map(_ => '9').join('')} - ${Array(addressLengthWithBlockSize).fill(null).map(_ => '9').join('')}]`;
+    const blockSizeStrPlaceHolder = `Mem[${Array(addressLength).fill(null).map(_ => 'x').join('')} - ${Array(addressLengthWithBlockSize).fill(null).map(_ => 'x').join('')}]`;
+    const tagMask = Array(tag).fill(null).map(_ => '9').join('');
+    const tagPlaceHolder = Array(tag).fill(null).map(_ => 'x').join('');
 
     function handleInputChange(event: ToggleButtonChangeEvent | InputMaskChangeEvent, set: number, line: number, field: string) {
         const value = event.target.value;
