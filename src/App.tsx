@@ -252,11 +252,13 @@ function App() {
   /**
   * Displays a failure toast notification.
   */
-  function showFailure(cacheAssignmentType: string): void {
+  function showFailure(cacheAssignmentType: string, extraErrorMsg?: string): void {
     toast.current?.show({
       severity: 'error',
       summary: 'Wrong',
-      detail: 'Not right, The address: ' + address.toString(2).padStart(addressBitWidth, '0') + '\nwas a cache ' + cacheAssignmentType + ' assignment',
+      detail: 'Not right, The address: ' + address.toString(2).padStart(addressBitWidth, '0') + 
+      '\nwas a cache ' +
+       cacheAssignmentType + ' assignment' + '\n' + extraErrorMsg,
       life: 3000
     });
   }
@@ -697,7 +699,7 @@ function App() {
         setLog(log_);
 
       } else {
-        showFailure('hit');
+        showFailure('hit', 'The cache may not be correct');
       }
     } else {
       if (wasAMiss && validateCache()) {
@@ -715,7 +717,7 @@ function App() {
         log_.logEntries.push(newLogEntry);
         setLog(log_);
       } else {
-        showFailure('miss');
+        showFailure('miss', 'The cache may not be correct');
       }
     }
 
