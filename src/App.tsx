@@ -197,9 +197,8 @@ function App() {
   const cacheOptions: string[] = ['guess', 'input'];
   const [cacheValue, setCacheValue] = useState<string>(cacheOptions[0]);
   const [log, setLog] = useState<LogHistory>(log_)
-
-
   const facit = createFacit();
+
 
   useEffect(() => {
     createCacheMissAssigment();
