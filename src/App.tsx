@@ -256,9 +256,9 @@ function App() {
     toast.current?.show({
       severity: 'error',
       summary: 'Wrong',
-      detail: 'Not right, The address: ' + address.toString(2).padStart(addressBitWidth, '0') + 
-      '\nwas a cache ' +
-       cacheAssignmentType + ' assignment' + '\n' + extraErrorMsg,
+      detail: 'Not right, The address: ' + address.toString(2).padStart(addressBitWidth, '0') +
+        '\nwas a cache ' +
+        cacheAssignmentType + ' assignment' + '\n' + extraErrorMsg,
       life: 3000
     });
   }
@@ -668,22 +668,60 @@ function App() {
     return newCache
   }
 
-  function validateCache(): boolean  {
+  function validateCache(): boolean {
+    return deepEqual(cache, facit);
+  }
 
-    return cache === facit
+  /**
+ * Performs a deep comparison between two values to determine if they are equivalent.
+ *
+ * @param {any} object1 - The first value to compare.
+ * @param {any} object2 - The second value to compare.
+ * @returns {boolean} - Returns true if the values are equivalent, false otherwise.
+ */
+  // TODO: FIx all the any types
+  function deepEqual(object1: any, object2: any): boolean {
+    const keys1 = Object.keys(object1);
+    const keys2 = Object.keys(object2);
 
+    if (keys1.length !== keys2.length) {
+      return false;
+    }
+
+    for (const key of keys1) {
+      const val1: any = object1[key];
+      const val2: any = object2[key];
+      const areObjects = isObject(val1) && isObject(val2);
+      if (
+        areObjects && !deepEqual(val1, val2) ||
+        !areObjects && val1 !== val2
+      ) {
+        return false;
+      }
+    }
+
+
+    return true;
+  }
+
+  /**
+   * Checks if a value is an object.
+   *
+   * @param {InputFields} object - The value to check.
+   * @returns {boolean} - Returns true if the value is an object, false otherwise.
+   */
+  function isObject(object: Cache ): boolean {
+    return object != null && typeof object === 'object';
   }
 
   function handleInputCacheButtonClick(userGuessedHit: boolean) {
     const probabilityOfGettingACacheHit = 70;
-    const [wasAHit, lineIndex] = readCache();
-    const wasAMiss = !wasAHit;
 
     const newCache = JSON.parse(JSON.stringify(cache));
     if (userGuessedHit) {
-      if (wasAHit && validateCache()) {
+      if (validateCache()) {
         showSuccess('hit');
-        markCacheBlock(setValue, lineIndex!);
+        /*         markCacheBlock(setValue, lineIndex!); */
         generateRandomAssignment(probabilityOfGettingACacheHit);
         // Updating the log
 
@@ -692,7 +730,7 @@ function App() {
           hit: true,
           cache: newCache,
           setIndexed: setValue,
-          lineIndexed: lineIndex!
+          lineIndexed: randomLineIndex!
         }
 
         log_.logEntries.push(newLogEntry);
@@ -702,7 +740,7 @@ function App() {
         showFailure('hit', 'The cache may not be correct');
       }
     } else {
-      if (wasAMiss && validateCache()) {
+      if (validateCache()) {
         showSuccess('miss');
         markCacheBlock(setValue, randomLineIndex);
         generateRandomAssignment(probabilityOfGettingACacheHit);
