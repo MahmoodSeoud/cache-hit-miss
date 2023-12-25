@@ -1,24 +1,37 @@
 import { Bit, Cache } from '../../App';
 import './Cache_input_table.css';
 import { InputText } from 'primereact/inputtext';
+import { InputMask, InputMaskChangeEvent } from 'primereact/inputmask';
 import { ToggleButton, ToggleButtonChangeEvent } from 'primereact/togglebutton';
 import 'primereact/resources/themes/lara-light-teal/theme.css';
+import { useEffect } from 'react';
 
 type cache_tableProps = {
     cache: Cache;
     tag: number;
     setCache: React.Dispatch<React.SetStateAction<Cache>>;
     facit: Cache;
+    address: number;
 }
 
 
-function Cache_input_table({ cache, setCache, tag }: cache_tableProps) {
+function Cache_input_table({ cache, setCache, tag, address }: cache_tableProps) {
+    const addressLength = address.toString().length;
+    const blockSize = cache.blockSize;
+    const addressLengthWithBlockSize = (address + blockSize).toString().length;
+
+    const blockSizeStrMask = `Mem[${Array(addressLength).fill(null).map(x => '9').join('')} - ${Array(addressLengthWithBlockSize).fill(null).map(x => '9').join('')}]`;
+    const blockSizeStrPlaceHolder = `Mem[${Array(addressLength).fill(null).map(x => 'x').join('')} - ${Array(addressLengthWithBlockSize).fill(null).map(x => 'x').join('')}]`;
+    const tagMask = Array(tag).fill(null).map(x => '9').join('');
+    const tagPlaceHolder = Array(tag).fill(null).map(x => 'x').join('');
+
+    useEffect(() => {
+        console.log(cache);
+    }, [cache]);
 
 
-    function handleInputChange(event: React.ChangeEvent<HTMLInputElement> | ToggleButtonChangeEvent, set: number, line: number, field: string) {
+    function handleInputChange(event: ToggleButtonChangeEvent | InputMaskChangeEvent, set: number, line: number, field: string) {
         const value = event.target.value;
-        const regexBits = /^[01]*$/; // regular expression to match only 1's and 0's
-        const regexNumbers = /^[0-9]*$/; // regular expression to match only numbers
 
         switch (field) {
             case 'valid':
@@ -33,28 +46,19 @@ function Cache_input_table({ cache, setCache, tag }: cache_tableProps) {
 
                 break;
             case 'tag':
-                debugger
-                if (!regexBits.test(value as string)) {
-                    // If the user inputs anything else than 1's and 0's we remove it
-                    event.target.value = cache.sets[set].lines[line].tag.toString(2);
-                    return;
-                }
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
                     cacheCopy.sets[set].lines[line].tag = parseInt(value as string, 2);
+                    
                     return cacheCopy;
                 });
                 break;
             case 'blockSizeStr':
-                if (!regexNumbers.test(value as string)) {
-                    // If the user inputs anything else than numbers we remove it
-                    event.target.value = cache.sets[set].lines[line].blockSizeStr;
-                    return;
-                }
-                const inputSize = parseInt(value as string);
+
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
-                    cacheCopy.sets[set].lines[line].blockSizeStr = `Mem[${value} - ${inputSize + cache.blockSize}]` as string;
+                    cacheCopy.sets[set].lines[line].blockSizeStr = value as string;
+                    
                     return cacheCopy;
                 });
                 break;
@@ -94,24 +98,29 @@ function Cache_input_table({ cache, setCache, tag }: cache_tableProps) {
                                                             />
                                                         </td>
                                                         <td>
-                                                            <InputText
-                                                                onChange={(ev: React.ChangeEvent<HTMLInputElement>) => handleInputChange(ev, i, j, 'tag')}
+                                                            <InputMask
+                                                                onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, 'tag')}
+                                                                mask={tagMask}
+                                                                placeholder={tagPlaceHolder}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'
                                                                 autoSave='off'
                                                                 autoFocus={false}
                                                                 maxLength={tag}
+                                                                keyfilter={/[01]/}
                                                                 autoCapitalize='off'
                                                                 className="p-inputtext-sm"
                                                             />
                                                         </td>
                                                         <td>
-                                                            <InputText
-                                                                onChange={(ev: React.ChangeEvent<HTMLInputElement>) => handleInputChange(ev, i, j, 'blockSizeStr')}
-                                                                defaultValue={cache.sets[i].lines[j].blockSizeStr}
+                                                            <InputMask
+                                                                onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, 'blockSizeStr')}
+                                                                mask={blockSizeStrMask}
+                                                                placeholder={blockSizeStrPlaceHolder}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'
                                                                 autoSave='off'
+
                                                                 autoFocus={false}
                                                                 autoCapitalize='off'
                                                             />
