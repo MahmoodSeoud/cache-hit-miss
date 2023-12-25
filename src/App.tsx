@@ -328,6 +328,7 @@ function App() {
         let valid_: Bit = 1;
         let tag_: number = Number('0b' + tagBits_);
         let blockSizeStr_: string = `Mem[${address_} - ${address_ + blockSize - 1}]`;
+        let empty_: Bit = 0;
 
         const existingTag = knownTagsInSet.find(tag => tag.tagBits === tagBits_);
         if (existingTag) {
@@ -345,6 +346,7 @@ function App() {
           valid_ = 1;
           tag_ = Number('0b' + tagBits_);
           blockSizeStr_ = `Mem[${address_} - ${address_ + blockSize - 1}]`;
+          empty_ = 0;
         }
 
         knownTagsInSet.push({ tagBits: tagBits_, valid: valid_ });
@@ -353,7 +355,7 @@ function App() {
         const block: CacheBlock = {
           tag: tag_,
           valid: valid_,
-          empty: 0,
+          empty: empty_,
           blockSizeStr: blockSizeStr_,
         };
         set.lines.push(block);

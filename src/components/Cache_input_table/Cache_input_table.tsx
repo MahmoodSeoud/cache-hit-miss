@@ -18,6 +18,7 @@ function Cache_input_table({ cache, setCache, tag }: cache_tableProps) {
     function handleInputChange(event: React.ChangeEvent<HTMLInputElement> | ToggleButtonChangeEvent, set: number, line: number, field: string) {
         const value = event.target.value;
         const regexBits = /^[01]*$/; // regular expression to match only 1's and 0's
+        const regexNumbers = /^[0-9]*$/; // regular expression to match only numbers
 
         switch (field) {
             case 'valid':
@@ -45,9 +46,15 @@ function Cache_input_table({ cache, setCache, tag }: cache_tableProps) {
                 });
                 break;
             case 'blockSizeStr':
+                if (!regexNumbers.test(value as string)) {
+                    // If the user inputs anything else than numbers we remove it
+                    event.target.value = cache.sets[set].lines[line].blockSizeStr;
+                    return;
+                }
+                const inputSize = parseInt(value as string);
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
-                    cacheCopy.sets[set].lines[line].blockSizeStr = value as string;
+                    cacheCopy.sets[set].lines[line].blockSizeStr = `Mem[${value} - ${inputSize + cache.blockSize}]` as string;
                     return cacheCopy;
                 });
                 break;
@@ -101,6 +108,7 @@ function Cache_input_table({ cache, setCache, tag }: cache_tableProps) {
                                                         <td>
                                                             <InputText
                                                                 onChange={(ev: React.ChangeEvent<HTMLInputElement>) => handleInputChange(ev, i, j, 'blockSizeStr')}
+                                                                defaultValue={cache.sets[i].lines[j].blockSizeStr}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'
                                                                 autoSave='off'

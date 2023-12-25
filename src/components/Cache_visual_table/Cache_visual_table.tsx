@@ -38,7 +38,11 @@ function Cache_visual_table({ cache, tag, changedSet, changedLine }: cache_table
                                                 return (
                                                     <tr key={key}>
                                                         <td className={changedSet_ ? blockClass : ''}>{line.valid}</td>
-                                                        <td className={changedSet_ ? blockClass : ''}>{line.tag.toString(2).padStart(tag, '0')}</td>
+                                                        <td className={changedSet_ ? blockClass : ''}>{
+                                                            !line.empty ?
+                                                                line.tag.toString(2).padStart(tag, '0')
+                                                                : ''
+                                                        }</td>
                                                         <td className={changedSet_ ? blockClass : ''}>{line.blockSizeStr}</td>
                                                     </tr>
                                                 )
