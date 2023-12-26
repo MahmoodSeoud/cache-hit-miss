@@ -203,9 +203,7 @@ function App() {
   const cacheOptions: string[] = ['guess', 'input'];
   const [cacheValue, setCacheValue] = useState<string>(cacheOptions[0]);
   const [log, setLog] = useState<LogHistory>(log_)
-
   const toastFacit = useRef<Toast | null>(null);
-
 
   useEffect(() => {
     createCacheMissAssigment();
@@ -237,15 +235,21 @@ function App() {
     } else {
       cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, availbeAddresses);
       setCacheShouldBeCold(false);
-    }
+    } 
+
     log_.logEntries.length = 0;
     setLog(log_);
     setCache(cache_);
     setAddress(createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize);
-    facit = createFacit(cache_);
 
 
-  }, [cache.numSets, cache.linesPerSet, cache.blockSize, cacheShouldBeCold, addressBitWidth])
+  }, [
+    cache.numSets,
+    cache.linesPerSet,
+    cache.blockSize,
+    cacheShouldBeCold,
+    addressBitWidth,
+  ])
 
 
 
@@ -764,6 +768,7 @@ function App() {
 
       log_.logEntries.push(newLogEntry);
       setLog(log_);
+      facit = createFacit(cache);
     } else {
       showFailure(userGuessedHit ? 'hit' : 'miss', 'The cache may not be correct');
     }
