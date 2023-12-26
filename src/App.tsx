@@ -128,7 +128,7 @@ let facit: any = null;
 function App() {
 
   const [maxAddress, _] = useState<number>(MAXADDRESS);
-  const [addressBitWidth, setAddressBitWidth] = useState<number>(maxAddress.toString(2).padStart(14, '0').length);
+  const [addressBitWidth, __] = useState<number>(maxAddress.toString(2).padStart(14, '0').length);
   const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress / BLOCKSIZE) * BLOCKSIZE);
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);

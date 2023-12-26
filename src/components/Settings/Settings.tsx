@@ -1,5 +1,4 @@
 import { SetStateAction, useState } from "react";
-import { Slider as PrimeSlider, SliderChangeEvent as PrimeSliderChangeEvent } from "primereact/slider";
 import { InputNumber } from "primereact/inputnumber";
 import { SelectButton, SelectButtonChangeEvent } from 'primereact/selectbutton';
 import { styled, alpha, Box } from '@mui/system';
