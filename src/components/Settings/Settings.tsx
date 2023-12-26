@@ -14,8 +14,6 @@ import 'primeicons/primeicons.css';
 
 
 interface SettingsProps {
-    addressBitWidth: number;
-    setAddressBitWidth: React.Dispatch<SetStateAction<number>>;
     numSets: number;
     linesPerSet: number;
     setCache: React.Dispatch<SetStateAction<Cache>>;
@@ -32,13 +30,10 @@ interface SettingsProps {
 const cacheOptions: string[] = [
     'direct',
     'n-way',
-    'fully'
 ];
 
 
 export default function Settings({
-    addressBitWidth,
-    setAddressBitWidth,
     numSets,
     linesPerSet,
     setCache,
@@ -91,14 +86,14 @@ export default function Settings({
                 return newCache;
             });
             // fully associative, where there can only be 1 set
-        } else if (cacheType === cacheOptions[2]) {
+        } /* else if (cacheType === cacheOptions[2]) {
             setCache((prevState: Cache) => {
                 let newCache: Cache = { ...prevState };
                 newCache.numSets = 1;
                 newCache.linesPerSet = 4;
                 return newCache;
             });
-        }
+        } */
 
         setCacheAssociativity(cacheType);
     }
@@ -123,7 +118,7 @@ export default function Settings({
         <div className="input-card">
             <h3>Number of lines</h3>
             <InputNumber
-                defaultValue={2}
+                defaultValue={linesPerSet}
                 value={linesPerSet}
                 disabled
             />
@@ -154,7 +149,7 @@ export default function Settings({
                     <div className="card flex justify-content-center" >
                         <h1>Settings</h1>
 
-                        <Card
+                        {/*       <Card
                             title="Address settings"
                             style={{
                                 margin: '1em',
@@ -175,7 +170,7 @@ export default function Settings({
                                 step={1}
 
                             />
-                        </Card>
+                        </Card> */}
 
 
                         <Card
@@ -185,7 +180,7 @@ export default function Settings({
                                 <SelectButton
                                     defaultValue={cacheOptions[0]}
                                     value={cacheAssociativity}
-                                    onChange={(e:SelectButtonChangeEvent) => handleSetCacheType(e.value)}
+                                    onChange={(e: SelectButtonChangeEvent) => handleSetCacheType(e.value)}
                                     options={cacheOptions}
                                 />
 
@@ -201,13 +196,6 @@ export default function Settings({
                                 {cacheAssociativity === cacheOptions[1] && (
                                     <div>
                                         {setSliderJSX}
-                                        {lineSliderJSX}
-                                    </div>
-                                )}
-
-                                {/* fully associative */}
-                                {cacheAssociativity === cacheOptions[2] && (
-                                    <div>
                                         {lineSliderJSX}
                                     </div>
                                 )}

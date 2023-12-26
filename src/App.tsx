@@ -124,6 +124,7 @@ const log_: LogHistory = { logEntries: [] };
 
 // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
 // const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
+let facit: any = null;
 function App() {
 
   const [maxAddress, _] = useState<number>(MAXADDRESS);
@@ -148,17 +149,19 @@ function App() {
    */
   const setIndex: number = Math.log2(cache.numSets);
 
+
   /**
    * The number of tag bits
    * @type {number}
    */
   const tag: number = addressBitWidth - (setIndex + blockOffset);
+  if (tag === 11) debugger
 
   /**
    * The random line index
    * @type {number}
    */
-  const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet);
+  /*   const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet); */
 
   /**
    * The address in bits
@@ -171,6 +174,7 @@ function App() {
    * @type {string}
    */
   const setIndexBits: string = addressInBits.slice(tag, -blockOffset);
+  if (setIndexBits === "") debugger
 
   /**
    * The tag bits
@@ -199,7 +203,6 @@ function App() {
   const cacheOptions: string[] = ['guess', 'input'];
   const [cacheValue, setCacheValue] = useState<string>(cacheOptions[0]);
   const [log, setLog] = useState<LogHistory>(log_)
-  const facit = createFacit();
 
   const toastFacit = useRef<Toast | null>(null);
 
@@ -239,8 +242,11 @@ function App() {
     setLog(log_);
     setCache(cache_);
     setAddress(createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize);
+    facit = createFacit(cache_);
 
-  }, [cache.numSets, cache.linesPerSet, cache.blockSize, cacheShouldBeCold])
+
+  }, [cache.numSets, cache.linesPerSet, cache.blockSize, cacheShouldBeCold, addressBitWidth])
+
 
 
   /**
@@ -511,8 +517,10 @@ function App() {
   }
 
   function readCache(cache: Cache): [boolean, number | null] {
+    const setValue = parseInt(setIndexBits, 2);
+    debugger;
 
-    const isCacheHit = cache.sets[setValue].lines.some(line => line.tag === tagValue && line.valid === 1)
+    const isCacheHit = cache.sets[setValue].lines.some(line => line.tag === tagValue && line.valid === 1);
     const cacheBlock = cache.sets[setValue].lines.findIndex(line => line.tag === tagValue && line.valid === 1);
 
     return [isCacheHit, cacheBlock];
@@ -525,6 +533,7 @@ function App() {
   function writeToCache(): void {
 
     const newCache = JSON.parse(JSON.stringify(cache));
+    const randomLineIndex = Math.floor(Math.random() * newCache.linesPerSet);
     const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
     console.log('I insert')
 
@@ -551,10 +560,12 @@ function App() {
     }
   }
 
-  function handleVisualCacheButtonClick(userGuessedHit: boolean) {
+  function handleVisualCacheButtonClick(userGuessedHit: boolean, cache: Cache) {
     const probabilityOfGettingACacheHit = 70;
     const [wasAHit, lineIndex] = readCache(cache);
     const wasAMiss = !wasAHit;
+
+    const randomLineIndex = Math.floor(Math.random() * cache.linesPerSet);
 
     const newCache = JSON.parse(JSON.stringify(cache));
     if (userGuessedHit) {
@@ -661,12 +672,21 @@ function App() {
   }
 
 
-  function createFacit(): Cache {
+  function createFacit(cache: Cache): Cache {
     const [cacheHit, _] = readCache(cache);
     const newCache = JSON.parse(JSON.stringify(cache));
+    const randomLineIndex = Math.floor(Math.random() * cache.linesPerSet);
 
     if (!cacheHit) {
       const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
+
+      if (!cacheBlock) {
+        console.log('cacheBlock', cacheBlock)
+        console.log('newCache', newCache)
+        console.log('setValue', setValue)
+        console.log('randomLineIndex', randomLineIndex)
+        throw new Error(`Block at index ${setValue} is undefined`);
+      }
 
       cacheBlock.tag = tagValue;
       cacheBlock.valid = 1;
@@ -725,9 +745,9 @@ function App() {
     return object != null && typeof object === 'object';
   }
 
-  function handleSubmitClick(cache: Cache) {
+  function handleSubmitClick(cache: Cache, userGuessedHit: boolean) {
     const probabilityOfGettingACacheHit = 70;
-    const newCache = JSON.parse(JSON.stringify(cache));
+    const randomLineIndex = Math.floor(Math.random() * cache.linesPerSet);
 
     if (validateCache(cache, facit)) {
       const hit = userGuessedHit;
@@ -737,7 +757,7 @@ function App() {
       const newLogEntry: LogEntry = {
         address: address,
         hit: hit,
-        cache: hit ? newCache : JSON.parse(JSON.stringify(cache)),
+        cache: cache,
         setIndexed: setValue,
         lineIndexed: randomLineIndex
       }
@@ -750,11 +770,11 @@ function App() {
   }
 
   function handleFillWithFacit() {
-    showFacitFilled();
     const [wasAHit, _] = readCache(facit);
     setUserGuessedHit(wasAHit);
+    handleSubmitClick(facit, wasAHit);
     setCache(facit);
-    handleSubmitClick(facit);
+    showFacitFilled();
   }
 
   return (
@@ -765,8 +785,6 @@ function App() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
         <Settings
-          addressBitWidth={addressBitWidth}
-          setAddressBitWidth={setAddressBitWidth}
           numSets={cache.numSets}
           setCache={setCache}
           linesPerSet={cache.linesPerSet}
@@ -850,7 +868,7 @@ function App() {
                 <Button
                   label="Submit"
                   severity='success'
-                  onClick={() => handleSubmitClick(cache)}
+                  onClick={() => handleSubmitClick(cache, userGuessedHit)}
                   style={{ marginRight: '1rem' }}
                 />
                 <Button
@@ -863,12 +881,12 @@ function App() {
             :
             <div className={`list-item-wrapper`}>
               <Button
-                onClick={() => handleVisualCacheButtonClick(true)}
+                onClick={() => handleVisualCacheButtonClick(true, cache)}
                 severity='success'
                 label='Cache Hit'
               />
               <Button
-                onClick={() => handleVisualCacheButtonClick(false)}
+                onClick={() => handleVisualCacheButtonClick(false, cache)}
                 severity='danger'
                 label='Cache Miss'
               />

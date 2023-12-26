@@ -22,8 +22,21 @@ function Cache_input_table({ cache, setCache, tag, address, facit, userGuessHit 
     const blockSize = cache.blockSize;
     const addressLengthWithBlockSize = (address + blockSize).toString().length;
 
-    const blockSizeStrMask = `Mem[${Array(addressLength).fill(null).map(_ => '9').join('')} - ${Array(addressLengthWithBlockSize).fill(null).map(_ => '9').join('')}]`;
-    const blockSizeStrPlaceHolder = `Mem[${Array(addressLength).fill(null).map(_ => 'x').join('')} - ${Array(addressLengthWithBlockSize).fill(null).map(_ => 'x').join('')}]`;
+    const blockSizeStrMask = `Mem[${Array(addressLength)
+        .fill(null)
+        .map(_ => '9')
+        .join('')} - ${Array(addressLengthWithBlockSize)
+            .fill(null)
+            .map(_ => '9')
+            .join('')}]`;
+    const blockSizeStrPlaceHolder = `Mem[${Array(addressLength)
+        .fill(null)
+        .map(_ => '_')
+        .join('')} - ${Array(addressLengthWithBlockSize)
+            .fill(null)
+            .map(_ => '_')
+            .join('')}]`;
+
     const tagMask = Array(tag).fill(null).map(_ => '9').join('');
     const tagPlaceHolder = Array(tag).fill(null).map(_ => 'x').join('');
 
