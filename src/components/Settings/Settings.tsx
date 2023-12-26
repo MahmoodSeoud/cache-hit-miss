@@ -14,7 +14,6 @@ import 'primeicons/primeicons.css';
 
 
 interface SettingsProps {
-    assignmentType: string;
     addressBitWidth: number;
     setAddressBitWidth: React.Dispatch<SetStateAction<number>>;
     numSets: number;

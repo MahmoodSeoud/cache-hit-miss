@@ -6,6 +6,7 @@ import { Toast } from 'primereact/toast';
 import { SelectButton, SelectButtonChangeEvent } from 'primereact/selectbutton';
 import { ColorResult, HuePicker } from 'react-color';
 import { Button } from 'primereact/button';
+import { InputSwitch } from 'primereact/inputswitch';
 import Log from './components/Log/Log';
 
 import 'primereact/resources/themes/lara-light-teal/theme.css';
@@ -133,7 +134,7 @@ function App() {
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
   const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize; // S X L X B
 
-  const [hitOrMissClicked, setHitOrMissClicked] = useState<boolean>(false);
+  const [userGuessedHit, setUserGuessedHit] = useState<boolean>(false);
 
   /**
    * The number of block offset bits
@@ -200,13 +201,15 @@ function App() {
   const [log, setLog] = useState<LogHistory>(log_)
   const facit = createFacit();
 
+  const toastFacit = useRef<Toast | null>(null);
+
 
   useEffect(() => {
     createCacheMissAssigment();
   }, [0]);
 
   useEffect(() => {
-    setHitOrMissClicked(false);
+    setUserGuessedHit(false);
   }, [address])
 
   useEffect(() => {
@@ -265,6 +268,11 @@ function App() {
       life: 3000
     });
   }
+
+  function showFacitFilled(): void {
+    toast.current!.show({ severity: 'success', detail: 'Filled the cache with the facit', life: 3000 });
+  };
+
   function generateAddress(availbeAddresses: number[]): { address: number, index: number } {
     let index;
     let address;
@@ -502,7 +510,7 @@ function App() {
     setAddress(parseInt(randomAvailableAddress, 2) / cache.blockSize);
   }
 
-  function readCache(): [boolean, number | null] {
+  function readCache(cache: Cache): [boolean, number | null] {
 
     const isCacheHit = cache.sets[setValue].lines.some(line => line.tag === tagValue && line.valid === 1)
     const cacheBlock = cache.sets[setValue].lines.findIndex(line => line.tag === tagValue && line.valid === 1);
@@ -545,7 +553,7 @@ function App() {
 
   function handleVisualCacheButtonClick(userGuessedHit: boolean) {
     const probabilityOfGettingACacheHit = 70;
-    const [wasAHit, lineIndex] = readCache();
+    const [wasAHit, lineIndex] = readCache(cache);
     const wasAMiss = !wasAHit;
 
     const newCache = JSON.parse(JSON.stringify(cache));
@@ -654,7 +662,7 @@ function App() {
 
 
   function createFacit(): Cache {
-    const [cacheHit, _] = readCache();
+    const [cacheHit, _] = readCache(cache);
     const newCache = JSON.parse(JSON.stringify(cache));
 
     if (!cacheHit) {
@@ -671,7 +679,7 @@ function App() {
     return newCache
   }
 
-  function validateCache(): boolean {
+  function validateCache(cache: Cache, facit: Cache): boolean {
     return deepEqual(cache, facit);
   }
 
@@ -713,71 +721,50 @@ function App() {
    * @param {InputFields} object - The value to check.
    * @returns {boolean} - Returns true if the value is an object, false otherwise.
    */
-  function isObject(object: Cache ): boolean {
+  function isObject(object: Cache): boolean {
     return object != null && typeof object === 'object';
   }
 
-  function handleInputCacheButtonClick(userGuessedHit: boolean) {
+  function handleSubmitClick(cache: Cache) {
     const probabilityOfGettingACacheHit = 70;
-    const [wasAHit, lineIndex] = readCache();
-    
     const newCache = JSON.parse(JSON.stringify(cache));
-    if (userGuessedHit) {
-      if (wasAHit) {
-        showSuccess('hit');
-        /*         markCacheBlock(setValue, lineIndex!); */
-        generateRandomAssignment(probabilityOfGettingACacheHit);
-        // Updating the log
-        
-        const newLogEntry: LogEntry = {
-          address: address,
-          hit: true,
-          cache: newCache,
-          setIndexed: setValue,
-          lineIndexed: randomLineIndex!
-        }
-        
-        log_.logEntries.push(newLogEntry);
-        setLog(log_);
-        
-      } else {
-        showFailure('hit', 'The cache may not be correct');
+
+    if (validateCache(cache, facit)) {
+      const hit = userGuessedHit;
+      showSuccess(hit ? 'hit' : 'miss');
+      generateRandomAssignment(probabilityOfGettingACacheHit);
+
+      const newLogEntry: LogEntry = {
+        address: address,
+        hit: hit,
+        cache: hit ? newCache : JSON.parse(JSON.stringify(cache)),
+        setIndexed: setValue,
+        lineIndexed: randomLineIndex
       }
+
+      log_.logEntries.push(newLogEntry);
+      setLog(log_);
     } else {
-      if (!wasAHit) {
-        if(validateCache()) {
-
-
-        }
-
-        showSuccess('miss');
-        /*         markCacheBlock(setValue, randomLineIndex); */
-        generateRandomAssignment(probabilityOfGettingACacheHit);
-        
-        const newLogEntry: LogEntry = {
-          address: address,
-          hit: false,
-          cache: JSON.parse(JSON.stringify(cache)),
-          setIndexed: setValue,
-          lineIndexed: randomLineIndex
-        }
-        log_.logEntries.push(newLogEntry);
-        setLog(log_);
-      } else {
-        showFailure('miss', 'The cache may not be correct');
-      }
+      showFailure(userGuessedHit ? 'hit' : 'miss', 'The cache may not be correct');
     }
-    // Make the user able to modify the cache
-    setHitOrMissClicked(true);
   }
-  
+
+  function handleFillWithFacit() {
+    showFacitFilled();
+    const [wasAHit, _] = readCache(facit);
+    setUserGuessedHit(wasAHit);
+    setCache(facit);
+    handleSubmitClick(facit);
+  }
+
   return (
     <>
       <Toast ref={toast} />
+
+      <Toast ref={toastFacit} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
         <Settings
-          assignmentType={''}
           addressBitWidth={addressBitWidth}
           setAddressBitWidth={setAddressBitWidth}
           numSets={cache.numSets}
@@ -851,33 +838,43 @@ function App() {
             onChange={(e: SelectButtonChangeEvent) => handleAssignmentTypeSwitch(e)}
             options={cacheOptions}
           />
-          <div className={`list-item-wrapper`}>
-            <Button
-              onClick={() => {
-                if (cacheValue === 'guess') {
-                  return handleVisualCacheButtonClick(true)
-                }
 
-                return handleInputCacheButtonClick(true)
-              }}
-              severity='success'
-              label='Cache Hit'
-            />
-            <Button
-              onClick={() => {
-                if (cacheValue === 'guess') {
-                  return handleVisualCacheButtonClick(false)
-                }
-
-                return handleInputCacheButtonClick(false)
-              }}
-              severity='danger'
-              label='Cache Miss'
-            />
-          </div>
-
+          {cacheValue === 'input' ?
+            <div>
+              <h3>Cache hit?</h3>
+              <InputSwitch
+                checked={userGuessedHit}
+                onChange={(e) => setUserGuessedHit(e.value)}
+              />
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch' }}>
+                <Button
+                  label="Submit"
+                  severity='success'
+                  onClick={() => handleSubmitClick(cache)}
+                  style={{ marginRight: '1rem' }}
+                />
+                <Button
+                  onClick={() => handleFillWithFacit()}
+                  label='Fill with facit'
+                  severity='help'
+                />
+              </div>
+            </div>
+            :
+            <div className={`list-item-wrapper`}>
+              <Button
+                onClick={() => handleVisualCacheButtonClick(true)}
+                severity='success'
+                label='Cache Hit'
+              />
+              <Button
+                onClick={() => handleVisualCacheButtonClick(false)}
+                severity='danger'
+                label='Cache Miss'
+              />
+            </div>
+          }
         </div>
-
 
         {cacheValue === 'guess' ?
           <Cache_visual_table
@@ -893,7 +890,7 @@ function App() {
             setCache={setCache}
             facit={facit} // TODO: Make the facit
             address={address}
-            hitOrMissClicked={hitOrMissClicked}
+            userGuessHit={userGuessedHit}
           />
         }
       </div>
@@ -902,4 +899,5 @@ function App() {
 }
 
 export default App
+
 

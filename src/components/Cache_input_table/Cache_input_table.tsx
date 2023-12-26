@@ -4,19 +4,20 @@ import { InputMask, InputMaskChangeEvent } from 'primereact/inputmask';
 import { ToggleButton, ToggleButtonChangeEvent } from 'primereact/togglebutton';
 import 'primereact/resources/themes/lara-light-teal/theme.css';
 
+
 type cache_tableProps = {
     cache: Cache;
     tag: number;
     setCache: React.Dispatch<React.SetStateAction<Cache>>;
     facit: Cache;
     address: number;
-    hitOrMissClicked: boolean;
+    userGuessHit: boolean;
 }
 
 
-function Cache_input_table({ cache, setCache, tag, address, facit, hitOrMissClicked }: cache_tableProps) {
+function Cache_input_table({ cache, setCache, tag, address, facit, userGuessHit }: cache_tableProps) {
     console.log('facit', facit)
-
+    console.log('cache', cache)
     const addressLength = address.toString().length;
     const blockSize = cache.blockSize;
     const addressLengthWithBlockSize = (address + blockSize).toString().length;
@@ -25,6 +26,8 @@ function Cache_input_table({ cache, setCache, tag, address, facit, hitOrMissClic
     const blockSizeStrPlaceHolder = `Mem[${Array(addressLength).fill(null).map(_ => 'x').join('')} - ${Array(addressLengthWithBlockSize).fill(null).map(_ => 'x').join('')}]`;
     const tagMask = Array(tag).fill(null).map(_ => '9').join('');
     const tagPlaceHolder = Array(tag).fill(null).map(_ => 'x').join('');
+
+
 
     function handleInputChange(event: ToggleButtonChangeEvent | InputMaskChangeEvent, set: number, line: number, field: string) {
         const value = event.target.value;
@@ -62,10 +65,13 @@ function Cache_input_table({ cache, setCache, tag, address, facit, hitOrMissClic
     }
 
 
+
     return (
         <div>
             <h2>Cache</h2>
-            {!hitOrMissClicked && <h2>You need to make a guess before modifying the cache</h2>}
+
+
+
             <table className='cache-table'>
 
                 <tbody>
@@ -93,7 +99,7 @@ function Cache_input_table({ cache, setCache, tag, address, facit, hitOrMissClic
                                                                 onLabel='1'
                                                                 className={"w-14rem"}
                                                                 offLabel='0'
-                                                                disabled={!hitOrMissClicked}
+                                                                disabled={userGuessHit}
                                                                 tooltip="Flip the valid bit clicking on it"
                                                                 tooltipOptions={{ position: 'top' }}
                                                             />
@@ -102,6 +108,7 @@ function Cache_input_table({ cache, setCache, tag, address, facit, hitOrMissClic
                                                             <InputMask
                                                                 onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.tag)}
                                                                 mask={tagMask}
+                                                                value={cache.sets[i].lines[j].tag.toString(2).padStart(tag, '0')}
                                                                 placeholder={tagPlaceHolder}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'
@@ -110,7 +117,7 @@ function Cache_input_table({ cache, setCache, tag, address, facit, hitOrMissClic
                                                                 maxLength={tag}
                                                                 keyfilter={/[01]/}
                                                                 autoCapitalize='off'
-                                                                disabled={!hitOrMissClicked}
+                                                                disabled={userGuessHit}
                                                                 tooltip="Insert the tag in binary format"
                                                                 tooltipOptions={{ event: 'focus', position: 'top' }}
                                                             />
@@ -119,13 +126,14 @@ function Cache_input_table({ cache, setCache, tag, address, facit, hitOrMissClic
                                                             <InputMask
                                                                 onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.blockSizeStr)}
                                                                 mask={blockSizeStrMask}
+                                                                value={cache.sets[i].lines[j].blockSizeStr}
                                                                 placeholder={blockSizeStrPlaceHolder}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'
                                                                 autoSave='off'
                                                                 autoFocus={false}
                                                                 autoCapitalize='off'
-                                                                disabled={!hitOrMissClicked}
+                                                                disabled={userGuessHit}
                                                                 tooltip="Insert the blockk in base 10 format"
                                                                 tooltipOptions={{ event: 'focus', position: 'top' }}
                                                             />
