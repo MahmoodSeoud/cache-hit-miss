@@ -10,10 +10,11 @@ type cache_tableProps = {
     setCache: React.Dispatch<React.SetStateAction<Cache>>;
     facit: Cache;
     address: number;
+    hitOrMissClicked: boolean;
 }
 
 
-function Cache_input_table({ cache, setCache, tag, address, facit }: cache_tableProps) {
+function Cache_input_table({ cache, setCache, tag, address, facit, hitOrMissClicked }: cache_tableProps) {
     console.log('facit', facit)
 
     const addressLength = address.toString().length;
@@ -64,6 +65,7 @@ function Cache_input_table({ cache, setCache, tag, address, facit }: cache_table
     return (
         <div>
             <h2>Cache</h2>
+            {!hitOrMissClicked && <h2>You need to make a guess before modifying the cache</h2>}
             <table className='cache-table'>
 
                 <tbody>
@@ -91,6 +93,9 @@ function Cache_input_table({ cache, setCache, tag, address, facit }: cache_table
                                                                 onLabel='1'
                                                                 className={"w-14rem"}
                                                                 offLabel='0'
+                                                                disabled={!hitOrMissClicked}
+                                                                tooltip="Flip the valid bit clicking on it"
+                                                                tooltipOptions={{ position: 'top' }}
                                                             />
                                                         </td>
                                                         <td>
@@ -105,6 +110,9 @@ function Cache_input_table({ cache, setCache, tag, address, facit }: cache_table
                                                                 maxLength={tag}
                                                                 keyfilter={/[01]/}
                                                                 autoCapitalize='off'
+                                                                disabled={!hitOrMissClicked}
+                                                                tooltip="Insert the tag in binary format"
+                                                                tooltipOptions={{ event: 'focus', position: 'top' }}
                                                             />
                                                         </td>
                                                         <td>
@@ -117,6 +125,9 @@ function Cache_input_table({ cache, setCache, tag, address, facit }: cache_table
                                                                 autoSave='off'
                                                                 autoFocus={false}
                                                                 autoCapitalize='off'
+                                                                disabled={!hitOrMissClicked}
+                                                                tooltip="Insert the blockk in base 10 format"
+                                                                tooltipOptions={{ event: 'focus', position: 'top' }}
                                                             />
                                                         </td>
                                                     </tr>

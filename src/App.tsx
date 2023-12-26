@@ -133,6 +133,7 @@ function App() {
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
   const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize; // S X L X B
 
+  const [hitOrMissClicked, setHitOrMissClicked] = useState<boolean>(false);
 
   /**
    * The number of block offset bits
@@ -204,6 +205,9 @@ function App() {
     createCacheMissAssigment();
   }, [0]);
 
+  useEffect(() => {
+    setHitOrMissClicked(false);
+  }, [address])
 
   useEffect(() => {
     const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
@@ -539,7 +543,7 @@ function App() {
     }
   }
 
-  function handleCacheButtonClick(userGuessedHit: boolean) {
+  function handleVisualCacheButtonClick(userGuessedHit: boolean) {
     const probabilityOfGettingACacheHit = 70;
     const [wasAHit, lineIndex] = readCache();
     const wasAMiss = !wasAHit;
@@ -715,15 +719,16 @@ function App() {
 
   function handleInputCacheButtonClick(userGuessedHit: boolean) {
     const probabilityOfGettingACacheHit = 70;
-
+    const [wasAHit, lineIndex] = readCache();
+    
     const newCache = JSON.parse(JSON.stringify(cache));
     if (userGuessedHit) {
-      if (validateCache()) {
+      if (wasAHit) {
         showSuccess('hit');
         /*         markCacheBlock(setValue, lineIndex!); */
         generateRandomAssignment(probabilityOfGettingACacheHit);
         // Updating the log
-
+        
         const newLogEntry: LogEntry = {
           address: address,
           hit: true,
@@ -731,19 +736,24 @@ function App() {
           setIndexed: setValue,
           lineIndexed: randomLineIndex!
         }
-
+        
         log_.logEntries.push(newLogEntry);
         setLog(log_);
-
+        
       } else {
         showFailure('hit', 'The cache may not be correct');
       }
     } else {
-      if (validateCache()) {
-        showSuccess('miss');
-        markCacheBlock(setValue, randomLineIndex);
-        generateRandomAssignment(probabilityOfGettingACacheHit);
+      if (!wasAHit) {
+        if(validateCache()) {
 
+
+        }
+
+        showSuccess('miss');
+        /*         markCacheBlock(setValue, randomLineIndex); */
+        generateRandomAssignment(probabilityOfGettingACacheHit);
+        
         const newLogEntry: LogEntry = {
           address: address,
           hit: false,
@@ -757,9 +767,10 @@ function App() {
         showFailure('miss', 'The cache may not be correct');
       }
     }
-
+    // Make the user able to modify the cache
+    setHitOrMissClicked(true);
   }
-
+  
   return (
     <>
       <Toast ref={toast} />
@@ -844,7 +855,7 @@ function App() {
             <Button
               onClick={() => {
                 if (cacheValue === 'guess') {
-                  return handleCacheButtonClick(true)
+                  return handleVisualCacheButtonClick(true)
                 }
 
                 return handleInputCacheButtonClick(true)
@@ -855,7 +866,7 @@ function App() {
             <Button
               onClick={() => {
                 if (cacheValue === 'guess') {
-                  return handleCacheButtonClick(false)
+                  return handleVisualCacheButtonClick(false)
                 }
 
                 return handleInputCacheButtonClick(false)
@@ -882,6 +893,7 @@ function App() {
             setCache={setCache}
             facit={facit} // TODO: Make the facit
             address={address}
+            hitOrMissClicked={hitOrMissClicked}
           />
         }
       </div>
