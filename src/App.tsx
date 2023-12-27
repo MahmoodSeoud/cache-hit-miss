@@ -163,7 +163,7 @@ function App() {
    * The random line index
    * @type {number}
    */
-  /*   const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet); */
+    const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet); 
 
   /**
    * The address in bits
@@ -481,9 +481,6 @@ function App() {
 
 
   function createCacheMissAssigment() {
-    //const set_ = parseInt(setIndexBits, 2);
-    //const tag_: number = parseInt(tagBits, 2);
-    //const line_ = randomLineIndex;
 
     // Create a new array that only includes addresses not in cache.sets
     const allAddressePossible = [];
@@ -529,7 +526,6 @@ function App() {
   }
 
   function readCache(cache: Cache): [boolean, number | null] {
-    const setValue = parseInt(setIndexBits, 2);
 
     const isCacheHit = cache.sets[setValue].lines.some(line => line.tag === tagValue && line.valid === 1);
     const cacheBlock = cache.sets[setValue].lines.findIndex(line => line.tag === tagValue && line.valid === 1);
@@ -544,7 +540,6 @@ function App() {
   function writeToCache(): void {
 
     const newCache = JSON.parse(JSON.stringify(cache));
-    const randomLineIndex = Math.floor(Math.random() * newCache.linesPerSet);
     const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
     console.log('I insert')
 
@@ -576,7 +571,6 @@ function App() {
     const [wasAHit, lineIndex] = readCache(cache);
     const wasAMiss = !wasAHit;
 
-    const randomLineIndex = Math.floor(Math.random() * cache.linesPerSet);
 
     const newCache = JSON.parse(JSON.stringify(cache));
     if (userGuessedHit) {
@@ -686,7 +680,6 @@ function App() {
   function createFacit(cache: Cache): Cache {
     const [cacheHit, _] = readCache(cache);
     const newCache = JSON.parse(JSON.stringify(cache));
-    const randomLineIndex = Math.floor(Math.random() * cache.linesPerSet);
 
     if (!cacheHit) {
       const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
@@ -750,7 +743,6 @@ function App() {
 
   function handleSubmitClick(cache: Cache, userGuessedHit: boolean) {
     const probabilityOfGettingACacheHit = 70;
-    const randomLineIndex = Math.floor(Math.random() * cache.linesPerSet);
 
     if (validateCache(cache, facit)) {
       const hit = userGuessedHit;
