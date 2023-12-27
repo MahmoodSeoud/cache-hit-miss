@@ -60,8 +60,6 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
         <div>
             <h2>Cache</h2>
 
-
-
             <table className='cache-table'>
 
                 <tbody>
@@ -85,10 +83,11 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
                                                     block.blockSizeStr.indexOf('-')
                                                 );
                                                 const blockAddr = parseInt(tempInt);
-                                                const addr = blockAddr || maxAddress;
+                                                // Because 0 is falsy in JS!
+                                                const addr = blockAddr !== null && blockAddr !== undefined ? blockAddr : maxAddress;
 
                                                 const addrLen = addr.toString().length;
-                                                const addrLenWithBlockSize = (addr + blockSize).toString().length;
+                                                const addrLenWithBlockSize = (addr + blockSize - 1).toString().length;
 
                                                 const blockSizeStrMask = `Mem[${Array(addrLen)
                                                     .fill(null)
