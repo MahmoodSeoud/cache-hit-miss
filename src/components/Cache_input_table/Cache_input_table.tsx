@@ -9,18 +9,15 @@ type cache_tableProps = {
     cache: Cache;
     tag: number;
     setCache: React.Dispatch<React.SetStateAction<Cache>>;
-    facit: Cache;
-    address: number;
+    maxAddress: number;
     userGuessHit: boolean;
 }
 
 
-function Cache_input_table({ cache, setCache, tag, address, facit, userGuessHit }: cache_tableProps) {
-    /*     console.log('facit', facit)
-        console.log('cache', cache) */
+function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: cache_tableProps) {
 
 
-                                                const blockSize = cache.blockSize;
+    const blockSize = cache.blockSize;
 
     function handleInputChange(event: ToggleButtonChangeEvent | InputMaskChangeEvent, set: number, line: number, field: string) {
         const value = event.target.value;
@@ -82,14 +79,10 @@ function Cache_input_table({ cache, setCache, tag, address, facit, userGuessHit 
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {set.lines && set.lines.length > 0 && set.lines.map((block, j) => {
-                                                let addr = block.blockSizeStr.slice(0, block.blockSizeStr.indexOf('-'));
-                                                if(addr === '') addr = address.toString();
-
-                                                const addrLen = addr.length;
-                                                const addrLenWithBlockSize = (addr + blockSize).toString().length;
-                                                
-
+                                            {set.lines && set.lines.length > 0 && set.lines.map((_, j) => {
+                                                const addrLen = maxAddress.toString().length;
+                                                const addrLenWithBlockSize = (maxAddress + blockSize).toString().length;
+                                                debugger
                                                 const blockSizeStrMask = `Mem[${Array(addrLen)
                                                     .fill(null)
                                                     .map(_ => '9')
@@ -105,7 +98,7 @@ function Cache_input_table({ cache, setCache, tag, address, facit, userGuessHit 
                                                         .fill(null)
                                                         .map(_ => '_')
                                                         .join('')}]`;
-                                                        debugger
+                                                debugger
 
                                                 const tagMask = Array(tag).fill(null).map(_ => '9').join('');
                                                 const tagPlaceHolder = Array(tag).fill(null).map(_ => 'x').join('');
@@ -155,7 +148,7 @@ function Cache_input_table({ cache, setCache, tag, address, facit, userGuessHit 
                                                                 autoFocus={false}
                                                                 autoCapitalize='off'
                                                                 disabled={userGuessHit}
-                                                                tooltip="Insert the blockk in base 10 format"
+                                                                tooltip="Insert the block in base 10 format"
                                                                 tooltipOptions={{ event: 'focus', position: 'top' }}
                                                             />
                                                         </td>

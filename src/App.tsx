@@ -128,7 +128,7 @@ const log_: LogHistory = { logEntries: [] };
 let facit: any = null;
 function App() {
   const [maxAddress, _] = useState<number>(TOTALCACHESIZE);
-  const [addressBitWidth, __] = useState<number>(maxAddress.toString(2).padStart(14, '0').length);
+  const [addressBitWidth, __] = useState<number>(maxAddress.toString(2).padStart(12, '0').length);
   const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress / BLOCKSIZE) * BLOCKSIZE);
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
@@ -225,7 +225,6 @@ function App() {
     }, [addressBitWidth]) */
 
   useEffect(() => {
-    debugger
     allAddresses.length = 0;
     availbeAddresses.length = 0;
     for (let k = 0; k < totalCacheSize; k += cache.blockSize) {
@@ -842,10 +841,10 @@ function App() {
             ))}
           </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3>tag bits: {tag}</h3>
-          <h3>set bits: {setIndex}</h3>
-          <h3>offset bits: {blockOffset}</h3>
+        <div>
+          <h3>Block offset bits: {blockOffset}</h3>
+          <h3>Set bits: {setIndex}</h3>
+          <h3>Tag bits: {tag}</h3>
         </div>
         <div className='virtual-wrapper'>
           <SelectButton value={cacheValue}
@@ -902,8 +901,7 @@ function App() {
             cache={cache}
             tag={tag}
             setCache={setCache}
-            facit={facit} // TODO: Make the facit
-            address={address}
+            maxAddress={maxAddress}
             userGuessHit={userGuessedHit}
           />
         }
