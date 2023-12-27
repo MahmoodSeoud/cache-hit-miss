@@ -80,15 +80,15 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
                                         </thead>
                                         <tbody>
                                             {set.lines && set.lines.length > 0 && set.lines.map((block, j) => {
-
-                                                const blockAddr = parseInt(block.blockSizeStr.slice(
-                                                    block.blockSizeStr.indexOf('['),
+                                                const tempInt = block.blockSizeStr.slice(
+                                                    block.blockSizeStr.indexOf('[') + 1,
                                                     block.blockSizeStr.indexOf('-')
-                                                ));
-                                                const addr = blockAddr | maxAddress;
+                                                );
+                                                const blockAddr = parseInt(tempInt);
+                                                const addr = blockAddr || maxAddress;
 
                                                 const addrLen = addr.toString().length;
-                                                const addrLenWithBlockSize = (maxAddress + blockSize).toString().length;
+                                                const addrLenWithBlockSize = (addr + blockSize).toString().length;
 
                                                 const blockSizeStrMask = `Mem[${Array(addrLen)
                                                     .fill(null)
@@ -106,11 +106,12 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
                                                         .map(_ => 'x')
                                                         .join('')}]`;
 
+                                                const blockSizeStrValue = block.blockSizeStr.trim() === '' ? '' : block.blockSizeStr;
 
 
                                                 const tagMask = Array(tag).fill(null).map(_ => '9').join('');
                                                 const tagPlaceHolder = Array(tag).fill(null).map(_ => 'x').join('');
-
+                                                const tagValue = block.tag.trim() === '' ? '' : block.tag.padStart(tag, '0');
                                                 debugger;
 
                                                 return (
@@ -131,7 +132,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
                                                             <InputMask
                                                                 onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.tag)}
                                                                 mask={tagMask}
-                                                                value={block.tag.trim() === '' ? '' : block.tag.padStart(tag, '0')}
+                                                                value={tagValue}
                                                                 placeholder={tagPlaceHolder}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'
@@ -149,7 +150,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
                                                             <InputMask
                                                                 onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.blockSizeStr)}
                                                                 mask={blockSizeStrMask}
-                                                                value={block.blockSizeStr === '' ? '' : block.blockSizeStr}
+                                                                value={blockSizeStrValue}
                                                                 placeholder={blockSizeStrPlaceHolder}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'
