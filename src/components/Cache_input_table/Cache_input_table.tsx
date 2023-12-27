@@ -79,9 +79,17 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {set.lines && set.lines.length > 0 && set.lines.map((_, j) => {
-                                                const addrLen = maxAddress.toString().length;
+                                            {set.lines && set.lines.length > 0 && set.lines.map((block, j) => {
+
+                                                const blockAddr = parseInt(block.blockSizeStr.slice(
+                                                    block.blockSizeStr.indexOf('['),
+                                                    block.blockSizeStr.indexOf('-')
+                                                ));
+                                                const addr = blockAddr | maxAddress;
+
+                                                const addrLen = addr.toString().length;
                                                 const addrLenWithBlockSize = (maxAddress + blockSize).toString().length;
+
                                                 const blockSizeStrMask = `Mem[${Array(addrLen)
                                                     .fill(null)
                                                     .map(_ => '9')
@@ -92,15 +100,18 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
 
                                                 const blockSizeStrPlaceHolder = `Mem[${Array(addrLen)
                                                     .fill(null)
-                                                    .map(_ => '_')
+                                                    .map(_ => 'x')
                                                     .join('')} - ${Array(addrLenWithBlockSize)
                                                         .fill(null)
-                                                        .map(_ => '_')
+                                                        .map(_ => 'x')
                                                         .join('')}]`;
+
+
 
                                                 const tagMask = Array(tag).fill(null).map(_ => '9').join('');
                                                 const tagPlaceHolder = Array(tag).fill(null).map(_ => 'x').join('');
 
+                                                debugger;
 
                                                 return (
                                                     <tr key={j}>
@@ -120,7 +131,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
                                                             <InputMask
                                                                 onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.tag)}
                                                                 mask={tagMask}
-                                                                value={cache.sets[i].lines[j].tag.padStart(tag, '0')}
+                                                                value={block.tag.trim() === '' ? '' : block.tag.padStart(tag, '0')}
                                                                 placeholder={tagPlaceHolder}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'
@@ -138,7 +149,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
                                                             <InputMask
                                                                 onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.blockSizeStr)}
                                                                 mask={blockSizeStrMask}
-                                                                value={cache.sets[i].lines[j].blockSizeStr}
+                                                                value={block.blockSizeStr === '' ? '' : block.blockSizeStr}
                                                                 placeholder={blockSizeStrPlaceHolder}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'

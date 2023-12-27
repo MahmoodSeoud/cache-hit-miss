@@ -204,7 +204,6 @@ function App() {
   }, [0]);
 
   useEffect(() => {
-    setUserGuessedHit(false);
     facit = createFacit(cache);
   }, [address])
 
@@ -258,7 +257,7 @@ function App() {
       severity: 'success',
       summary: 'Correct!',
       detail: 'Correct! The address: ' + address.toString(2).padStart(addressBitWidth, '0') + '\nwas a cache ' + cacheAssignmentType + ' assignment',
-      life: 1000
+      life: 1500
     });
   }
 
@@ -272,15 +271,15 @@ function App() {
       detail: 'Not right, The address: ' + address.toString(2).padStart(addressBitWidth, '0') +
         '\nwas a cache ' +
         cacheAssignmentType + ' assignment' + '\n' + extraErrorMsg,
-      life: 1000
+      life: 1500
     });
   }
 
   function showFacitFilled(): void {
     toast.current!.show({
-      severity: 'success',
+      severity: 'info',
       detail: 'Filled the cache with the facit',
-      life: 1000
+      life: 1500
     });
   };
 
@@ -760,9 +759,9 @@ function App() {
   function handleFillWithFacit() {
     const [wasAHit, _] = readCache(facit);
     setUserGuessedHit(wasAHit);
+    showFacitFilled();
     handleSubmitClick(facit, wasAHit);
     setCache(facit);
-    showFacitFilled();
   }
 
   return (
@@ -869,6 +868,7 @@ function App() {
             </div>
             :
             <div className={`list-item-wrapper`}>
+
               <Button
                 onClick={() => handleVisualCacheButtonClick(true, cache)}
                 severity='success'
@@ -883,20 +883,20 @@ function App() {
           }
         </div>
 
-        {cacheValue === 'guess' ?
-          <Cache_visual_table
-            cache={cache}
-            tag={tag}
-            changedSet={changedSet}
-            changedLine={changedLine}
-          />
-          :
+        {cacheValue === 'input' ?
           <Cache_input_table
             cache={cache}
             tag={tag}
             setCache={setCache}
             maxAddress={maxAddress}
             userGuessHit={userGuessedHit}
+          />
+          :
+          <Cache_visual_table
+            cache={cache}
+            tag={tag}
+            changedSet={changedSet}
+            changedLine={changedLine}
           />
         }
       </div>
