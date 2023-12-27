@@ -118,7 +118,8 @@ const availbeAddresses: number[] = []
 const NUMSETS = 4 as const;
 const BLOCKSIZE = 8 as const;
 const LINESPERSET = 1 as const;
-const MAXADDRESS = 8192 as const;
+const BYTE = 8 as const;
+const MAXADDRESS = NUMSETS * LINESPERSET * BLOCKSIZE * BYTE;
 
 const log_: LogHistory = { logEntries: [] };
 
@@ -126,14 +127,16 @@ const log_: LogHistory = { logEntries: [] };
 // const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
 let facit: any = null;
 function App() {
-
   const [maxAddress, _] = useState<number>(MAXADDRESS);
   const [addressBitWidth, __] = useState<number>(maxAddress.toString(2).padStart(14, '0').length);
   const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress / BLOCKSIZE) * BLOCKSIZE);
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
-  const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize; // S X L X B
+  const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize * BYTE; // S X L X B
+  console.log('facit', facit)
+  console.log('cache', cache)
+  console.log('---------------')
 
   const [userGuessedHit, setUserGuessedHit] = useState<boolean>(false);
 
@@ -155,7 +158,6 @@ function App() {
    * @type {number}
    */
   const tag: number = addressBitWidth - (setIndex + blockOffset);
-  if (tag === 11) debugger
 
   /**
    * The random line index
@@ -174,7 +176,6 @@ function App() {
    * @type {string}
    */
   const setIndexBits: string = addressInBits.slice(tag, -blockOffset);
-  if (setIndexBits === "") debugger
 
   /**
    * The tag bits
@@ -211,7 +212,9 @@ function App() {
 
   useEffect(() => {
     setUserGuessedHit(false);
+    facit = createFacit(cache);
   }, [address])
+
 
   useEffect(() => {
     const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
@@ -230,18 +233,19 @@ function App() {
 
     let cache_;
 
-    if (cacheShouldBeCold) {
+    if (cacheShouldBeCold || cacheValue === 'input') {
       cache_ = initEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet);
     } else {
       cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, availbeAddresses);
       setCacheShouldBeCold(false);
-    } 
+    }
 
     log_.logEntries.length = 0;
     setLog(log_);
     setCache(cache_);
     setAddress(createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize);
 
+    facit = createFacit(cache_);
 
   }, [
     cache.numSets,
@@ -249,8 +253,8 @@ function App() {
     cache.blockSize,
     cacheShouldBeCold,
     addressBitWidth,
+    cacheValue
   ])
-
 
 
   /**
@@ -261,7 +265,7 @@ function App() {
       severity: 'success',
       summary: 'Correct!',
       detail: 'Correct! The address: ' + address.toString(2).padStart(addressBitWidth, '0') + '\nwas a cache ' + cacheAssignmentType + ' assignment',
-      life: 3000
+      life: 1000
     });
   }
 
@@ -275,12 +279,16 @@ function App() {
       detail: 'Not right, The address: ' + address.toString(2).padStart(addressBitWidth, '0') +
         '\nwas a cache ' +
         cacheAssignmentType + ' assignment' + '\n' + extraErrorMsg,
-      life: 3000
+      life: 1000
     });
   }
 
   function showFacitFilled(): void {
-    toast.current!.show({ severity: 'success', detail: 'Filled the cache with the facit', life: 3000 });
+    toast.current!.show({
+      severity: 'success',
+      detail: 'Filled the cache with the facit',
+      life: 1000
+    });
   };
 
   function generateAddress(availbeAddresses: number[]): { address: number, index: number } {
@@ -499,7 +507,6 @@ function App() {
       .filter((tag) => !cacheTags.includes(tag));
 
     const randomAvailableTag = availableTags[Math.floor(Math.random() * availableTags.length)];
-    if (randomAvailableTag === undefined) debugger;
 
     let randomAvailableAddress = (createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize)
       .toString(2)
@@ -522,7 +529,6 @@ function App() {
 
   function readCache(cache: Cache): [boolean, number | null] {
     const setValue = parseInt(setIndexBits, 2);
-    debugger;
 
     const isCacheHit = cache.sets[setValue].lines.some(line => line.tag === tagValue && line.valid === 1);
     const cacheBlock = cache.sets[setValue].lines.findIndex(line => line.tag === tagValue && line.valid === 1);
@@ -684,14 +690,6 @@ function App() {
     if (!cacheHit) {
       const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
 
-      if (!cacheBlock) {
-        console.log('cacheBlock', cacheBlock)
-        console.log('newCache', newCache)
-        console.log('setValue', setValue)
-        console.log('randomLineIndex', randomLineIndex)
-        throw new Error(`Block at index ${setValue} is undefined`);
-      }
-
       cacheBlock.tag = tagValue;
       cacheBlock.valid = 1;
       cacheBlock.empty = 0;
@@ -768,7 +766,7 @@ function App() {
 
       log_.logEntries.push(newLogEntry);
       setLog(log_);
-      facit = createFacit(cache);
+      //facit = createFacit(cache);
     } else {
       showFailure(userGuessedHit ? 'hit' : 'miss', 'The cache may not be correct');
     }

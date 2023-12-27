@@ -47,11 +47,13 @@ export default function Settings({
         const index = setMarks.findIndex(mark => value === mark.value);
         const numSets = Number(setMarks[index].label)
 
+
         setCache((prevState: Cache) => {
             let newCache: Cache = { ...prevState };
             newCache.numSets = numSets;
             return newCache;
         });
+
 
     }
 

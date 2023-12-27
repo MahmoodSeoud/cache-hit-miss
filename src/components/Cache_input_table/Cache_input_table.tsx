@@ -16,31 +16,11 @@ type cache_tableProps = {
 
 
 function Cache_input_table({ cache, setCache, tag, address, facit, userGuessHit }: cache_tableProps) {
-    console.log('facit', facit)
-    console.log('cache', cache)
-    const addressLength = address.toString().length;
-    const blockSize = cache.blockSize;
-    const addressLengthWithBlockSize = (address + blockSize).toString().length;
-
-    const blockSizeStrMask = `Mem[${Array(addressLength)
-        .fill(null)
-        .map(_ => '9')
-        .join('')} - ${Array(addressLengthWithBlockSize)
-            .fill(null)
-            .map(_ => '9')
-            .join('')}]`;
-    const blockSizeStrPlaceHolder = `Mem[${Array(addressLength)
-        .fill(null)
-        .map(_ => '_')
-        .join('')} - ${Array(addressLengthWithBlockSize)
-            .fill(null)
-            .map(_ => '_')
-            .join('')}]`;
-
-    const tagMask = Array(tag).fill(null).map(_ => '9').join('');
-    const tagPlaceHolder = Array(tag).fill(null).map(_ => 'x').join('');
+    /*     console.log('facit', facit)
+        console.log('cache', cache) */
 
 
+                                                const blockSize = cache.blockSize;
 
     function handleInputChange(event: ToggleButtonChangeEvent | InputMaskChangeEvent, set: number, line: number, field: string) {
         const value = event.target.value;
@@ -102,7 +82,35 @@ function Cache_input_table({ cache, setCache, tag, address, facit, userGuessHit 
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {set.lines && set.lines.length > 0 && set.lines.map((_, j) => {
+                                            {set.lines && set.lines.length > 0 && set.lines.map((block, j) => {
+                                                let addr = block.blockSizeStr.slice(0, block.blockSizeStr.indexOf('-'));
+                                                if(addr === '') addr = address.toString();
+
+                                                const addrLen = addr.length;
+                                                const addrLenWithBlockSize = (addr + blockSize).toString().length;
+                                                
+
+                                                const blockSizeStrMask = `Mem[${Array(addrLen)
+                                                    .fill(null)
+                                                    .map(_ => '9')
+                                                    .join('')} - ${Array(addrLenWithBlockSize)
+                                                        .fill(null)
+                                                        .map(_ => '9')
+                                                        .join('')}]`;
+
+                                                const blockSizeStrPlaceHolder = `Mem[${Array(addrLen)
+                                                    .fill(null)
+                                                    .map(_ => '_')
+                                                    .join('')} - ${Array(addrLenWithBlockSize)
+                                                        .fill(null)
+                                                        .map(_ => '_')
+                                                        .join('')}]`;
+                                                        debugger
+
+                                                const tagMask = Array(tag).fill(null).map(_ => '9').join('');
+                                                const tagPlaceHolder = Array(tag).fill(null).map(_ => 'x').join('');
+
+
                                                 return (
                                                     <tr key={j}>
                                                         <td>
