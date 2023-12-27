@@ -734,8 +734,9 @@ function App() {
 
   function handleSubmitClick(cache: Cache, userGuessedHit: boolean) {
     const probabilityOfGettingACacheHit = 70;
-
-    if (validateCache(cache, facit)) {
+    debugger
+    const isValidCache = validateCache(cache, facit);  
+    if (isValidCache) {
       const hit = userGuessedHit;
       showSuccess(hit ? 'hit' : 'miss');
       generateRandomAssignment(probabilityOfGettingACacheHit);
@@ -890,6 +891,7 @@ function App() {
             setCache={setCache}
             maxAddress={maxAddress}
             userGuessHit={userGuessedHit}
+            facit={facit}
           />
           :
           <Cache_visual_table
