@@ -781,8 +781,9 @@ function App() {
 
         <Settings
           numSets={cache.numSets}
-          setCache={setCache}
           linesPerSet={cache.linesPerSet}
+          blockSize={cache.blockSize}
+          setCache={setCache}
           setCacheShouldBeCold={setCacheShouldBeCold}
         />
 

@@ -15,6 +15,7 @@ import 'primeicons/primeicons.css';
 interface SettingsProps {
     numSets: number;
     linesPerSet: number;
+    blockSize: number;
     setCache: React.Dispatch<SetStateAction<Cache>>;
     setCacheShouldBeCold: React.Dispatch<SetStateAction<boolean>>;
 }
@@ -35,6 +36,7 @@ const cacheOptions: string[] = [
 export default function Settings({
     numSets,
     linesPerSet,
+    blockSize,
     setCache,
     setCacheShouldBeCold,
 
@@ -42,10 +44,21 @@ export default function Settings({
     const [showSettings, setShowSettings] = useState<boolean>(false);
     const [cacheAssociativity, setCacheAssociativity] = useState<string>(cacheOptions[0]);
 
+    function handleSetBlockSize(value: number | number[]) {
+        const index = blockSizeOptions.findIndex(mark => value === mark.value);
+        const blockOffset = Number(blockSizeOptions[index].label)
+
+        blockOffset && setCache((prevState: Cache) => {
+            let newCache: Cache = { ...prevState };
+            newCache.blockSize = blockOffset;
+            return newCache;
+        });
+    }
+
     function handleSetState(value: number | number[]): void {
 
-        const index = setMarks.findIndex(mark => value === mark.value);
-        const numSets = Number(setMarks[index].label)
+        const index = setOptions.findIndex(mark => value === mark.value);
+        const numSets = Number(setOptions[index].label)
 
 
         setCache((prevState: Cache) => {
@@ -58,8 +71,8 @@ export default function Settings({
     }
 
     function handleNumLines(value: number | number[]) {
-        const index = lineMarks.findIndex(mark => value === mark.value);
-        const linesPerSet = Number(lineMarks[index].label)
+        const index = lineOptions.findIndex(mark => value === mark.value);
+        const linesPerSet = Number(lineOptions[index].label)
 
         linesPerSet && setCache((prevState: Cache) => {
             let newCache: Cache = { ...prevState };
@@ -99,17 +112,15 @@ export default function Settings({
         setCacheAssociativity(cacheType);
     }
 
+
+
     const setSliderJSX: JSX.Element = (
         < div className="input-card">
             <h3>Number of sets</h3>
-            <InputNumber
-                value={numSets}
-                disabled
-            />
 
             <DiscreteSliderValues
                 handleSetState={handleSetState}
-                marks={setMarks}
+                marks={setOptions}
                 value={numSets}
             />
         </div>
@@ -118,20 +129,26 @@ export default function Settings({
     const lineSliderJSX: JSX.Element = (
         <div className="input-card">
             <h3>Number of lines</h3>
-            <InputNumber
-                defaultValue={linesPerSet}
-                value={linesPerSet}
-                disabled
-            />
 
             <DiscreteSliderValues
                 handleSetState={handleNumLines}
-                marks={lineMarks}
+                marks={lineOptions}
                 value={linesPerSet}
             />
         </div>
     )
 
+    const blockSizeSliderJSX: JSX.Element = (
+        <div className="input-card">
+            <h3>Block offset</h3>
+
+            <DiscreteSliderValues
+                handleSetState={handleSetBlockSize}
+                marks={blockSizeOptions}
+                value={blockSize}
+            />
+        </div>
+    )
 
     return (
         <>
@@ -178,6 +195,10 @@ export default function Settings({
                             title="Cache settings"
                         >
                             <div className="card flex justify-content-center" >
+                                <div style={{ marginBottom: '1em' }}>
+                                    {blockSizeSliderJSX}
+                                </div>
+
                                 <SelectButton
                                     defaultValue={cacheOptions[0]}
                                     value={cacheAssociativity}
@@ -216,60 +237,58 @@ export default function Settings({
 }
 
 
-interface Mark {
+interface Option {
     value: number;
     label: string
 };
 
-const setMarks: Mark[] = [
+const setOptions: Option[] = [
     {
-        value: 0,
+        value: 33,
         label: '2',
     },
     {
-        value: 25,
+        value: 66,
         label: '4',
     },
     {
-        value: 50,
+        value: 99,
         label: '8',
-    },
-    {
-        value: 75,
-        label: '16',
-    },
-    {
-        value: 100,
-        label: '32',
     },
 ];
 
-const lineMarks: Mark[] = [
+const lineOptions: Option[] = [
     {
-        value: 0,
+        value: 33,
         label: '2',
     },
     {
-        value: 25,
+        value: 66,
         label: '4',
     },
     {
-        value: 50,
+        value: 99,
+        label: '8',
+    },
+];
+
+const blockSizeOptions: Option[] = [
+    {
+        value: 0,
         label: '8',
     },
     {
-        value: 75,
+        value: 100,
         label: '16',
     },
-    {
-        value: 100,
-        label: '64',
-    },
+
 ];
+
+
 
 interface DiscreteSliderValuesProps {
     handleSetState: (value: number | number[]) => void;
-    marks: Mark[];
+    marks: Option[];
     value: number;
 }
 
