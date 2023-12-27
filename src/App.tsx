@@ -113,13 +113,13 @@ export interface LogHistory {
   logEntries: LogEntry[]
 }
 
-const allAddresses: number[] = []
-const availbeAddresses: number[] = []
+let allAddresses: number[] = []
+let availbeAddresses: number[] = []
 const NUMSETS = 4 as const;
 const BLOCKSIZE = 8 as const;
 const LINESPERSET = 1 as const;
 const BYTE = 8 as const;
-const MAXADDRESS = NUMSETS * LINESPERSET * BLOCKSIZE * BYTE;
+const TOTALCACHESIZE = NUMSETS * LINESPERSET * BLOCKSIZE * BYTE;
 
 const log_: LogHistory = { logEntries: [] };
 
@@ -127,7 +127,7 @@ const log_: LogHistory = { logEntries: [] };
 // const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
 let facit: any = null;
 function App() {
-  const [maxAddress, _] = useState<number>(MAXADDRESS);
+  const [maxAddress, _] = useState<number>(TOTALCACHESIZE);
   const [addressBitWidth, __] = useState<number>(maxAddress.toString(2).padStart(14, '0').length);
   const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress / BLOCKSIZE) * BLOCKSIZE);
 
@@ -216,17 +216,19 @@ function App() {
   }, [address])
 
 
-  useEffect(() => {
-    const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
-    if (diff.length === 0) setAddress(createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize);
-    else {
-      setAddress(diff[Math.floor(Math.random() * diff.length)]);
-    }
-  }, [addressBitWidth])
+  /*   useEffect(() => {
+      const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
+      if (diff.length === 0) setAddress(createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize);
+      else {
+        setAddress(diff[Math.floor(Math.random() * diff.length)]);
+      }
+    }, [addressBitWidth]) */
 
   useEffect(() => {
-    const maximum: number = Math.max(maxAddress, totalCacheSize);
-    for (let k = 0; k < maximum; k += cache.blockSize) {
+    debugger
+    allAddresses.length = 0;
+    availbeAddresses.length = 0;
+    for (let k = 0; k < totalCacheSize; k += cache.blockSize) {
       availbeAddresses.push(k);
       allAddresses.push(k);
     }
@@ -252,7 +254,6 @@ function App() {
     cache.linesPerSet,
     cache.blockSize,
     cacheShouldBeCold,
-    addressBitWidth,
     cacheValue
   ])
 
