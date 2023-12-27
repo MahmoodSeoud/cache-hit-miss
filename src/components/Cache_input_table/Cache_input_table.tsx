@@ -37,7 +37,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
             case 'tag':
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
-                    cacheCopy.sets[set].lines[line].tag = parseInt(value as string, 2);
+                    cacheCopy.sets[set].lines[line].tag = value as string;
 
                     return cacheCopy;
                 });
@@ -82,7 +82,6 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
                                             {set.lines && set.lines.length > 0 && set.lines.map((_, j) => {
                                                 const addrLen = maxAddress.toString().length;
                                                 const addrLenWithBlockSize = (maxAddress + blockSize).toString().length;
-                                                debugger
                                                 const blockSizeStrMask = `Mem[${Array(addrLen)
                                                     .fill(null)
                                                     .map(_ => '9')
@@ -98,7 +97,6 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
                                                         .fill(null)
                                                         .map(_ => '_')
                                                         .join('')}]`;
-                                                debugger
 
                                                 const tagMask = Array(tag).fill(null).map(_ => '9').join('');
                                                 const tagPlaceHolder = Array(tag).fill(null).map(_ => 'x').join('');
@@ -122,7 +120,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit }: c
                                                             <InputMask
                                                                 onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.tag)}
                                                                 mask={tagMask}
-                                                                value={cache.sets[i].lines[j].tag.toString(2).padStart(tag, '0')}
+                                                                value={cache.sets[i].lines[j].tag.padStart(tag, '0')}
                                                                 placeholder={tagPlaceHolder}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'

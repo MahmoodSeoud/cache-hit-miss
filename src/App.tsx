@@ -40,10 +40,10 @@ const bitMap = {
 
 // Cache block structure
 export interface CacheBlock {
+  blockSizeStr: string; // The Mem[x - y] string
+  tag: string;     // The tag of this block
   valid: Bit;  // Whether this block is valid
   empty: Bit;  // Whether this block is empty
-  tag: number;     // The tag of this block
-  blockSizeStr: string; // The Mem[x - y] string
 }
 
 // Cache set structure
@@ -152,7 +152,6 @@ function App() {
    */
   const setIndex: number = Math.log2(cache.numSets);
 
-
   /**
    * The number of tag bits
    * @type {number}
@@ -163,7 +162,7 @@ function App() {
    * The random line index
    * @type {number}
    */
-    const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet); 
+  const randomLineIndex: number = Math.floor(Math.random() * cache.linesPerSet);
 
   /**
    * The address in bits
@@ -188,12 +187,6 @@ function App() {
    * @type {number}
    */
   const setValue: number = parseInt(setIndexBits, 2);
-
-  /**
-   * The value of the bits that represent the tag
-   * @type {number}
-   */
-  const tagValue: number = parseInt(tagBits, 2);
 
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
@@ -321,9 +314,9 @@ function App() {
 
       for (let j = 0; j < linesPerSet; j++) {
         const block: CacheBlock = {
-          tag: 0,
           valid: 0,
           empty: 1,
+          tag: '',
           blockSizeStr: '',
         };
         set.lines.push(block);
@@ -359,7 +352,7 @@ function App() {
         address_ = parseInt(addressInBits, 2);
         let tagBits_ = generateTagBits(address_, blockSize, numSets);
         let valid_: Bit = 1;
-        let tag_: number = Number('0b' + tagBits_);
+        let tag_: string = tagBits_;
         let blockSizeStr_: string = `Mem[${address_} - ${address_ + blockSize - 1}]`;
         let empty_: Bit = 0;
 
@@ -377,7 +370,7 @@ function App() {
 
           } while (knownTagsInSet.some(tag => tag.tagBits === newTagBits));
           valid_ = 1;
-          tag_ = Number('0b' + tagBits_);
+          tag_ = tagBits_;
           blockSizeStr_ = `Mem[${address_} - ${address_ + blockSize - 1}]`;
           empty_ = 0;
         }
@@ -456,7 +449,7 @@ function App() {
         .sets
         .filter((_, index) => index !== setValue)
         .flatMap(cacheBlock => cacheBlock.lines)
-        .filter(line => line.valid === 1 && (!checkTag || line.tag === tagValue));
+        .filter(line => line.valid === 1 && (!checkTag || line.tag === tagBits));
     }
 
     // First try to get a cache block with the same tag
@@ -495,13 +488,13 @@ function App() {
         ));
 
     // Flatten the cache sets into a single array
-    const cacheTags: number[] = cache
+    const cacheTags: string[] = cache
       .sets
       .flatMap(cacheBlock => cacheBlock.lines.map(line => line.tag));
 
     const availableTags = Array
       .from(allTags)
-      .filter((tag) => !cacheTags.includes(tag));
+      .filter((tag) => !cacheTags.includes(tag.toString()));
 
     const randomAvailableTag = availableTags[Math.floor(Math.random() * availableTags.length)];
 
@@ -526,8 +519,8 @@ function App() {
 
   function readCache(cache: Cache): [boolean, number | null] {
 
-    const isCacheHit = cache.sets[setValue].lines.some(line => line.tag === tagValue && line.valid === 1);
-    const cacheBlock = cache.sets[setValue].lines.findIndex(line => line.tag === tagValue && line.valid === 1);
+    const isCacheHit = cache.sets[setValue].lines.some(line => line.tag === tagBits && line.valid === 1);
+    const cacheBlock = cache.sets[setValue].lines.findIndex(line => line.tag === tagBits && line.valid === 1);
 
     return [isCacheHit, cacheBlock];
   }
@@ -542,7 +535,7 @@ function App() {
     const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
     console.log('I insert')
 
-    cacheBlock.tag = tagValue;
+    cacheBlock.tag = tagBits;
     cacheBlock.valid = 1;
     cacheBlock.empty = 0;
     cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
@@ -683,7 +676,7 @@ function App() {
     if (!cacheHit) {
       const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
 
-      cacheBlock.tag = tagValue;
+      cacheBlock.tag = tagBits;
       cacheBlock.valid = 1;
       cacheBlock.empty = 0;
       cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;

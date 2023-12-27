@@ -128,7 +128,7 @@ export default function Settings({
 
     const lineSliderJSX: JSX.Element = (
         <div className="input-card">
-            <h3>Number of lines</h3>
+            <h3>Number of lines per set</h3>
 
             <DiscreteSliderValues
                 handleSetState={handleNumLines}
