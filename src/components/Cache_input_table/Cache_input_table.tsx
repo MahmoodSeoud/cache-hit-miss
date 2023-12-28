@@ -44,7 +44,7 @@ function Cache_input_table({ cache, setCache, tag, address, maxAddress, userGues
             case 'tag':
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
-                    cacheCopy.sets[set].lines[line].tag = value as string;
+                    cacheCopy.sets[set].lines[line].tag = (value as string).trim();
                     if (hasAnyValidBit || hasAnyTag || hasAnyBlockStart || hasAnyBlockEnd) {
                         cacheCopy.sets[set].lines[line].empty = 0;
                     } else {
@@ -57,7 +57,7 @@ function Cache_input_table({ cache, setCache, tag, address, maxAddress, userGues
             case 'blockStart':
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
-                    cacheCopy.sets[set].lines[line].blockStart = value as string;
+                    cacheCopy.sets[set].lines[line].blockStart = (value as string).trim();
                     if (hasAnyValidBit || hasAnyTag || hasAnyBlockStart || hasAnyBlockEnd) {
                         cacheCopy.sets[set].lines[line].empty = 0;
                     } else {
@@ -70,7 +70,7 @@ function Cache_input_table({ cache, setCache, tag, address, maxAddress, userGues
             case 'blockEnd':
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
-                    cacheCopy.sets[set].lines[line].blockEnd = value as string;
+                    cacheCopy.sets[set].lines[line].blockEnd = (value as string).trim();
                     if (hasAnyValidBit || hasAnyTag || hasAnyBlockStart || hasAnyBlockEnd) {
                         cacheCopy.sets[set].lines[line].empty = 0;
                     } else {
@@ -114,9 +114,6 @@ function Cache_input_table({ cache, setCache, tag, address, maxAddress, userGues
                                                 const blockSizeStrMask = '9?' + "9".repeat(maxAddrLen - 1);
                                                 const blockStart = block.blockStart;
                                                 const blockEnd = block.blockEnd;
-                                                
-                                                const facitBlock = facit.sets[i].lines[j];
-
 
                                                 return (
                                                     <tr key={j}>

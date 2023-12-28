@@ -35,6 +35,9 @@ function Cache_visual_table({ cache, tag, changedSet, changedLine }: cache_table
                                                 const blockClass = j === changedLine ? 'changed-block' : '';
                                                 const key = `${j}-${Date.now()}`;
 
+                                                const blockStr = block.blockStart === '' || block.blockEnd === '' ?
+                                                    '' :
+                                                    `Mem[${block.blockStart}-${block.blockEnd}]`;
                                                 return (
                                                     <tr key={key}>
                                                         <td className={changedSet_ ? blockClass : ''}>{block.valid}</td>
@@ -43,7 +46,7 @@ function Cache_visual_table({ cache, tag, changedSet, changedLine }: cache_table
                                                                 block.tag.padStart(tag, '0')
                                                                 : ''
                                                         }</td>
-                                                        <td className={changedSet_ ? blockClass : ''}>Mem[{block.blockStart}-{block.blockEnd}]</td>
+                                                        <td className={changedSet_ ? blockClass : ''}>{blockStr}</td>
                                                     </tr>
                                                 )
                                             })}

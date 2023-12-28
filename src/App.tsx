@@ -128,6 +128,7 @@ const log_: LogHistory = { logEntries: [] };
 // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
 // const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
 let facit: any = null;
+let assignmentType: string = 'miss';
 function App() {
   const [maxAddress, _] = useState<number>(TOTALCACHESIZE);
   const [addressBitWidth, __] = useState<number>(maxAddress.toString(2).padStart(12, '0').length);
@@ -136,9 +137,9 @@ function App() {
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
   const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize * BYTE; // S X L X B
-  console.log('facit', facit)
-  console.log('cache', cache)
-  console.log('---------------')
+  /*   console.log('facit', facit)
+    console.log('cache', cache)
+    console.log('---------------') */
 
   const [userGuessedHit, setUserGuessedHit] = useState<boolean>(false);
 
@@ -198,11 +199,12 @@ function App() {
 
   const cacheOptions: string[] = ['guess', 'input'];
   const [cacheValue, setCacheValue] = useState<string>(cacheOptions[0]);
+  //const [wasAHit, lineIndex] = readCache(cache);
   const [log, setLog] = useState<LogHistory>(log_)
   const toastFacit = useRef<Toast | null>(null);
 
   useEffect(() => {
-    createCacheMissAssigment();
+    assignmentType = createCacheMissAssigment();
   }, [0]);
 
   useEffect(() => {
@@ -355,7 +357,7 @@ function App() {
         let tagBits_ = generateTagBits(address_, blockSize, numSets);
         let valid_: Bit = 1;
         let tag_: string = tagBits_;
-        
+
         let blockStart_: string = address_.toString();
         let blockEnd_: string = (address_ + blockSize - 1).toString();
         let empty_: Bit = 0;
@@ -447,7 +449,7 @@ function App() {
   };
 
 
-  function createCacheHitAssignment() {
+  function createCacheHitAssignment(): string {
 
     function getCacheBlocks(cache: Cache, checkTag: boolean) {
       return cache
@@ -465,22 +467,18 @@ function App() {
       cacheBlocks = getCacheBlocks(cache, false);
     }
 
+    if (cacheBlocks.length === 0) return createCacheMissAssigment();
     console.log('I made a hit')
-    debugger
-
-    if (cacheBlocks.length === 0) {
-      createCacheMissAssigment();
-      return;
-    }
 
     const cacheHitBlock = cacheBlocks[Math.floor(Math.random() * cacheBlocks.length)];
     const cacheHitAddress = parseInt(cacheHitBlock.blockStart);
 
     setAddress(cacheHitAddress);
+    return 'hit';
   }
 
 
-  function createCacheMissAssigment() {
+  function createCacheMissAssigment(): string {
 
     // Create a new array that only includes addresses not in cache.sets
     const allAddressePossible = [];
@@ -504,6 +502,9 @@ function App() {
       .from(allTags)
       .filter((tag) => !cacheTags.includes(tag.toString()));
 
+    if (availableTags.length === 0) return createCacheHitAssignment();
+    console.log('I made a miss')
+
     const randomAvailableTag = availableTags[Math.floor(Math.random() * availableTags.length)];
 
     let randomAvailableAddress = (createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize)
@@ -520,9 +521,9 @@ function App() {
           .padStart(tag, '0'));
 
 
-    console.log('I made a miss')
 
     setAddress(parseInt(randomAvailableAddress, 2) / cache.blockSize);
+    return 'miss';
   }
 
   function readCache(cache: Cache): [boolean, number | null] {
@@ -558,27 +559,26 @@ function App() {
   }
 
   // The percentage is for the hit assignment type (20 means 20% for a hit assignment)
-  function generateRandomAssignment(probability: number) {
+  function generateRandomAssignment(probability: number): string {
     // If you try to do a hit assignment on a cold cache, it will be a miss
     if (!isCacheEmpty() && Math.random() <= probability / 100) {
-      createCacheHitAssignment();
+      return createCacheHitAssignment();
     } else {
-      createCacheMissAssigment();
+      return createCacheMissAssigment();
     }
   }
 
   function handleVisualCacheButtonClick(userGuessedHit: boolean, cache: Cache) {
     const probabilityOfGettingACacheHit = 70;
-    const [wasAHit, lineIndex] = readCache(cache);
-    const wasAMiss = !wasAHit;
-
-
+    const [_, lineIndex] = readCache(cache);
     const newCache = JSON.parse(JSON.stringify(cache));
+    const wasAHit = assignmentType === 'hit';
+
     if (userGuessedHit) {
       if (wasAHit) {
         showSuccess('hit');
         markCacheBlock(setValue, lineIndex!);
-        generateRandomAssignment(probabilityOfGettingACacheHit);
+        assignmentType = generateRandomAssignment(probabilityOfGettingACacheHit);
         // Updating the log
 
         const newLogEntry: LogEntry = {
@@ -597,11 +597,11 @@ function App() {
         showFailure('hit');
       }
     } else {
-      if (wasAMiss) {
+      if (!wasAHit) {
         showSuccess('miss');
         writeToCache();
         markCacheBlock(setValue, randomLineIndex);
-        generateRandomAssignment(probabilityOfGettingACacheHit);
+        assignmentType = generateRandomAssignment(probabilityOfGettingACacheHit);
 
         const newLogEntry: LogEntry = {
           address: address,
@@ -667,19 +667,24 @@ function App() {
 
 
   function handleAssignmentTypeSwitch(e: SelectButtonChangeEvent) {
+    // If the user tries to click it the same btn again, do nothing
+    if (e.value === null || e.value === undefined) return
+
     setCacheValue(e.value);
     if (e.target.value === 'guess') {
       setCache(initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, availbeAddresses));
     } else {
       setCache(initEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet));
     }
+
     log_.logEntries.length = 0;
     setLog(log_);
   }
 
 
   function createFacit(cache: Cache): Cache {
-    const [cacheHit, _] = readCache(cache);
+    //const [cacheHit, _] = readCache(cache);
+    const cacheHit = assignmentType === 'hit';
     const newCache = JSON.parse(JSON.stringify(cache));
 
     if (!cacheHit) {
@@ -691,15 +696,40 @@ function App() {
       cacheBlock.blockStart = address.toString();
       cacheBlock.blockEnd = (address + cache.blockSize - 1).toString();
 
+      // Update the cache
       newCache.sets[setValue].lines[randomLineIndex] = cacheBlock;
     }
 
     return newCache
   }
 
-  function validateCache(cache: Cache, facit: Cache): boolean {
+  function validateCacheMiss(cache: Cache, facit: Cache): boolean {
     return deepEqual(cache, facit);
   }
+
+  function validateCacheHit(cache: Cache, facit: Cache): boolean {
+    // Create a deep copy of the cache and facit objects with block.start and block.end omitted
+    const cacheCopy: Cache = JSON.parse(JSON.stringify(cache));
+    const facitCopy: Cache = JSON.parse(JSON.stringify(facit));
+
+    const newCacheSetsCopy = []
+    const newCacheLinesCopy = []
+    const newCacheBlockCopy = {}
+  
+    debugger
+    cacheCopy.sets.forEach(set => {
+      set.lines.forEach(line => {
+        const { blockStart, blockEnd, ...rest } = line;
+        Object.assign(newCacheBlockCopy, rest);
+      })
+      newCacheSetsCopy.push(set)
+    });
+    debugger
+
+    // Compare the copies
+    return deepEqual(cacheCopy, facitCopy);
+  }
+
 
   /**
  * Performs a deep comparison between two values to determine if they are equivalent.
@@ -744,16 +774,17 @@ function App() {
   }
 
   function handleSubmitClick(cache: Cache, userGuessedHit: boolean) {
-    const probabilityOfGettingACacheHit = 70;
-    const isValidCache = validateCache(cache, facit);  
-    if (isValidCache) {
-      const hit = userGuessedHit;
-      showSuccess(hit ? 'hit' : 'miss');
-      generateRandomAssignment(probabilityOfGettingACacheHit);
+    const probabilityOfGettingACacheHit = 100;
+    const isValidCacheInsertion = validateCacheMiss(cache, facit);
+    const isValidCacheHit = validateCacheHit(cache, facit);
 
+    const wasAHit = assignmentType === 'hit';
+    debugger
+    if (userGuessedHit && wasAHit && isValidCacheHit) {
+      assignmentType = generateRandomAssignment(probabilityOfGettingACacheHit);
       const newLogEntry: LogEntry = {
         address: address,
-        hit: hit,
+        hit: true,
         cache: cache,
         setIndexed: setValue,
         lineIndexed: randomLineIndex
@@ -761,9 +792,29 @@ function App() {
 
       log_.logEntries.push(newLogEntry);
       setLog(log_);
-      //facit = createFacit(cache);
+      showSuccess('hit');
+    }
+
+    if (!userGuessedHit && !wasAHit && isValidCacheInsertion) {
+      assignmentType = generateRandomAssignment(probabilityOfGettingACacheHit);
+      const newLogEntry: LogEntry = {
+        address: address,
+        hit: false,
+        cache: cache,
+        setIndexed: setValue,
+        lineIndexed: randomLineIndex
+      }
+
+      log_.logEntries.push(newLogEntry);
+      setLog(log_);
+      showSuccess('miss');
     } else {
-      showFailure(userGuessedHit ? 'hit' : 'miss', 'The cache may not be correct');
+      const errMsg = 'Either you guessed wrong or the cache is not valid'
+      if (userGuessedHit) {
+        showFailure('miss', errMsg);
+      } else {
+        showFailure('hit', errMsg);
+      }
     }
   }
 
@@ -778,7 +829,6 @@ function App() {
   return (
     <>
       <Toast ref={toast} />
-
       <Toast ref={toastFacit} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
@@ -849,11 +899,14 @@ function App() {
           <h3>Block offset bits: {blockOffset}</h3>
           <h3>Set bits: {setIndex}</h3>
           <h3>Tag bits: {tag}</h3>
+          <h3>Block size: {cache.blockSize}</h3>
         </div>
         <div className='virtual-wrapper'>
-          <SelectButton value={cacheValue}
+          <SelectButton
+            value={cacheValue}
             onChange={(e: SelectButtonChangeEvent) => handleAssignmentTypeSwitch(e)}
             options={cacheOptions}
+
           />
 
           {cacheValue === 'input' ?
