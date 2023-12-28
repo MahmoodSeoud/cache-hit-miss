@@ -56,7 +56,6 @@ function Cache_input_table({ cache, setCache, tag, address, maxAddress, userGues
 
             case 'blockStart':
                 setCache((prev) => {
-                    debugger
                     const cacheCopy = { ...prev };
                     cacheCopy.sets[set].lines[line].blockStart = value as string;
                     if (hasAnyValidBit || hasAnyTag || hasAnyBlockStart || hasAnyBlockEnd) {
@@ -70,7 +69,6 @@ function Cache_input_table({ cache, setCache, tag, address, maxAddress, userGues
             
             case 'blockEnd':
                 setCache((prev) => {
-                    debugger
                     const cacheCopy = { ...prev };
                     cacheCopy.sets[set].lines[line].blockEnd = value as string;
                     if (hasAnyValidBit || hasAnyTag || hasAnyBlockStart || hasAnyBlockEnd) {

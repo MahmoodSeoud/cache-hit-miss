@@ -449,7 +449,6 @@ function App() {
 
   function createCacheHitAssignment() {
 
-
     function getCacheBlocks(cache: Cache, checkTag: boolean) {
       return cache
         .sets
@@ -467,6 +466,12 @@ function App() {
     }
 
     console.log('I made a hit')
+    debugger
+
+    if (cacheBlocks.length === 0) {
+      createCacheMissAssigment();
+      return;
+    }
 
     const cacheHitBlock = cacheBlocks[Math.floor(Math.random() * cacheBlocks.length)];
     const cacheHitAddress = parseInt(cacheHitBlock.blockStart);
@@ -768,7 +773,6 @@ function App() {
     showFacitFilled();
     handleSubmitClick(facit, wasAHit);
     setCache(facit);
-    debugger
   }
 
   return (
