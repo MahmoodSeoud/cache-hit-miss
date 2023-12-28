@@ -15,7 +15,8 @@ import './App.css'
 import 'primeicons/primeicons.css';
 
 export const CacheInputFieldsMap = {
-  blockSizeStr: 'blockSizeStr',
+  blockStart: 'blockStart',
+  blockEnd: 'blockEnd',
   valid: 'valid',
   tag: 'tag',
 } as const;
@@ -40,7 +41,8 @@ const bitMap = {
 
 // Cache block structure
 export interface CacheBlock {
-  blockSizeStr: string; // The Mem[x - y] string
+  blockStart: string; // The full address
+  blockEnd: string; // The full address  + the block size
   tag: string;     // The tag of this block
   valid: Bit;  // Whether this block is valid
   empty: Bit;  // Whether this block is empty
@@ -316,7 +318,8 @@ function App() {
           valid: 0,
           empty: 1,
           tag: '',
-          blockSizeStr: '',
+          blockStart: '',
+          blockEnd: '',
         };
         set.lines.push(block);
       }
@@ -352,7 +355,9 @@ function App() {
         let tagBits_ = generateTagBits(address_, blockSize, numSets);
         let valid_: Bit = 1;
         let tag_: string = tagBits_;
-        let blockSizeStr_: string = `Mem[${address_} - ${address_ + blockSize - 1}]`;
+        
+        let blockStart_: string = address_.toString();
+        let blockEnd_: string = (address_ + blockSize - 1).toString();
         let empty_: Bit = 0;
 
         const existingTag = knownTagsInSet.find(tag => tag.tagBits === tagBits_);
@@ -370,7 +375,8 @@ function App() {
           } while (knownTagsInSet.some(tag => tag.tagBits === newTagBits));
           valid_ = 1;
           tag_ = tagBits_;
-          blockSizeStr_ = `Mem[${address_} - ${address_ + blockSize - 1}]`;
+          blockStart_ = address_.toString();
+          blockEnd_ = (address_ + blockSize - 1).toString();
           empty_ = 0;
         }
 
@@ -381,7 +387,8 @@ function App() {
           tag: tag_,
           valid: valid_,
           empty: empty_,
-          blockSizeStr: blockSizeStr_,
+          blockStart: blockStart_,
+          blockEnd: blockEnd_,
         };
         set.lines.push(block);
       }
@@ -462,10 +469,7 @@ function App() {
     console.log('I made a hit')
 
     const cacheHitBlock = cacheBlocks[Math.floor(Math.random() * cacheBlocks.length)];
-    //const set_ = cache.sets.findIndex(set => set.lines.includes(cacheHitBlock));
-    //const line_ = cache.sets[set_].lines.findIndex(line => line === cacheHitBlock);
-    const cacheHitAddress = parseInt(cacheHitBlock.blockSizeStr.slice(4, cacheHitBlock.blockSizeStr.indexOf('-')));
-
+    const cacheHitAddress = parseInt(cacheHitBlock.blockStart);
 
     setAddress(cacheHitAddress);
   }
@@ -537,7 +541,8 @@ function App() {
     cacheBlock.tag = tagBits;
     cacheBlock.valid = 1;
     cacheBlock.empty = 0;
-    cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
+    cacheBlock.blockStart = address.toString();
+    cacheBlock.blockEnd = (address + cache.blockSize - 1).toString();
 
     setCache(newCache);
   }
@@ -678,7 +683,8 @@ function App() {
       cacheBlock.tag = tagBits;
       cacheBlock.valid = 1;
       cacheBlock.empty = 0;
-      cacheBlock.blockSizeStr = `Mem[${address}-${address + cache.blockSize - 1}]`;
+      cacheBlock.blockStart = address.toString();
+      cacheBlock.blockEnd = (address + cache.blockSize - 1).toString();
 
       newCache.sets[setValue].lines[randomLineIndex] = cacheBlock;
     }
@@ -734,7 +740,6 @@ function App() {
 
   function handleSubmitClick(cache: Cache, userGuessedHit: boolean) {
     const probabilityOfGettingACacheHit = 70;
-    debugger
     const isValidCache = validateCache(cache, facit);  
     if (isValidCache) {
       const hit = userGuessedHit;
@@ -763,6 +768,7 @@ function App() {
     showFacitFilled();
     handleSubmitClick(facit, wasAHit);
     setCache(facit);
+    debugger
   }
 
   return (
@@ -890,6 +896,7 @@ function App() {
             tag={tag}
             setCache={setCache}
             maxAddress={maxAddress}
+            address={address}
             userGuessHit={userGuessedHit}
             facit={facit}
           />

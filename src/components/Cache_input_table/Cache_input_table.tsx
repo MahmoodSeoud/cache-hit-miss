@@ -1,4 +1,4 @@
-import { Bit, Cache, CacheInputFieldsMap } from '../../App';
+import { Bit, Cache, CacheBlock, CacheInputFieldsMap } from '../../App';
 import './Cache_input_table.css';
 import { InputMask, InputMaskChangeEvent } from 'primereact/inputmask';
 import { ToggleButton, ToggleButtonChangeEvent } from 'primereact/togglebutton';
@@ -11,21 +11,19 @@ type cache_tableProps = {
     tag: number;
     setCache: React.Dispatch<React.SetStateAction<Cache>>;
     maxAddress: number;
+    address: number;
     userGuessHit: boolean;
     facit: Cache;
 }
 
-
-function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit, facit }: cache_tableProps) {
-    const [addressEntered, setAddressEntered] = useState(false);
-
-    const blockSize = cache.blockSize;
+function Cache_input_table({ cache, setCache, tag, address, maxAddress, userGuessHit, facit }: cache_tableProps) {
 
     function handleInputChange(event: ToggleButtonChangeEvent | InputMaskChangeEvent, set: number, line: number, field: string) {
         const value = event.target.value;
         const hasAnyValidBit = cache.sets[set].lines[line].valid === 1;
         const hasAnyTag = cache.sets[set].lines[line].tag.trim() !== '';
-        const hasAnyBlockSize = cache.sets[set].lines[line].blockSizeStr.trim() !== '';
+        const hasAnyBlockStart = cache.sets[set].lines[line].blockStart.trim() !== '';
+        const hasAnyBlockEnd = cache.sets[set].lines[line].blockEnd.trim() !== '';
 
         switch (field) {
             case 'valid':
@@ -34,7 +32,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit, fac
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
                     cacheCopy.sets[set].lines[line].valid = validBit;
-                    if (hasAnyValidBit || hasAnyTag || hasAnyBlockSize) {
+                    if (hasAnyValidBit || hasAnyTag || hasAnyBlockStart || hasAnyBlockEnd) {
                         cacheCopy.sets[set].lines[line].empty = 0;
                     } else {
                         cacheCopy.sets[set].lines[line].empty = 1;
@@ -47,7 +45,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit, fac
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
                     cacheCopy.sets[set].lines[line].tag = value as string;
-                    if (hasAnyValidBit || hasAnyTag || hasAnyBlockSize) {
+                    if (hasAnyValidBit || hasAnyTag || hasAnyBlockStart || hasAnyBlockEnd) {
                         cacheCopy.sets[set].lines[line].empty = 0;
                     } else {
                         cacheCopy.sets[set].lines[line].empty = 1;
@@ -55,19 +53,33 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit, fac
                     return cacheCopy;
                 });
                 break;
-            case 'blockSizeStr':
 
+            case 'blockStart':
                 setCache((prev) => {
+                    debugger
                     const cacheCopy = { ...prev };
-                    cacheCopy.sets[set].lines[line].blockSizeStr = value as string;
-                    if (hasAnyValidBit || hasAnyTag || hasAnyBlockSize) {
+                    cacheCopy.sets[set].lines[line].blockStart = value as string;
+                    if (hasAnyValidBit || hasAnyTag || hasAnyBlockStart || hasAnyBlockEnd) {
                         cacheCopy.sets[set].lines[line].empty = 0;
                     } else {
                         cacheCopy.sets[set].lines[line].empty = 1;
                     }
                     return cacheCopy;
                 });
-
+                break;
+            
+            case 'blockEnd':
+                setCache((prev) => {
+                    debugger
+                    const cacheCopy = { ...prev };
+                    cacheCopy.sets[set].lines[line].blockEnd = value as string;
+                    if (hasAnyValidBit || hasAnyTag || hasAnyBlockStart || hasAnyBlockEnd) {
+                        cacheCopy.sets[set].lines[line].empty = 0;
+                    } else {
+                        cacheCopy.sets[set].lines[line].empty = 1;
+                    }
+                    return cacheCopy;
+                });
                 break;
         }
     }
@@ -81,6 +93,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit, fac
 
                 <tbody>
                     {cache.sets && cache.sets.map((set, i) => {
+
                         return (
                             <tr key={i}>
                                 <th>Set {i}</th>
@@ -95,41 +108,17 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit, fac
                                         </thead>
                                         <tbody>
                                             {set.lines && set.lines.length > 0 && set.lines.map((block, j) => {
-
-
-                                                const tempInt = block.blockSizeStr.slice(
-                                                    block.blockSizeStr.indexOf('[') + 1,
-                                                    block.blockSizeStr.indexOf('-')
-                                                );
-                                                const blockAddr = parseInt(tempInt);
-                                                // Because 0 is falsy in JS!
-                                                const addr = blockAddr !== null && blockAddr !== undefined ? blockAddr : maxAddress;
-
-                                                const addrLen = addr.toString().length;
-                                                const addrLenWithBlockSize = (addr + blockSize - 1).toString().length;
-
-                                                const blockSizeStrMask_ = `Mem[${Array(addrLen)
-                                                    .fill(null)
-                                                    .map(_ => '9')
-                                                    .join('')}-${Array(addrLenWithBlockSize)
-                                                        .fill(null)
-                                                        .map(_ => '9')
-                                                        .join('')}]`;
-
-                                                const blockSizeStrPlaceHolder = `Mem[${Array(addrLen)
-                                                    .fill(null)
-                                                    .map(_ => 'x')
-                                                    .join('')}-${Array(addrLenWithBlockSize)
-                                                        .fill(null)
-                                                        .map(_ => 'x')
-                                                        .join('')}]`;
-
-                                                const blockSizeStrValue = block.blockSizeStr.trim() === '' ? '' : block.blockSizeStr;
-
-                                                    debugger
                                                 const tagMask = Array(tag).fill(null).map(_ => '9').join('');
                                                 const tagPlaceHolder = Array(tag).fill(null).map(_ => 'x').join('');
-                                                const tagValue = block.tag.trim() === '' ? '' : block.tag.padStart(tag, '0');
+                                                const tagValue = block.tag;
+
+                                                const maxAddrLen = maxAddress.toString().length;
+                                                const blockSizeStrMask = '9?' + "9".repeat(maxAddrLen - 1);
+                                                const blockStart = block.blockStart;
+                                                const blockEnd = block.blockEnd;
+                                                
+                                                const facitBlock = facit.sets[i].lines[j];
+
 
                                                 return (
                                                     <tr key={j}>
@@ -164,20 +153,39 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit, fac
                                                             />
                                                         </td>
                                                         <td>
-                                                            <InputMask
-                                                                onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.blockSizeStr)}
-                                                                mask={blockSizeStrMask_}
-                                                                value={blockSizeStrValue}
-                                                                placeholder={blockSizeStrPlaceHolder}
-                                                                autoComplete='off'
-                                                                autoCorrect='off'
-                                                                autoSave='off'
-                                                                autoFocus={false}
-                                                                autoCapitalize='off'
-                                                                disabled={userGuessHit}
-                                                                tooltip="Insert the block in base 10 format"
-                                                                tooltipOptions={{ event: 'focus', position: 'top' }}
-                                                            />
+                                                            <div style={{ display: 'flex' }}>
+                                                                <p>Mem[</p>
+                                                                <InputMask
+                                                                    onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.blockStart)}
+                                                                    mask={blockSizeStrMask}
+                                                                    value={blockStart}
+                                                                    placeholder="x*"
+                                                                    autoComplete='off'
+                                                                    autoCorrect='off'
+                                                                    autoSave='off'
+                                                                    autoFocus={false}
+                                                                    autoCapitalize='off'
+                                                                    disabled={userGuessHit}
+                                                                    tooltip="Insert the addresss in base 10 format"
+                                                                    tooltipOptions={{ event: 'focus', position: 'top' }}
+                                                                />
+                                                                <p>-</p>
+                                                                <InputMask
+                                                                    onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.blockEnd)}
+                                                                    mask={blockSizeStrMask}
+                                                                    value={blockEnd}
+                                                                    placeholder="x*"
+                                                                    autoComplete='off'
+                                                                    autoCorrect='off'
+                                                                    autoSave='off'
+                                                                    autoFocus={false}
+                                                                    autoCapitalize='off'
+                                                                    disabled={userGuessHit}
+                                                                    tooltip="Insert the addresss in base 10 format"
+                                                                    tooltipOptions={{ event: 'focus', position: 'top' }}
+                                                                />
+                                                                <p>]</p>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 )
