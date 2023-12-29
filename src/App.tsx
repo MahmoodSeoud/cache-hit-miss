@@ -941,9 +941,7 @@ function App() {
             tag={tag}
             setCache={setCache}
             maxAddress={maxAddress}
-            address={address}
             userGuessHit={userGuessedHit}
-            facit={facit}
           />
           :
           <Cache_visual_table

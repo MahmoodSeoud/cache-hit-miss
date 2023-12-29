@@ -1,9 +1,8 @@
-import { Bit, Cache, CacheBlock, CacheInputFieldsMap } from '../../App';
+import { Bit, Cache, CacheInputFieldsMap } from '../../App';
 import './Cache_input_table.css';
 import { InputMask, InputMaskChangeEvent } from 'primereact/inputmask';
 import { ToggleButton, ToggleButtonChangeEvent } from 'primereact/togglebutton';
 import 'primereact/resources/themes/lara-light-teal/theme.css';
-import { useState } from 'react';
 
 
 type cache_tableProps = {
@@ -11,12 +10,10 @@ type cache_tableProps = {
     tag: number;
     setCache: React.Dispatch<React.SetStateAction<Cache>>;
     maxAddress: number;
-    address: number;
     userGuessHit: boolean;
-    facit: Cache;
 }
 
-function Cache_input_table({ cache, setCache, tag, address, maxAddress, userGuessHit, facit }: cache_tableProps) {
+function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit}: cache_tableProps) {
 
     function handleInputChange(event: ToggleButtonChangeEvent | InputMaskChangeEvent, set: number, line: number, field: string) {
         const value = event.target.value;
