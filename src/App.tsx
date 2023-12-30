@@ -34,7 +34,7 @@ const log_: LogHistory = { logEntries: [] };
 
 // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
 // const addToBitsTogether = (a: number, b: number) => (a << Math.ceil(Math.log2(b)) + 1) + b;
-let facit: any = null;
+let facits: Cache[] = [];
 let assignmentType: string = 'miss';
 function App() {
   const [maxAddress, _] = useState<number>(TOTALCACHESIZE);
@@ -44,7 +44,7 @@ function App() {
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
   const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize * BYTE; // S X L X B
-  /*   console.log('facit', facit)
+  /*   console.log('facits', facits)
     console.log('cache', cache)
     console.log('---------------') */
 
@@ -113,7 +113,8 @@ function App() {
   }, [0]);
 
   useEffect(() => {
-    facit = createFacit(cache);
+    facits = createFacits(cache);
+    console.log('facits', facits)
   }, [address])
 
 
@@ -131,13 +132,13 @@ function App() {
       cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, availbeAddresses);
       setCacheShouldBeCold(false);
     }
-    
+
     log_.logEntries.length = 0;
     setLog(log_);
     setCache(cache_);
     setAddress(createRandomNumber(0, maxAddress));
     assignmentType = createCacheMissAssigment(cache_);
-    facit = createFacit(cache_);
+    facits = createFacits(cache_);
   }, [
     cache.numSets,
     cache.linesPerSet,
@@ -175,7 +176,7 @@ function App() {
   function showFacitFilled(): void {
     toast.current!.show({
       severity: 'info',
-      detail: 'Filled the cache with the facit',
+      detail: 'Filled the cache with the facits',
       life: 1500
     });
   };
@@ -447,35 +448,44 @@ function App() {
     setLog(log_);
   }
 
-  function createFacit(cache: Cache): Cache {
-    //const [cacheHit, _] = lookupCache(cache);
+  function createFacits(cache: Cache): Cache[] {
     const cacheHit = assignmentType === 'hit';
-    const newCache = JSON.parse(JSON.stringify(cache));
+    const newCaches = [];
 
     if (!cacheHit) {
-      const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
+      for (let i = 0; i < cache.sets[setValue].lines.length; i++) {
+        const newCache = JSON.parse(JSON.stringify(cache));
+        const cacheBlock = newCache.sets[setValue].lines[i];
 
-      cacheBlock.tag = tagBits;
-      cacheBlock.valid = 1;
-      cacheBlock.empty = 0;
-      cacheBlock.blockStart = address.toString();
-      cacheBlock.blockEnd = (address + cache.blockSize - 1).toString();
+        cacheBlock.tag = tagBits;
+        cacheBlock.valid = 1;
+        cacheBlock.empty = 0;
+        cacheBlock.blockStart = address.toString();
+        cacheBlock.blockEnd = (address + cache.blockSize - 1).toString();
 
-      // Update the cache
-      newCache.sets[setValue].lines[randomLineIndex] = cacheBlock;
+        // Update the cache
+        newCache.sets[setValue].lines[i] = cacheBlock;
+
+        newCaches.push(newCache);
+      }
+    } else {
+      const newCache = JSON.parse(JSON.stringify(cache));
+      newCaches.push(newCache);
     }
 
-    return newCache
+    return newCaches;
   }
 
-  function validateCacheMiss(cache: Cache, facit: Cache): boolean {
-    return deepEqual(cache, facit);
+  function validateCacheMiss(cache: Cache, facits: Cache[]): boolean {
+    const isValid = facits.some((facit: Cache) => deepEqual(cache, facit));
+    return isValid; 
   }
 
-  function validateCacheHit(cache: Cache, facit: Cache): boolean {
-    // Create a deep copy of the cache and facit objects
+  function validateCacheHit(cache: Cache, facits: Cache[]): boolean {
+    // Create a deep copy of the cache and facits objects
     const cacheCopy = JSON.parse(JSON.stringify(cache));
-    const facitCopy = JSON.parse(JSON.stringify(facit));
+
+    const facitCopies = facits.map((facit) => JSON.parse(JSON.stringify(facit)));
 
     // Removing the blockStart and blocKEnd keys from the cache
     cacheCopy.sets = cacheCopy.sets.map((set: CacheSet) => {
@@ -485,20 +495,23 @@ function App() {
       };
     });
 
-    // Removing the blockStart and blocKEnd keys from the facit
-    facitCopy.sets = facitCopy.sets.map((set: CacheSet) => {
+    // Removing the blockStart and blocKEnd keys from the facits
+    facitCopies.map((facitCopy) => {
+      facitCopy.sets = facitCopy.sets.map((set: CacheSet) => {
       return {
         ...set,
         lines: set.lines.map(line => removeObjectKey(line, 'blockStart', 'blockEnd'))
       };
-    });
+    })});
 
-    return deepEqual(cacheCopy, facitCopy);
+    const isValid = facitCopies.some((facit: Cache) => deepEqual(cacheCopy, facit));
+
+    return isValid;
   }
 
   function handleSubmitClick(cache: Cache, userGuessedHit: boolean) {
-    const isValidCacheInsertion = validateCacheMiss(cache, facit);
-    const isValidCacheHit = validateCacheHit(cache, facit);
+    const isValidCacheInsertion = validateCacheMiss(cache, facits);
+    const isValidCacheHit = validateCacheHit(cache, facits);
 
     const wasAHit = assignmentType === 'hit';
     if (userGuessedHit && wasAHit && isValidCacheHit) {
@@ -542,8 +555,10 @@ function App() {
     setUserGuessedHit(wasAHit);
     showFacitFilled();
     const userGuessedHit = wasAHit;
+    const facit = facits[randomLineIndex] ?? facits[0];
     handleSubmitClick(facit, userGuessedHit);
     setCache(facit);
+    debugger;
   }
 
   return (
@@ -603,7 +618,7 @@ function App() {
                 />
                 <Button
                   onClick={() => handleFillWithFacit()}
-                  label='Fill with facit'
+                  label='Fill with facits'
                   severity='help'
                 />
               </div>
