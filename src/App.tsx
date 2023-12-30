@@ -31,7 +31,8 @@ const BLOCKSIZE = 8 as const;
 const LINESPERSET = 1 as const;
 const BYTE = 8 as const;
 const TOTALCACHESIZE = NUMSETS * LINESPERSET * BLOCKSIZE * BYTE;
-
+const ADDRESSBITWIDTH = TOTALCACHESIZE.toString(2).padStart(14, '0').length;
+const PROBABILITYOFGETTINGACACHEHIT = 50;
 const log_: LogHistory = { logEntries: [] };
 
 // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
@@ -40,7 +41,7 @@ let facit: any = null;
 let assignmentType: string = 'miss';
 function App() {
   const [maxAddress, _] = useState<number>(TOTALCACHESIZE);
-  const [addressBitWidth, __] = useState<number>(maxAddress.toString(2).padStart(12, '0').length);
+  const [addressBitWidth, __] = useState<number>(ADDRESSBITWIDTH);
   const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress));
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
@@ -100,7 +101,6 @@ function App() {
    */
   const setValue: number = parseInt(setIndexBits, 2);
 
-
   const toast = useRef<Toast>(null);
   const [changedSet, setChangedSet] = useState<number | null>(null);
   const [changedLine, setChangedLine] = useState<number | null>(null);
@@ -144,14 +144,13 @@ function App() {
       cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, availbeAddresses);
       setCacheShouldBeCold(false);
     }
-
+    
     log_.logEntries.length = 0;
     setLog(log_);
     setCache(cache_);
     setAddress(createRandomNumber(0, maxAddress));
-
+    assignmentType = createCacheMissAssigment(cache_);
     facit = createFacit(cache_);
-
   }, [
     cache.numSets,
     cache.linesPerSet,
@@ -179,9 +178,9 @@ function App() {
     toast.current?.show({
       severity: 'error',
       summary: 'Wrong',
-      detail: 'Not right, The address: ' + address.toString(2).padStart(addressBitWidth, '0') +
-        '\nwas a cache ' +
-        cacheAssignmentType + ' assignment' + '\n' + extraErrorMsg,
+      detail: 'The address: ' + address.toString(2).padStart(addressBitWidth, '0') +
+        '\nwas NOT a cache ' +
+        cacheAssignmentType + ' assignment' + '\n' + (extraErrorMsg ? extraErrorMsg : ''),
       life: 1500
     });
   }
@@ -337,7 +336,6 @@ function App() {
       allPossibleAddresses.push(k.toString(2).padStart(addressBitWidth, '0'));
     }
 
-    console.log('cache', cache)
 
     const allTagsPossible: string[] = allPossibleAddresses.map(address => address.slice(0, tag));
     const cacheTags = cache.sets.flatMap(set => set.lines.map(line => line.tag));
@@ -375,14 +373,12 @@ function App() {
 
     const newCache = JSON.parse(JSON.stringify(cache));
     const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
-    console.log('I insert')
 
     cacheBlock.tag = tagBits;
     cacheBlock.valid = 1;
     cacheBlock.empty = 0;
     cacheBlock.blockStart = address.toString();
     cacheBlock.blockEnd = (address + cache.blockSize - 1).toString();
-    console.log("newCache:", newCache)
     setCache(newCache);
     return newCache
   }
@@ -404,7 +400,6 @@ function App() {
 
   function handleVisualCacheButtonClick(cache: Cache, userGuessedHit: boolean) {
 
-    const probabilityOfGettingACacheHit = 50;
     const [isCacheHit, lineIndex] = readCache(cache);
     const newCache = JSON.parse(JSON.stringify(cache));
 
@@ -412,7 +407,7 @@ function App() {
     if (userGuessedHit && isCacheHit) {
       showSuccess('hit');
       markCacheBlock(setValue, lineIndex!);
-      assignmentType = generateRandomAssignment(cache, probabilityOfGettingACacheHit);
+      assignmentType = generateRandomAssignment(cache, PROBABILITYOFGETTINGACACHEHIT);
       // Updating the log
 
       const newLogEntry: LogEntry = {
@@ -430,7 +425,7 @@ function App() {
       showSuccess('miss');
       const writtenCache: Cache = writeToCache(newCache);
       markCacheBlock(setValue, randomLineIndex);
-      assignmentType = generateRandomAssignment(writtenCache, probabilityOfGettingACacheHit);
+      assignmentType = generateRandomAssignment(writtenCache, PROBABILITYOFGETTINGACACHEHIT);
 
       const newLogEntry: LogEntry = {
         address: address,
@@ -517,13 +512,12 @@ function App() {
   }
 
   function handleSubmitClick(cache: Cache, userGuessedHit: boolean) {
-    const probabilityOfGettingACacheHit = 50;
     const isValidCacheInsertion = validateCacheMiss(cache, facit);
     const isValidCacheHit = validateCacheHit(cache, facit);
 
     const wasAHit = assignmentType === 'hit';
     if (userGuessedHit && wasAHit && isValidCacheHit) {
-      assignmentType = generateRandomAssignment(cache, probabilityOfGettingACacheHit);
+      assignmentType = generateRandomAssignment(cache, PROBABILITYOFGETTINGACACHEHIT);
       const newLogEntry: LogEntry = {
         address: address,
         hit: true,
@@ -536,7 +530,7 @@ function App() {
       setLog(log_);
       showSuccess('hit');
     } else if (!userGuessedHit && !wasAHit && isValidCacheInsertion) {
-      assignmentType = generateRandomAssignment(cache, probabilityOfGettingACacheHit);
+      assignmentType = generateRandomAssignment(cache, PROBABILITYOFGETTINGACACHEHIT);
       const newLogEntry: LogEntry = {
         address: address,
         hit: false,

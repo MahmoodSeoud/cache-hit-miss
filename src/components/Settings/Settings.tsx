@@ -139,7 +139,7 @@ export default function Settings({
 
     const blockSizeSliderJSX: JSX.Element = (
         <div className="input-card">
-            <h3>Block offset</h3>
+            <h3>Block size</h3>
 
             <DiscreteSliderValues
                 handleSetState={handleSetBlockSize}
