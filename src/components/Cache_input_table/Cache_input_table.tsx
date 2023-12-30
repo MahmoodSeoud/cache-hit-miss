@@ -109,14 +109,14 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit}: ca
                                         </thead>
                                         <tbody>
                                             {set.lines && set.lines.length > 0 && set.lines.map((block, j) => {
-                                                const tagMask = Array(tag).fill('9').join('');
-                                                const tagPlaceHolder = Array(tag).fill('x').join('');
-                                                const tagValue = block.tag;
+                                                const tagMask = Array(tag).fill('9').join('').trim();
+                                                const tagPlaceHolder = Array(tag).fill('x').join('').trim();
+                                                const tagValue = block.tag.trim();
 
                                                 const maxAddrLen = maxAddress.toString().length;
-                                                const blockSizeStrMask = '9?' + "9".repeat(maxAddrLen - 1);
-                                                const blockStart = block.blockStart;
-                                                const blockEnd = block.blockEnd;
+                                                const blockSizeStrMask = '9?' + "9".repeat(maxAddrLen - 1).trim();
+                                                const blockStart = block.blockStart.trim();
+                                                const blockEnd = block.blockEnd.trim();
                                                 
                                                 return (
                                                     <tr key={j}>
@@ -142,7 +142,6 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit}: ca
                                                                 autoCorrect='off'
                                                                 autoSave='off'
                                                                 autoFocus={false}
-                                                                maxLength={tag}
                                                                 keyfilter={/[01]/}
                                                                 autoCapitalize='off'
                                                                 disabled={userGuessHit}
