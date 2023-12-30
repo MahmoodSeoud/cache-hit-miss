@@ -1,14 +1,14 @@
-import {Cache, Bit} from '../../cache';
+import { Cache, Bit } from '../../cache';
 import './Cache_input_table.css';
 import { InputMask, InputMaskChangeEvent } from 'primereact/inputmask';
 import { ToggleButton, ToggleButtonChangeEvent } from 'primereact/togglebutton';
 import 'primereact/resources/themes/lara-light-teal/theme.css';
 
 export const CacheInputFieldsMap = {
-  blockStart: 'blockStart',
-  blockEnd: 'blockEnd',
-  valid: 'valid',
-  tag: 'tag',
+    blockStart: 'blockStart',
+    blockEnd: 'blockEnd',
+    valid: 'valid',
+    tag: 'tag',
 } as const;
 
 type cache_tableProps = {
@@ -17,9 +17,19 @@ type cache_tableProps = {
     setCache: React.Dispatch<React.SetStateAction<Cache>>;
     maxAddress: number;
     userGuessHit: boolean;
+    changedSet: number | null;
+    changedLine: number | null;
 }
 
-function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit}: cache_tableProps) {
+function Cache_input_table({
+    cache,
+    setCache,
+    tag,
+    maxAddress,
+    userGuessHit,
+    changedSet,
+    changedLine 
+}: cache_tableProps) {
 
     function handleInputChange(event: ToggleButtonChangeEvent | InputMaskChangeEvent, set: number, line: number, field: string) {
         const value = event.target.value;
@@ -69,7 +79,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit}: ca
                     return cacheCopy;
                 });
                 break;
-            
+
             case 'blockEnd':
                 setCache((prev) => {
                     const cacheCopy = { ...prev };
@@ -94,7 +104,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit}: ca
 
                 <tbody>
                     {cache.sets && cache.sets.map((set, i) => {
-
+                        const changedSet_ = i === changedSet;
                         return (
                             <tr key={i}>
                                 <th>Set {i}</th>
@@ -109,7 +119,10 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit}: ca
                                         </thead>
                                         <tbody>
                                             {set.lines && set.lines.length > 0 && set.lines.map((block, j) => {
+                                                const blockClass = j === changedLine ? 'changed-block' : '';
+                                                const key = `${j}-${Date.now()}`;
                                                 const tagMask = Array(tag).fill('9').join('').trim();
+
                                                 const tagPlaceHolder = Array(tag).fill('x').join('').trim();
                                                 const tagValue = block.tag.trim();
 
@@ -117,10 +130,10 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit}: ca
                                                 const blockSizeStrMask = '9?' + "9".repeat(maxAddrLen - 1).trim();
                                                 const blockStart = block.blockStart.trim();
                                                 const blockEnd = block.blockEnd.trim();
-                                                
+
                                                 return (
-                                                    <tr key={j}>
-                                                        <td>
+                                                    <tr key={key}>
+                                                        <td className={'ferroshit'}>
                                                             <ToggleButton
                                                                 checked={block.valid === 1}
                                                                 onChange={(e: ToggleButtonChangeEvent) => handleInputChange(e, i, j, CacheInputFieldsMap.valid)}
@@ -132,7 +145,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit}: ca
                                                                 tooltipOptions={{ position: 'top' }}
                                                             />
                                                         </td>
-                                                        <td>
+                                                        <td className={changedSet_ ? blockClass : ''}>
                                                             <InputMask
                                                                 onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.tag)}
                                                                 mask={tagMask}
@@ -149,7 +162,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit}: ca
                                                                 tooltipOptions={{ event: 'focus', position: 'top' }}
                                                             />
                                                         </td>
-                                                        <td>
+                                                        <td className={changedSet_ ? blockClass : ''}>
                                                             <div style={{ display: 'flex' }}>
                                                                 <p>Mem[</p>
                                                                 <InputMask

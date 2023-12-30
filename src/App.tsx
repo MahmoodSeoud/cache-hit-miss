@@ -663,6 +663,8 @@ function App() {
             setCache={setCache}
             maxAddress={maxAddress}
             userGuessHit={userGuessedHit}
+            changedSet={changedSet}
+            changedLine={changedLine}
           />
           :
           <Cache_visual_table

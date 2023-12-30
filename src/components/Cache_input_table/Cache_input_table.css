@@ -33,16 +33,6 @@
     background-color: #b3ffb3;
 }
 
-@keyframes changeHighlight {
-  0% {
-    background-color: transparent;
-  }
-
-  50% {
-    background-color: green;
-  }
-}
-
 .changed-block {
   animation: changeHighlight 1s forwards;
   background-color: transparent;
@@ -52,3 +42,12 @@ table:hover .changed-block{
   background-color: green;
 }
 
+@keyframes changeHighlight {
+  0% {
+    background-color: transparent;
+  }
+
+  50% {
+    background-color: green;
+  } 
+}

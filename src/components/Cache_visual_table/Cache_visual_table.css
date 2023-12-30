@@ -47,11 +47,9 @@ table:hover .changed-block{
   0% {
     background-color: transparent;
   }
-
+  
   50% {
     background-color: green;
   } 
-
-
 }
 
