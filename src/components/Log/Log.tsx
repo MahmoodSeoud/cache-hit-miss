@@ -1,7 +1,7 @@
 import { OverlayPanel } from 'primereact/overlaypanel';
 import { Sidebar } from 'primereact/sidebar';
 import { useRef, useState } from 'react';
-import { LogHistory } from '../../App';
+import { LogHistory } from '../../cache';
 import { Button } from 'primereact/button';
 import 'primeicons/primeicons.css';
 import 'primereact/resources/themes/lara-light-teal/theme.css';

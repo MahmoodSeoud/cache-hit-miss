@@ -1,5 +1,3 @@
-
-
 export const baseConversionMap = {
   Binary: 2,
   Decimal: 10,
@@ -38,6 +36,18 @@ export interface Cache {
   blockSize: number;
   linesPerSet: number;
   sets: CacheSet[];  // The sets in the cache
+}
+
+export interface LogEntry {
+  address: number;
+  hit: boolean;
+  cache: Cache
+  setIndexed: number;
+  lineIndexed: number;
+}
+
+export interface LogHistory {
+  logEntries: LogEntry[]
 }
 
 export type BaseConversion = typeof baseConversionMap[keyof typeof baseConversionMap];

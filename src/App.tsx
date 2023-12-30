@@ -14,7 +14,7 @@ import './App.css'
 import 'primeicons/primeicons.css';
 import { createRandomNumber, deepEqual, removeObjectKey } from './Utils';
 import BitAddressHeader from './components/BitAddressHeader/BitAddressHeader';
-import { Bit, Cache, CacheBlock, CacheSet } from './cache';
+import { Bit, Cache, CacheBlock, CacheSet, LogEntry, LogHistory } from './cache';
 
 function replaceChars(str: string, start: number, numChars: number, replacement: string): string {
   const before = str.slice(0, start);
@@ -22,17 +22,7 @@ function replaceChars(str: string, start: number, numChars: number, replacement:
   return before + replacement + after;
 }
 
-interface LogEntry {
-  address: number;
-  hit: boolean;
-  cache: Cache
-  setIndexed: number;
-  lineIndexed: number;
-}
 
-export interface LogHistory {
-  logEntries: LogEntry[]
-}
 
 let allAddresses: number[] = []
 let availbeAddresses: number[] = []
