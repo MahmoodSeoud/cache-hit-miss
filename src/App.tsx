@@ -558,7 +558,6 @@ function App() {
     const facit = facits[randomLineIndex] ?? facits[0];
     handleSubmitClick(facit, userGuessedHit);
     setCache(facit);
-    debugger;
   }
 
   return (

@@ -117,7 +117,7 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit}: ca
                                                 const blockSizeStrMask = '9?' + "9".repeat(maxAddrLen - 1);
                                                 const blockStart = block.blockStart;
                                                 const blockEnd = block.blockEnd;
-                                                debugger;
+                                                
                                                 return (
                                                     <tr key={j}>
                                                         <td>
