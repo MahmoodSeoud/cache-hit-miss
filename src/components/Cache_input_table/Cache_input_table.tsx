@@ -120,9 +120,8 @@ function Cache_input_table({
                                         <tbody>
                                             {set.lines && set.lines.length > 0 && set.lines.map((block, j) => {
                                                 const blockClass = j === changedLine ? 'changed-block' : '';
-                                                const key = `${j}-${Date.now()}`;
+                                                
                                                 const tagMask = Array(tag).fill('9').join('').trim();
-
                                                 const tagPlaceHolder = Array(tag).fill('x').join('').trim();
                                                 const tagValue = block.tag.trim();
 
@@ -132,8 +131,8 @@ function Cache_input_table({
                                                 const blockEnd = block.blockEnd.trim();
 
                                                 return (
-                                                    <tr key={key}>
-                                                        <td className={'ferroshit'}>
+                                                    <tr key={j}>
+                                                        <td className={changedSet_ ? blockClass : ''}>
                                                             <ToggleButton
                                                                 checked={block.valid === 1}
                                                                 onChange={(e: ToggleButtonChangeEvent) => handleInputChange(e, i, j, CacheInputFieldsMap.valid)}

@@ -137,6 +137,8 @@ function App() {
     setLog(log_);
     setCache(cache_);
     setAddress(createRandomNumber(0, maxAddress));
+    setChangedSet(null);
+    setChangedLine(null);
     assignmentType = createCacheMissAssigment(cache_);
     facits = createFacits(cache_);
   }, [
