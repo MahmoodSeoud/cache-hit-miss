@@ -109,8 +109,8 @@ function Cache_input_table({ cache, setCache, tag, maxAddress, userGuessHit}: ca
                                         </thead>
                                         <tbody>
                                             {set.lines && set.lines.length > 0 && set.lines.map((block, j) => {
-                                                const tagMask = Array(tag).fill(null).map(_ => '9').join('');
-                                                const tagPlaceHolder = Array(tag).fill(null).map(_ => 'x').join('');
+                                                const tagMask = Array(tag).fill('9').join('');
+                                                const tagPlaceHolder = Array(tag).fill('x').join('');
                                                 const tagValue = block.tag;
 
                                                 const maxAddrLen = maxAddress.toString().length;
