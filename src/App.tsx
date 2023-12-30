@@ -476,12 +476,18 @@ function App() {
     return newCaches;
   }
 
-  function validateCacheMiss(cache: Cache, facits: Cache[]): boolean {
+  function validateCacheMiss(cache: Cache, facits: Cache[]): [boolean, number] {
     const isValid = facits.some((facit: Cache) => deepEqual(cache, facit));
-    return isValid; 
+
+    if (isValid) {
+      const lineIndex = facits.findIndex((facit: Cache) => deepEqual(cache, facit));
+      return [isValid, lineIndex];
+    }
+
+    return [isValid, randomLineIndex];
   }
 
-  function validateCacheHit(cache: Cache, facits: Cache[]): boolean {
+  function validateCacheHit(cache: Cache, facits: Cache[]): [boolean, number] {
     // Create a deep copy of the cache and facits objects
     const cacheCopy = JSON.parse(JSON.stringify(cache));
 
@@ -498,48 +504,57 @@ function App() {
     // Removing the blockStart and blocKEnd keys from the facits
     facitCopies.map((facitCopy) => {
       facitCopy.sets = facitCopy.sets.map((set: CacheSet) => {
-      return {
-        ...set,
-        lines: set.lines.map(line => removeObjectKey(line, 'blockStart', 'blockEnd'))
-      };
-    })});
+        return {
+          ...set,
+          lines: set.lines.map(line => removeObjectKey(line, 'blockStart', 'blockEnd'))
+        };
+      })
+    });
 
     const isValid = facitCopies.some((facit: Cache) => deepEqual(cacheCopy, facit));
 
-    return isValid;
+    if (isValid) {
+      const lineIndex = facitCopies.findIndex((facit: Cache) => deepEqual(cacheCopy, facit));
+      return [isValid, lineIndex];
+    }
+
+    return [isValid, randomLineIndex];
   }
 
   function handleSubmitClick(cache: Cache, userGuessedHit: boolean) {
-    const isValidCacheInsertion = validateCacheMiss(cache, facits);
+    const [isValidCacheMiss, lineIndexMiss] = validateCacheMiss(cache, facits);
     const isValidCacheHit = validateCacheHit(cache, facits);
 
     const wasAHit = assignmentType === 'hit';
     if (userGuessedHit && wasAHit && isValidCacheHit) {
+      showSuccess('hit');
+      const [_, index] = lookupCache(cache);
+      highlightCacheBlock(setValue, index!);
       assignmentType = generateRandomAssignment(cache, PROBABILITYOFGETTINGACACHEHIT);
       const newLogEntry: LogEntry = {
         address: address,
         hit: true,
         cache: cache,
         setIndexed: setValue,
-        lineIndexed: randomLineIndex
+        lineIndexed: index!
       }
 
       log_.logEntries.push(newLogEntry);
       setLog(log_);
-      showSuccess('hit');
-    } else if (!userGuessedHit && !wasAHit && isValidCacheInsertion) {
+    } else if (!userGuessedHit && !wasAHit && isValidCacheMiss) {
+      showSuccess('miss');
+      highlightCacheBlock(setValue, lineIndexMiss);
       assignmentType = generateRandomAssignment(cache, PROBABILITYOFGETTINGACACHEHIT);
       const newLogEntry: LogEntry = {
         address: address,
         hit: false,
         cache: cache,
         setIndexed: setValue,
-        lineIndexed: randomLineIndex
+        lineIndexed: lineIndexMiss
       }
 
       log_.logEntries.push(newLogEntry);
       setLog(log_);
-      showSuccess('miss');
     } else {
       const errMsg = 'Either you guessed wrong or the cache is not valid'
       if (userGuessedHit) {
@@ -555,7 +570,9 @@ function App() {
     setUserGuessedHit(wasAHit);
     showFacitFilled();
     const userGuessedHit = wasAHit;
-    const facit = facits[randomLineIndex] ?? facits[0];
+    const validFacitCache: Cache | null = facits.find((facit: Cache) => deepEqual(cache, facit)) || null;
+    const facit = validFacitCache || facits[0];
+
     handleSubmitClick(facit, userGuessedHit);
     setCache(facit);
   }
