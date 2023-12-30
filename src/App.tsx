@@ -22,10 +22,7 @@ function replaceChars(str: string, start: number, numChars: number, replacement:
   return before + replacement + after;
 }
 
-
-
-let allAddresses: number[] = []
-let availbeAddresses: number[] = []
+const availbeAddresses: number[] = []
 const NUMSETS = 4 as const;
 const BLOCKSIZE = 8 as const;
 const LINESPERSET = 1 as const;
@@ -120,20 +117,10 @@ function App() {
   }, [address])
 
 
-  /*   useEffect(() => {
-      const diff: number[] = allAddresses.filter((x: number) => !availbeAddresses.includes(x));
-      if (diff.length === 0) setAddress(createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize);
-      else {
-        setAddress(diff[Math.floor(Math.random() * diff.length)]);
-      }
-    }, [addressBitWidth]) */
-
   useEffect(() => {
-    allAddresses.length = 0;
     availbeAddresses.length = 0;
-    for (let k = 0; k < totalCacheSize; k += cache.blockSize) {
+    for (let k = 0; k < totalCacheSize; k++) {
       availbeAddresses.push(k);
-      allAddresses.push(k);
     }
 
     let cache_;

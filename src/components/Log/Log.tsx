@@ -42,7 +42,7 @@ export default function Log({ log, tag, addressBitWidth }: ILogProps) {
 
                             >
                                 <p>Address: {logEntry.address.toString(2).padStart(addressBitWidth, '0')}</p>
-                                <p>Cache hit? {logEntry.hit.toString()}</p>
+                                <p>Cache {logEntry.hit ? 'hit' : 'miss'}</p>
 
                             </Card>
                             <OverlayPanel
@@ -53,8 +53,29 @@ export default function Log({ log, tag, addressBitWidth }: ILogProps) {
                                 key={index}
                                 style={{ backgroundColor: 'black', color: 'var(--primary-color-text)' }}
                             >
-                                <h3>Set: {logEntry.setIndexed}</h3>
-                                <h3>Line: {logEntry.lineIndexed}</h3>
+                                <div style={{textAlign:'left'}}>
+                                    <table>
+                                        <tbody>
+                                            <tr>
+                                                <th>Set</th>
+                                                <td>{logEntry.setIndexed}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Line</th>
+                                                <td>{logEntry.lineIndexed}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Entry</th>
+                                                <td>{index}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Cache</th>
+                                                <td>{logEntry.hit ? 'hit' : 'miss'}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <h2>Cache look like this at entry {index}</h2>
                                 <Cache_visual_table
                                     cache={logEntry.cache}
                                     tag={tag}

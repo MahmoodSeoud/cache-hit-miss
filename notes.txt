@@ -2,8 +2,14 @@ TODO:
 - [x] Mem addresser må ikke overlappe med hinanden (tag er det samme flere steder)
 - [x] Størrelsen på addressererne er for store, prøv at lave dem mindre (256 perhaps)
 - [x] Sørge for at sets er de rigtige antal ift til passer med pensum
-- [] Liens må IKKE have de samme tag og være valid 1 
+- [x] Liens må IKKE have de samme tag og være valid 1 
 More todo:
 - [x] Deep equal skal slettes og i stedet skal du tjekke om empty == 1
 
 ligenu så er lineIndex random, men er dette hvad vi ønsker? -Mahmood
+
+Ja, vi vil gerne have lineIndex er random for visual cache table, men
+måske ikke for input cache table.
+
+Når vi tjekker om det er et cache hit med input cache table, så skal vi også
+huske at tjekke om der findes en eller anden der kunne være hit i det set.
