@@ -4,7 +4,7 @@ import Cache_input_table from './components/Cache_input_table/Cache_input_table'
 import Settings from './components/Settings/Settings';
 import { Toast } from 'primereact/toast';
 import { SelectButton, SelectButtonChangeEvent } from 'primereact/selectbutton';
-import { ColorResult, HuePicker } from 'react-color';
+import { ColorResult } from 'react-color';
 import { Button } from 'primereact/button';
 import { InputSwitch } from 'primereact/inputswitch';
 import Log from './components/Log/Log';
@@ -13,6 +13,8 @@ import 'primereact/resources/themes/lara-light-teal/theme.css';
 import './components/Cache_input_table/Cache_input_table.css'
 import './App.css'
 import 'primeicons/primeicons.css';
+import { createRandomNumber } from './Utils';
+import BitAddressHeader from './components/BitAddressHeader/BitAddressHeader';
 
 export const CacheInputFieldsMap = {
   blockStart: 'blockStart',
@@ -66,37 +68,6 @@ export type AddressPrefix = typeof addressPrefixMap[keyof typeof addressPrefixMa
 export type InputField = typeof CacheInputFieldsMap[keyof typeof CacheInputFieldsMap];
 export type Bit = typeof bitMap[keyof typeof bitMap];
 
-/**
- * Performs a deep comparison between two values to determine if they are equivalent.
- *
- * @param {any} object1 - The first value to compare.
- * @param {any} object2 - The second value to compare.
- * @returns {boolean} - Returns true if the values are equivalent, false otherwise.
- */
-
-/**
- * Generates a random number within a range determined by the bit length.
- *
- * @param {number} bitLength - The bit length of the number to generate.
- * @returns {number} - A random number within the range [2^(bitLength-1), 2^bitLength).
- */
-
-export function createRandomNumberWith(bitLength: number): number {
-
-  return createRandomNumber(2 ** (bitLength - 1), 2 ** bitLength)
-}
-
-/**
- * Creates a random number between [a, b]
- * @param {number} a - start interval of the random number 
- * @param {number} b - end interval of the random number (included)
- * @returns {number} a random number in the [a, b] interval
- */
-export function createRandomNumber(a: number, b: number): number {
-  // the b+1 to make [a, b-1] into [a, b]
-  return Math.floor(Math.random() * (b + 1 - a)) + a;
-}
-
 function replaceChars(str: string, start: number, numChars: number, replacement: string): string {
   const before = str.slice(0, start);
   const after = str.slice(start + numChars);
@@ -132,7 +103,7 @@ let assignmentType: string = 'miss';
 function App() {
   const [maxAddress, _] = useState<number>(TOTALCACHESIZE);
   const [addressBitWidth, __] = useState<number>(maxAddress.toString(2).padStart(12, '0').length);
-  const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress / BLOCKSIZE) * BLOCKSIZE);
+  const [address, setAddress] = useState<number>(createRandomNumber(0, maxAddress));
 
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
@@ -191,8 +162,7 @@ function App() {
    */
   const setValue: number = parseInt(setIndexBits, 2);
 
-  const [isMouseDown, setIsMouseDown] = useState(false);
-  const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
+
   const toast = useRef<Toast>(null);
   const [changedSet, setChangedSet] = useState<number | null>(null);
   const [changedLine, setChangedLine] = useState<number | null>(null);
@@ -240,7 +210,7 @@ function App() {
     log_.logEntries.length = 0;
     setLog(log_);
     setCache(cache_);
-    setAddress(createRandomNumber(0, maxAddress / cache.blockSize) * cache.blockSize);
+    setAddress(createRandomNumber(0, maxAddress));
 
     facit = createFacit(cache_);
 
@@ -400,53 +370,8 @@ function App() {
   }
 
 
-  /**
- * Handles the mouse enter event on an element.
- *
- * @param {React.MouseEvent} e - The mouse event object.
- */
-  function handleMouseDown(e: React.MouseEvent) {
-    setIsMouseDown(true);
-    const pTagWithIndex = e.currentTarget as HTMLElement;
-    const isHighligted = pTagWithIndex.classList.contains('highlight');
 
-    if (isHighligted) {
-      pTagWithIndex.classList.remove('highlight');
-      // Setting the color the the one selected in the color picker
-      pTagWithIndex.style.backgroundColor = "";
-    } else {
 
-      // Apply highlight to the current div
-      pTagWithIndex.classList.add('highlight');
-      // Setting the color the the one selected in the color picker
-      pTagWithIndex.style.backgroundColor = color;
-
-    }
-  }
-
-  /**
-   * Handles the mouse up event.
-   */
-  function handleMouseUp() {
-    setIsMouseDown(false);
-  };
-
-  /**
- 
-* Handles the mouse enter event on an element.
-*
-* @param {React.MouseEvent} e - The mouse event object.
-*/
-  function handleMouseEnter(e: React.MouseEvent) {
-    if (isMouseDown) {
-      // Apply highlight to the current div
-      const pTagWithIndex = e.currentTarget as HTMLElement;
-      pTagWithIndex.classList.add('highlight');
-
-      // Setting the color the the one selected in the color picker
-      pTagWithIndex.style.backgroundColor = color;
-    }
-  };
 
 
   function createCacheHitAssignment(cache: Cache): string {
@@ -461,24 +386,22 @@ function App() {
     // First try to get a cache block with the same tag
     let cacheBlocks: CacheBlock[] = getValidCacheBlocks(cache);
 
-    
+
     const cacheHitBlock = cacheBlocks[Math.floor(Math.random() * cacheBlocks.length)];
     const cacheHitAddress = parseInt(cacheHitBlock.blockStart);
-    
-    if (cacheHitAddress === null || cacheHitAddress === undefined) {
-      return createCacheMissAssigment(cache);
-    } else {
-      console.log('I made a hit')
-      setAddress(cacheHitAddress);
-      debugger
-      return 'hit';
-    }
+
+    if (cacheHitAddress === null || cacheHitAddress === undefined) return createCacheMissAssigment(cache);
+
+    console.log('I made a hit')
+    setAddress(cacheHitAddress);
+    return 'hit';
+
   }
 
 
   function createCacheMissAssigment(cache: Cache): string {
     const allPossibleAddresses: string[] = [];
-    for (let k = 0; k < maxAddress; k += cache.blockSize) {
+    for (let k = 0; k < maxAddress; k++) {
       allPossibleAddresses.push(k.toString(2).padStart(addressBitWidth, '0'));
     }
 
@@ -495,16 +418,13 @@ function App() {
     const randomAvailableAddresses = allPossibleAddresses.filter(address => address.slice(0, tag) === randomAvailableTag);
     const randomAvailableAddress = randomAvailableAddresses[Math.floor(Math.random() * randomAvailableAddresses.length)];
 
-    if (randomAvailableAddress === null || randomAvailableAddress === undefined ) {
-      return createCacheHitAssignment(cache)
-    } else {
-      console.log('I made a miss')
-      // If a corresponding address was found, set it
-      const newAddress = parseInt(randomAvailableAddress, 2);
-      debugger
-      setAddress(newAddress);
-      return 'miss';
-    }
+    if (randomAvailableAddress === null || randomAvailableAddress === undefined) return createCacheHitAssignment(cache)
+
+    console.log('I made a miss')
+    const newAddress = parseInt(randomAvailableAddress, 2);
+    // If a corresponding address was found, set it
+    setAddress(newAddress);
+    return 'miss';
   }
 
   function readCache(cache: Cache): [boolean, number | null] {
@@ -512,7 +432,6 @@ function App() {
     const isCacheHit = cache.sets[setValue].lines.some(line => line.tag === tagBits && line.valid === 1);
     const cacheBlock = cache.sets[setValue].lines.findIndex(line => line.tag === tagBits && line.valid === 1);
 
-    debugger
     return [isCacheHit, cacheBlock];
   }
 
@@ -579,7 +498,7 @@ function App() {
       showSuccess('miss');
       const writtenCache: Cache = writeToCache(newCache);
       markCacheBlock(setValue, randomLineIndex);
-      assignmentType = generateRandomAssignment(writtenCache,probabilityOfGettingACacheHit);
+      assignmentType = generateRandomAssignment(writtenCache, probabilityOfGettingACacheHit);
 
       const newLogEntry: LogEntry = {
         address: address,
@@ -597,53 +516,6 @@ function App() {
         showFailure('miss');
       }
     }
-  }
-
-  /**
- * Handles changes in color selection.
- *
- * @param {ColorResult} color - The new color selected by the user.
- */
-  function handleColorChange(color: ColorResult): void {
-    setColor(color.hex)
-  }
-
-
-  /**
-* Resets the colors of all highlighted elements to their initial state.
-*/
-  function resetColors(): void {
-    const bitElements = document.getElementsByClassName('input-text') as HTMLCollectionOf<HTMLElement>;
-    const textElements = document.getElementsByClassName('exercise-label') as HTMLCollectionOf<HTMLElement>;
-
-    for (let i = 0; i < bitElements.length; i++) {
-      const isHighligted = bitElements && bitElements[i] && bitElements[i].classList.contains('highlight');
-
-      if (isHighligted) {
-        bitElements[i].classList.remove('highlight');
-        bitElements[i].style.backgroundColor = '';
-      }
-    }
-
-    for (let i = 0; i < bitElements.length; i++) {
-      const isHighligted = textElements && textElements[i] && textElements[i].classList.contains('highlight');
-
-      if (isHighligted) {
-        textElements[i].classList.remove('highlight');
-        textElements[i].style.backgroundColor = '';
-      }
-    }
-  }
-
-
-  /**
- * Creates an array of nulls with a specified length.
- *
- * @param {number} addressWidth - The length of the array to create.
- * @returns {Array<null>} - An array of nulls with the specified length.
- */
-  function createNullArr(addressWidth: number): Array<null> {
-    return Array(addressWidth).fill(null);
   }
 
 
@@ -837,52 +709,10 @@ function App() {
 
       <h1>Cache Assignment</h1>
       <div className='logAssignmentWrapper'>
-        <div className='input-header'>
-          <div className="input-buttons">
-
-            <Button
-              severity='danger'
-              onClick={resetColors}
-              style={{ margin: '1rem' }}
-            >
-              Reset the colors
-            </Button>
-
-          </div>
-          <HuePicker
-            width={'200px'}
-            color={color}
-            onChange={handleColorChange}
-          />
-          <h4>Click and drag to highlight bits or labels <br /> </h4>
-          <div className={`list-item-bit-input-wrapper `}>
-            {createNullArr(addressBitWidth).map((_, index) => (
-              <div
-                key={index}
-                className='input-wrapper'
-                onMouseUp={handleMouseUp}
-              // TODO: Maybe change the coloring to appear when clicking on this div aswell
-              >
-                <p
-                  id='vbit-index'
-                  className="input-text"
-                  onMouseDown={handleMouseDown}
-                  onMouseEnter={handleMouseEnter}
-                >
-                  {addressBitWidth - index - 1}
-                </p>
-                <div
-                  id='vbit'
-                  autoFocus={false}
-                  autoCapitalize='off'
-                  className={'vbit-input'}
-                >
-                  {addressInBits[index]}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <BitAddressHeader
+          addressBitWidth={addressBitWidth}
+          addressInBits={addressInBits}
+        />
         <div>
           <h3>Block offset bits: {blockOffset}</h3>
           <h3>Set bits: {setIndex}</h3>
