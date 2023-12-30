@@ -104,7 +104,7 @@ function App() {
 
   const cacheOptions: string[] = ['guess', 'input'];
   const [cacheValue, setCacheValue] = useState<string>(cacheOptions[0]);
-  //const [wasAHit, lineIndex] = readCache(cache);
+  //const [wasAHit, lineIndex] = lookupCache(cache);
   const [log, setLog] = useState<LogHistory>(log_)
   const toastFacit = useRef<Toast | null>(null);
 
@@ -344,7 +344,7 @@ function App() {
     return 'miss';
   }
 
-  function readCache(cache: Cache): [boolean, number | null] {
+  function lookupCache(cache: Cache): [boolean, number | null] {
 
     const isCacheHit = cache.sets[setValue].lines.some(line => line.tag === tagBits && line.valid === 1);
     const cacheBlock = cache.sets[setValue].lines.findIndex(line => line.tag === tagBits && line.valid === 1);
@@ -356,7 +356,7 @@ function App() {
     return cache.sets.every(set => set.lines.every(line => line.empty === 1));
   }
 
-  function writeToCache(cache: Cache): Cache {
+  function writeCache(cache: Cache): Cache {
 
     const newCache = JSON.parse(JSON.stringify(cache));
     const cacheBlock = newCache.sets[setValue].lines[randomLineIndex];
@@ -370,7 +370,7 @@ function App() {
     return newCache
   }
 
-  function markCacheBlock(set: number, line: number): void {
+  function highlightCacheBlock(set: number, line: number): void {
     setChangedSet(set);
     setChangedLine(line);
   }
@@ -387,13 +387,13 @@ function App() {
 
   function handleVisualCacheButtonClick(cache: Cache, userGuessedHit: boolean) {
 
-    const [isCacheHit, lineIndex] = readCache(cache);
+    const [isCacheHit, lineIndex] = lookupCache(cache);
     const newCache = JSON.parse(JSON.stringify(cache));
 
 
     if (userGuessedHit && isCacheHit) {
       showSuccess('hit');
-      markCacheBlock(setValue, lineIndex!);
+      highlightCacheBlock(setValue, lineIndex!);
       assignmentType = generateRandomAssignment(cache, PROBABILITYOFGETTINGACACHEHIT);
       // Updating the log
 
@@ -410,8 +410,8 @@ function App() {
 
     } else if (!userGuessedHit && !isCacheHit) {
       showSuccess('miss');
-      const writtenCache: Cache = writeToCache(newCache);
-      markCacheBlock(setValue, randomLineIndex);
+      const writtenCache: Cache = writeCache(newCache);
+      highlightCacheBlock(setValue, randomLineIndex);
       assignmentType = generateRandomAssignment(writtenCache, PROBABILITYOFGETTINGACACHEHIT);
 
       const newLogEntry: LogEntry = {
@@ -432,7 +432,6 @@ function App() {
     }
   }
 
-
   function handleAssignmentTypeSwitch(e: SelectButtonChangeEvent) {
     // If the user tries to click it the same btn again, do nothing
     if (e.value === null || e.value === undefined) return
@@ -448,9 +447,8 @@ function App() {
     setLog(log_);
   }
 
-
   function createFacit(cache: Cache): Cache {
-    //const [cacheHit, _] = readCache(cache);
+    //const [cacheHit, _] = lookupCache(cache);
     const cacheHit = assignmentType === 'hit';
     const newCache = JSON.parse(JSON.stringify(cache));
 
