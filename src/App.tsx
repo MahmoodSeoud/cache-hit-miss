@@ -4,7 +4,6 @@ import Cache_input_table from './components/Cache_input_table/Cache_input_table'
 import Settings from './components/Settings/Settings';
 import { Toast } from 'primereact/toast';
 import { SelectButton, SelectButtonChangeEvent } from 'primereact/selectbutton';
-import { ColorResult } from 'react-color';
 import { Button } from 'primereact/button';
 import { InputSwitch } from 'primereact/inputswitch';
 import Log from './components/Log/Log';
@@ -13,60 +12,9 @@ import 'primereact/resources/themes/lara-light-teal/theme.css';
 import './components/Cache_input_table/Cache_input_table.css'
 import './App.css'
 import 'primeicons/primeicons.css';
-import { createRandomNumber } from './Utils';
+import { createRandomNumber, deepEqual, removeObjectKey } from './Utils';
 import BitAddressHeader from './components/BitAddressHeader/BitAddressHeader';
-
-export const CacheInputFieldsMap = {
-  blockStart: 'blockStart',
-  blockEnd: 'blockEnd',
-  valid: 'valid',
-  tag: 'tag',
-} as const;
-
-const baseConversionMap = {
-  Binary: 2,
-  Decimal: 10,
-  Hexadecimal: 16,
-} as const;
-
-const addressPrefixMap = {
-  Binary: '0b',
-  Decimal: '',
-  Hexadecimal: '0x'
-} as const;
-
-const bitMap = {
-  Zero: 0,
-  One: 1
-} as const;
-
-
-// Cache block structure
-export interface CacheBlock {
-  blockStart: string; // The full address
-  blockEnd: string; // The full address  + the block size
-  tag: string;     // The tag of this block
-  valid: Bit;  // Whether this block is valid
-  empty: Bit;  // Whether this block is empty
-}
-
-// Cache set structure
-export interface CacheSet {
-  lines: CacheBlock[];  // The cache blocks in this set
-}
-
-// Cache structure
-export interface Cache {
-  numSets: number;   // The number of sets in the cache
-  blockSize: number;
-  linesPerSet: number;
-  sets: CacheSet[];  // The sets in the cache
-}
-
-export type BaseConversion = typeof baseConversionMap[keyof typeof baseConversionMap];
-export type AddressPrefix = typeof addressPrefixMap[keyof typeof addressPrefixMap];
-export type InputField = typeof CacheInputFieldsMap[keyof typeof CacheInputFieldsMap];
-export type Bit = typeof bitMap[keyof typeof bitMap];
+import { Bit, Cache, CacheBlock, CacheSet } from './cache';
 
 function replaceChars(str: string, start: number, numChars: number, replacement: string): string {
   const before = str.slice(0, start);
@@ -222,7 +170,6 @@ function App() {
     cacheValue
   ])
 
-
   /**
   * Displays a success toast notification.
   */
@@ -368,11 +315,6 @@ function App() {
     }
     return cache;
   }
-
-
-
-
-
 
   function createCacheHitAssignment(cache: Cache): string {
 
@@ -582,57 +524,6 @@ function App() {
     });
 
     return deepEqual(cacheCopy, facitCopy);
-  }
-
-  function removeObjectKey(obj: { [key: string]: any }, ...keysToRemove: string[]): { [key: string]: any } {
-    let newObj = { ...obj };
-    keysToRemove.forEach(key => {
-      const { [key]: _, ...rest } = newObj;
-      newObj = rest;
-    })
-
-    return newObj;
-  }
-
-  /**
- * Performs a deep comparison between two values to determine if they are equivalent.
- *
- * @param {any} object1 - The first value to compare.
- * @param {any} object2 - The second value to compare.
- * @returns {boolean} - Returns true if the values are equivalent, false otherwise.
- */
-  // TODO: FIx all the any types
-  function deepEqual(object1: any, object2: any): boolean {
-    const keys1 = Object.keys(object1);
-    const keys2 = Object.keys(object2);
-
-    if (keys1.length !== keys2.length) {
-      return false;
-    }
-
-    for (const key of keys1) {
-      const val1: any = object1[key];
-      const val2: any = object2[key];
-      const areObjects = isObject(val1) && isObject(val2);
-      if (
-        areObjects && !deepEqual(val1, val2) ||
-        !areObjects && val1 !== val2
-      ) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /**
-   * Checks if a value is an object.
-   *
-   * @param {InputFields} object - The value to check.
-   * @returns {boolean} - Returns true if the value is an object, false otherwise.
-   */
-  function isObject(object: Cache): boolean {
-    return object != null && typeof object === 'object';
   }
 
   function handleSubmitClick(cache: Cache, userGuessedHit: boolean) {

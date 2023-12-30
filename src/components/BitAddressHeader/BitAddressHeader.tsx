@@ -1,7 +1,7 @@
 import { Button } from "primereact/button";
 import { useState } from "react";
 import { ColorResult, HuePicker } from "react-color";
-import { createRandomNumberWith } from "../../Utils";
+import { createRandomNumberWith, createNullArr } from "../../Utils";
 
 interface BitAddressHeaderProps {
     addressBitWidth: number;
@@ -98,15 +98,6 @@ function BitAddressHeader({addressBitWidth, addressInBits}: BitAddressHeaderProp
 
 
 
-    /**
-   * Creates an array of nulls with a specified length.
-   *
-   * @param {number} addressWidth - The length of the array to create.
-   * @returns {Array<null>} - An array of nulls with the specified length.
-   */
-    function createNullArr(addressWidth: number): Array<null> {
-        return Array(addressWidth).fill(null);
-    }
 
     return (
         <div className='input-header'>

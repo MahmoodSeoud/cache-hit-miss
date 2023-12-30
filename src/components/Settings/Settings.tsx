@@ -5,7 +5,7 @@ import { Slider as BaseSlider, sliderClasses } from '@mui/base/Slider';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import { Sidebar } from 'primereact/sidebar';
-import { Cache } from "../../App";
+import { Cache } from "../../cache";
 import './Settings.css';
 import 'primereact/resources/themes/lara-light-teal/theme.css';
 import 'primeicons/primeicons.css';

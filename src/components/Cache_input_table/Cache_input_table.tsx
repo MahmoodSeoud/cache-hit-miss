@@ -1,9 +1,15 @@
-import { Bit, Cache, CacheInputFieldsMap } from '../../App';
+import {Cache, Bit} from '../../cache';
 import './Cache_input_table.css';
 import { InputMask, InputMaskChangeEvent } from 'primereact/inputmask';
 import { ToggleButton, ToggleButtonChangeEvent } from 'primereact/togglebutton';
 import 'primereact/resources/themes/lara-light-teal/theme.css';
 
+export const CacheInputFieldsMap = {
+  blockStart: 'blockStart',
+  blockEnd: 'blockEnd',
+  valid: 'valid',
+  tag: 'tag',
+} as const;
 
 type cache_tableProps = {
     cache: Cache;

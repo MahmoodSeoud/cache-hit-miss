@@ -1,4 +1,4 @@
-import { Cache } from '../../App';
+import { Cache } from '../../cache';
 import './Cache_visual_table.css';
 
 type cache_tableProps = {
