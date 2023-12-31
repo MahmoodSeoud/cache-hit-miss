@@ -29,7 +29,7 @@ const LINESPERSET = 1 as const;
 const BYTE = 8 as const;
 const TOTALCACHESIZE = NUMSETS * LINESPERSET * BLOCKSIZE * BYTE;
 const ADDRESSBITWIDTH = TOTALCACHESIZE.toString(2).padStart(14, '0').length;
-const PROBABILITYOFGETTINGACACHEHIT = 50;
+const PROBABILITYOFGETTINGACACHEHIT = 50 as const;
 const log_: LogHistory = { logEntries: [] };
 
 // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
@@ -309,7 +309,12 @@ function App() {
 
 
     const cacheHitBlock = cacheBlocks[Math.floor(Math.random() * cacheBlocks.length)];
-    const cacheHitAddress = parseInt(cacheHitBlock.blockStart);
+    
+    
+    const cacheHitBlockStart = parseInt(cacheHitBlock.blockStart);
+    const cacheHitBlockEnd = parseInt(cacheHitBlock.blockEnd);
+
+    const cacheHitAddress = createRandomNumber(cacheHitBlockStart, cacheHitBlockEnd);
 
     if (cacheHitAddress === null || cacheHitAddress === undefined) return createCacheMissAssigment(cache);
 
