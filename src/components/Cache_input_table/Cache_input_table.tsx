@@ -131,7 +131,7 @@ function Cache_input_table({
                                                 const blockEnd = block.blockEnd.trim();
 
                                                 return (
-                                                    <tr key={j}>
+                                                    <tr key={`${i}-${j}`}>
                                                         <td className={changedSet_ ? blockClass : ''}>
                                                             <ToggleButton
                                                                 checked={block.valid === 1}

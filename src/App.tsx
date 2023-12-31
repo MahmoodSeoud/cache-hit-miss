@@ -12,7 +12,7 @@ import 'primereact/resources/themes/lara-light-teal/theme.css';
 import './components/Cache_input_table/Cache_input_table.css'
 import './App.css'
 import 'primeicons/primeicons.css';
-import { createRandomNumber, deepEqual, removeObjectKey } from './Utils';
+import { createRandomNumber, deepEqual, createRandomNumberWith } from './Utils';
 import BitAddressHeader from './components/BitAddressHeader/BitAddressHeader';
 import { Bit, Cache, CacheBlock, CacheSet, LogEntry, LogHistory } from './cache';
 
@@ -29,7 +29,7 @@ const LINESPERSET = 1 as const;
 const BYTE = 8 as const;
 const TOTALCACHESIZE = NUMSETS * LINESPERSET * BLOCKSIZE * BYTE;
 const ADDRESSBITWIDTH = TOTALCACHESIZE.toString(2).padStart(14, '0').length;
-const PROBABILITYOFGETTINGACACHEHIT = 50 as const;
+const PROBABILITYOFGETTINGACACHEHIT = 100 as const;
 const log_: LogHistory = { logEntries: [] };
 
 // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
@@ -44,9 +44,7 @@ function App() {
   const [cacheShouldBeCold, setCacheShouldBeCold] = useState<boolean>(false);
   const [cache, setCache] = useState<Cache>(initEmptyCache(NUMSETS, BLOCKSIZE, LINESPERSET));
   const totalCacheSize: number = cache.numSets * cache.linesPerSet * cache.blockSize * BYTE; // S X L X B
-  /*   console.log('facits', facits)
-    console.log('cache', cache)
-    console.log('---------------') */
+  const cacheHit = assignmentType === 'hit';
 
   const [userGuessedHit, setUserGuessedHit] = useState<boolean>(false);
 
@@ -104,7 +102,6 @@ function App() {
 
   const cacheOptions: string[] = ['guess', 'input'];
   const [cacheValue, setCacheValue] = useState<string>(cacheOptions[0]);
-  //const [wasAHit, lineIndex] = lookupCache(cache);
   const [log, setLog] = useState<LogHistory>(log_)
   const toastFacit = useRef<Toast | null>(null);
 
@@ -113,8 +110,10 @@ function App() {
   }, [0]);
 
   useEffect(() => {
+    facits.length = 0;
     facits = createFacits(cache);
     console.log('facits', facits)
+    console.log('cache', cache)
   }, [address])
 
 
@@ -164,13 +163,11 @@ function App() {
   /**
   * Displays a failure toast notification.
   */
-  function showFailure(cacheAssignmentType: string, extraErrorMsg?: string): void {
+  function showFailure(extraErrorMsg?: string): void {
     toast.current?.show({
       severity: 'error',
       summary: 'Wrong',
-      detail: 'The address: ' + address.toString(2).padStart(addressBitWidth, '0') +
-        '\nwas NOT a cache ' +
-        cacheAssignmentType + ' assignment' + '\n' + (extraErrorMsg ? extraErrorMsg : ''),
+      detail: extraErrorMsg ? extraErrorMsg : '',
       life: 1500
     });
   }
@@ -195,7 +192,6 @@ function App() {
     const addressInBits = address.toString(2).padStart(addressBitWidth, '0');
     return addressInBits.slice(0, -(Math.log2(blockSize) + Math.log2(numSets)));
   }
-
 
   // Function to initialize the cache
   function initEmptyCache(numSets: number, blockSize: number, linesPerSet: number): Cache {
@@ -227,7 +223,6 @@ function App() {
 
     return cache;
   }
-
 
   function initNonEmptyCache(numSets: number, blockSize: number, linesPerSet: number, availbeAddresses: number[]): Cache {
     const cache: Cache = {
@@ -297,29 +292,28 @@ function App() {
 
   function createCacheHitAssignment(cache: Cache): string {
 
-    function getValidCacheBlocks(cache: Cache): CacheBlock[] {
+    function getValidCacheBlocksTagsAndSetIndices(cache: Cache): { tag: string, setIndex: string, blockOffset: string }[] {
       return cache
         .sets
-        .flatMap(cacheBlock => cacheBlock.lines)
-        .filter(line => line.valid === 1);
+        .flatMap((set, setIndex) => set.lines.map(line => ({ ...line, setIndex })))
+        .filter(line => line.valid === 1)
+        .map(line => ({
+          tag: line.tag.padStart(tag, '0'),
+          setIndex: line.setIndex.toString(2).padStart(setIndex, '0'),
+          blockOffset: createRandomNumberWith(blockOffset).toString(2).padStart(blockOffset, '0')
+        }));
     }
 
-    // First try to get a cache block with the same tag
-    let cacheBlocks: CacheBlock[] = getValidCacheBlocks(cache);
+    const validCacheBlocksTagsAndSetIndices = getValidCacheBlocksTagsAndSetIndices(cache);
+    const validCacheBlock = validCacheBlocksTagsAndSetIndices[Math.floor(Math.random() * validCacheBlocksTagsAndSetIndices.length)];
 
+    const cacheHitAddress = parseInt(validCacheBlock.tag + validCacheBlock.setIndex + validCacheBlock.blockOffset, 2);
 
-    const cacheHitBlock = cacheBlocks[Math.floor(Math.random() * cacheBlocks.length)];
-    
-    
-    const cacheHitBlockStart = parseInt(cacheHitBlock.blockStart);
-    const cacheHitBlockEnd = parseInt(cacheHitBlock.blockEnd);
-
-    const cacheHitAddress = createRandomNumber(cacheHitBlockStart, cacheHitBlockEnd);
-
-    if (cacheHitAddress === null || cacheHitAddress === undefined) return createCacheMissAssigment(cache);
+    debugger
 
     console.log('I made a hit')
     setAddress(cacheHitAddress);
+
     return 'hit';
 
   }
@@ -330,7 +324,6 @@ function App() {
     for (let k = 0; k < maxAddress; k++) {
       allPossibleAddresses.push(k.toString(2).padStart(addressBitWidth, '0'));
     }
-
 
     const allTagsPossible: string[] = allPossibleAddresses.map(address => address.slice(0, tag));
     const cacheTags = cache.sets.flatMap(set => set.lines.map(line => line.tag));
@@ -432,10 +425,53 @@ function App() {
       log_.logEntries.push(newLogEntry);
       setLog(log_);
     } else {
+      const errMsg = 'Either you guessed wrong or the cache is not valid'
       if (userGuessedHit) {
-        showFailure('hit');
+        showFailure(errMsg);
       } else {
-        showFailure('miss');
+        showFailure(errMsg);
+      }
+    }
+  }
+
+  function handleSubmitClick(cache: Cache, userGuessedHit: boolean) {
+    const lineIndex = validateCache(cache, facits);
+    const isValidCache = lineIndex > -1;
+
+    if (userGuessedHit && cacheHit && isValidCache) {
+      showSuccess('hit');
+      highlightCacheBlock(setValue, lineIndex);
+      assignmentType = generateRandomAssignment(cache, PROBABILITYOFGETTINGACACHEHIT);
+      const newLogEntry: LogEntry = {
+        address: address,
+        hit: true,
+        cache: cache,
+        setIndexed: setValue,
+        lineIndexed: lineIndex
+      }
+
+      log_.logEntries.push(newLogEntry);
+      setLog(log_);
+    } else if (!userGuessedHit && !cacheHit && isValidCache) {
+      showSuccess('miss');
+      highlightCacheBlock(setValue, lineIndex);
+      assignmentType = generateRandomAssignment(cache, PROBABILITYOFGETTINGACACHEHIT);
+      const newLogEntry: LogEntry = {
+        address: address,
+        hit: false,
+        cache: cache,
+        setIndexed: setValue,
+        lineIndexed: lineIndex
+      }
+
+      log_.logEntries.push(newLogEntry);
+      setLog(log_);
+    } else {
+      const errMsg = 'Either you guessed wrong or the cache is not valid'
+      if (userGuessedHit) {
+        showFailure(errMsg);
+      } else {
+        showFailure(errMsg);
       }
     }
   }
@@ -456,7 +492,6 @@ function App() {
   }
 
   function createFacits(cache: Cache): Cache[] {
-    const cacheHit = assignmentType === 'hit';
     const newCaches = [];
 
     if (!cacheHit) {
@@ -483,103 +518,19 @@ function App() {
     return newCaches;
   }
 
-  function validateCacheMiss(cache: Cache, facits: Cache[]): [boolean, number] {
-    const isValid = facits.some((facit: Cache) => deepEqual(cache, facit));
+  function validateCache(cache: Cache, facits: Cache[]): number {
+    const lineIndex = facits.findIndex((facit: Cache) => deepEqual(cache, facit));
 
-    if (isValid) {
-      const lineIndex = facits.findIndex((facit: Cache) => deepEqual(cache, facit));
-      return [isValid, lineIndex];
-    }
-
-    return [isValid, randomLineIndex];
+    return lineIndex;
   }
 
-  function validateCacheHit(cache: Cache, facits: Cache[]): [boolean, number] {
-    // Create a deep copy of the cache and facits objects
-    const cacheCopy = JSON.parse(JSON.stringify(cache));
-
-    const facitCopies = facits.map((facit) => JSON.parse(JSON.stringify(facit)));
-
-    // Removing the blockStart and blocKEnd keys from the cache
-    cacheCopy.sets = cacheCopy.sets.map((set: CacheSet) => {
-      return {
-        ...set,
-        lines: set.lines.map((line: CacheBlock) => removeObjectKey(line, 'blockStart', 'blockEnd'))
-      };
-    });
-
-    // Removing the blockStart and blocKEnd keys from the facits
-    facitCopies.map((facitCopy) => {
-      facitCopy.sets = facitCopy.sets.map((set: CacheSet) => {
-        return {
-          ...set,
-          lines: set.lines.map(line => removeObjectKey(line, 'blockStart', 'blockEnd'))
-        };
-      })
-    });
-
-    const isValid = facitCopies.some((facit: Cache) => deepEqual(cacheCopy, facit));
-
-    if (isValid) {
-      const lineIndex = facitCopies.findIndex((facit: Cache) => deepEqual(cacheCopy, facit));
-      return [isValid, lineIndex];
-    }
-
-    return [isValid, randomLineIndex];
-  }
-
-  function handleSubmitClick(cache: Cache, userGuessedHit: boolean) {
-    const [isValidCacheMiss, lineIndexMiss] = validateCacheMiss(cache, facits);
-    const isValidCacheHit = validateCacheHit(cache, facits);
-
-    const wasAHit = assignmentType === 'hit';
-    if (userGuessedHit && wasAHit && isValidCacheHit) {
-      showSuccess('hit');
-      const [_, index] = lookupCache(cache);
-      highlightCacheBlock(setValue, index!);
-      assignmentType = generateRandomAssignment(cache, PROBABILITYOFGETTINGACACHEHIT);
-      const newLogEntry: LogEntry = {
-        address: address,
-        hit: true,
-        cache: cache,
-        setIndexed: setValue,
-        lineIndexed: index!
-      }
-
-      log_.logEntries.push(newLogEntry);
-      setLog(log_);
-    } else if (!userGuessedHit && !wasAHit && isValidCacheMiss) {
-      showSuccess('miss');
-      highlightCacheBlock(setValue, lineIndexMiss);
-      assignmentType = generateRandomAssignment(cache, PROBABILITYOFGETTINGACACHEHIT);
-      const newLogEntry: LogEntry = {
-        address: address,
-        hit: false,
-        cache: cache,
-        setIndexed: setValue,
-        lineIndexed: lineIndexMiss
-      }
-
-      log_.logEntries.push(newLogEntry);
-      setLog(log_);
-    } else {
-      const errMsg = 'Either you guessed wrong or the cache is not valid'
-      if (userGuessedHit) {
-        showFailure('miss', errMsg);
-      } else {
-        showFailure('hit', errMsg);
-      }
-    }
-  }
 
   function handleFillWithFacit() {
-    const wasAHit = assignmentType === 'hit';
-    setUserGuessedHit(wasAHit);
     showFacitFilled();
-    const userGuessedHit = wasAHit;
-    const validFacitCache: Cache | null = facits.find((facit: Cache) => deepEqual(cache, facit)) || null;
-    const facit = validFacitCache || facits[0];
+    const facit = facits[0];
+    setUserGuessedHit(cacheHit);
 
+    const userGuessedHit = cacheHit;
     handleSubmitClick(facit, userGuessedHit);
     setCache(facit);
   }
