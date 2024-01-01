@@ -100,9 +100,7 @@ function Cache_input_table({
     const maxAddrLen = maxAddress.toString().length;
     const blockSizeStrMask = '9?' + "9".repeat(maxAddrLen - 1);
 
-    console.log('tagMask', tagMask)
-    console.log('tagPlaceHolder', tagPlaceHolder)
-    console.log('--------------------')
+
     return (
         <div>
             <h2>Cache</h2>
@@ -130,10 +128,6 @@ function Cache_input_table({
 
 
                                                 const tagValue = block.tag;
-
-                                                console.log('tagValue', tagValue)
-
-
 
                                                 const blockStart = block.blockStart;
                                                 const blockEnd = block.blockEnd;
@@ -167,7 +161,7 @@ function Cache_input_table({
                                                                 keyfilter={/[01]/}
                                                                 disabled={userGuessHit}
                                                                 tooltip="Insert the tag in binary format"
-                                                                tooltipOptions={{ /* event: 'focus',  */position: 'top' }}
+                                                                tooltipOptions={{  event: 'focus',  position: 'top' }}
                                                             />
                                                         </td>
                                                         <td className={changedSet_ ? blockClass : ''}>

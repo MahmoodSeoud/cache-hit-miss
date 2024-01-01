@@ -34,6 +34,20 @@ export function createNullArr(addressWidth: number): Array<null> {
 }
 
 /**
+ * Generates a random string of bits of a given length.
+ *
+ * @param {number} numBits - The number of bits to generate.
+ * @returns {string} - A string of random bits of the given length.
+ */
+export function generateRandomBits(numBits: number): string {
+    let bits = '';
+    for (let i = 0; i < numBits; i++) {
+        bits += Math.floor(Math.random() * 2).toString();
+    }
+    return bits;
+}
+
+/**
  * Removes specified keys from an object.
  *
  * @param {Object} obj - The object from which keys should be removed.

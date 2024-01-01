@@ -12,7 +12,7 @@ import 'primereact/resources/themes/lara-light-teal/theme.css';
 import './components/Cache_input_table/Cache_input_table.css'
 import './App.css'
 import 'primeicons/primeicons.css';
-import { createRandomNumber, deepEqual, createRandomNumberWith } from './Utils';
+import { createRandomNumber, deepEqual, createRandomNumberWith, generateRandomBits } from './Utils';
 import BitAddressHeader from './components/BitAddressHeader/BitAddressHeader';
 import { Bit, Cache, CacheBlock, CacheSet, LogEntry, LogHistory } from './cache';
 
@@ -112,8 +112,8 @@ function App() {
   useEffect(() => {
     facits.length = 0;
     facits = createFacits(cache);
-    console.log('facits', facits)
-    console.log('cache', cache)
+/*     console.log('facits', facits)
+    console.log('cache', cache) */
   }, [address])
 
 
@@ -300,7 +300,7 @@ function App() {
         .map(line => ({
           tag: line.tag.padStart(tag, '0'),
           setIndex: line.setIndex.toString(2).padStart(setIndex, '0'),
-          blockOffset: createRandomNumberWith(blockOffset).toString(2).padStart(blockOffset, '0')
+          blockOffset: generateRandomBits(blockOffset)
         }));
     }
 
@@ -308,8 +308,7 @@ function App() {
     const validCacheBlock = validCacheBlocksTagsAndSetIndices[Math.floor(Math.random() * validCacheBlocksTagsAndSetIndices.length)];
 
     const cacheHitAddress = parseInt(validCacheBlock.tag + validCacheBlock.setIndex + validCacheBlock.blockOffset, 2);
-
-
+    debugger
 
     console.log('I made a hit')
     setAddress(cacheHitAddress);
@@ -527,6 +526,8 @@ function App() {
 
   function handleFillWithFacit() {
     showFacitFilled();
+    console.log('facits', facits)
+    debugger
     const facit = facits[0];
     setUserGuessedHit(cacheHit);
 
