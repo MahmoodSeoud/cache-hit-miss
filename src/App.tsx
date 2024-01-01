@@ -12,7 +12,7 @@ import 'primereact/resources/themes/lara-light-teal/theme.css';
 import './components/Cache_input_table/Cache_input_table.css'
 import './App.css'
 import 'primeicons/primeicons.css';
-import { createRandomNumber, deepEqual, createRandomNumberWith, generateRandomBits } from './Utils';
+import { createRandomNumber, deepEqual, generateRandomBits } from './Utils';
 import BitAddressHeader from './components/BitAddressHeader/BitAddressHeader';
 import { Bit, Cache, CacheBlock, CacheSet, LogEntry, LogHistory } from './cache';
 
@@ -29,7 +29,7 @@ const LINESPERSET = 1 as const;
 const BYTE = 8 as const;
 const TOTALCACHESIZE = NUMSETS * LINESPERSET * BLOCKSIZE * BYTE;
 const ADDRESSBITWIDTH = TOTALCACHESIZE.toString(2).padStart(14, '0').length;
-const PROBABILITYOFGETTINGACACHEHIT = 100 as const;
+const PROBABILITYOFGETTINGACACHEHIT = 50 as const;
 const log_: LogHistory = { logEntries: [] };
 
 // TODO: For future reference, this is how you add two numbers in binary. When you got time you can implement this
@@ -110,10 +110,7 @@ function App() {
   }, [0]);
 
   useEffect(() => {
-    facits.length = 0;
     facits = createFacits(cache);
-/*     console.log('facits', facits)
-    console.log('cache', cache) */
   }, [address])
 
 
@@ -308,7 +305,6 @@ function App() {
     const validCacheBlock = validCacheBlocksTagsAndSetIndices[Math.floor(Math.random() * validCacheBlocksTagsAndSetIndices.length)];
 
     const cacheHitAddress = parseInt(validCacheBlock.tag + validCacheBlock.setIndex + validCacheBlock.blockOffset, 2);
-    debugger
 
     console.log('I made a hit')
     setAddress(cacheHitAddress);
@@ -527,8 +523,7 @@ function App() {
   function handleFillWithFacit() {
     showFacitFilled();
     console.log('facits', facits)
-    debugger
-    const facit = facits[0];
+    const facit = facits[randomLineIndex] || facits[0];
     setUserGuessedHit(cacheHit);
 
     const userGuessedHit = cacheHit;
