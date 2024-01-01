@@ -309,7 +309,7 @@ function App() {
 
     const cacheHitAddress = parseInt(validCacheBlock.tag + validCacheBlock.setIndex + validCacheBlock.blockOffset, 2);
 
-    debugger
+
 
     console.log('I made a hit')
     setAddress(cacheHitAddress);

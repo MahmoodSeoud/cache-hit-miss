@@ -28,7 +28,7 @@ function Cache_input_table({
     maxAddress,
     userGuessHit,
     changedSet,
-    changedLine 
+    changedLine
 }: cache_tableProps) {
 
     function handleInputChange(event: ToggleButtonChangeEvent | InputMaskChangeEvent, set: number, line: number, field: string) {
@@ -94,8 +94,15 @@ function Cache_input_table({
                 break;
         }
     }
+    const tagMask = Array(tag).fill('9').join('');
+    const tagPlaceHolder = Array(tag).fill('x').join('');
 
+    const maxAddrLen = maxAddress.toString().length;
+    const blockSizeStrMask = '9?' + "9".repeat(maxAddrLen - 1);
 
+    console.log('tagMask', tagMask)
+    console.log('tagPlaceHolder', tagPlaceHolder)
+    console.log('--------------------')
     return (
         <div>
             <h2>Cache</h2>
@@ -120,15 +127,16 @@ function Cache_input_table({
                                         <tbody>
                                             {set.lines && set.lines.length > 0 && set.lines.map((block, j) => {
                                                 const blockClass = j === changedLine ? 'changed-block' : '';
-                                                
-                                                const tagMask = Array(tag).fill('9').join('').trim();
-                                                const tagPlaceHolder = Array(tag).fill('x').join('').trim();
-                                                const tagValue = block.tag.trim();
 
-                                                const maxAddrLen = maxAddress.toString().length;
-                                                const blockSizeStrMask = '9?' + "9".repeat(maxAddrLen - 1).trim();
-                                                const blockStart = block.blockStart.trim();
-                                                const blockEnd = block.blockEnd.trim();
+
+                                                const tagValue = block.tag;
+
+                                                console.log('tagValue', tagValue)
+
+
+
+                                                const blockStart = block.blockStart;
+                                                const blockEnd = block.blockEnd;
 
                                                 return (
                                                     <tr key={`${i}-${j}`}>
@@ -147,22 +155,23 @@ function Cache_input_table({
                                                         <td className={changedSet_ ? blockClass : ''}>
                                                             <InputMask
                                                                 onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.tag)}
+                                                                key={tagMask} 
                                                                 mask={tagMask}
                                                                 value={tagValue}
                                                                 placeholder={tagPlaceHolder}
                                                                 autoComplete='off'
                                                                 autoCorrect='off'
                                                                 autoSave='off'
+                                                                autoCapitalize='off'
                                                                 autoFocus={false}
                                                                 keyfilter={/[01]/}
-                                                                autoCapitalize='off'
                                                                 disabled={userGuessHit}
                                                                 tooltip="Insert the tag in binary format"
-                                                                tooltipOptions={{ event: 'focus', position: 'top' }}
+                                                                tooltipOptions={{ /* event: 'focus',  */position: 'top' }}
                                                             />
                                                         </td>
                                                         <td className={changedSet_ ? blockClass : ''}>
-                                                            <div style={{ display: 'flex' }}>
+                                                            <div style={{ display: 'flex', fontSize: 20 }}>
                                                                 <p>Mem[</p>
                                                                 <InputMask
                                                                     onChange={(ev: InputMaskChangeEvent) => handleInputChange(ev, i, j, CacheInputFieldsMap.blockStart)}
