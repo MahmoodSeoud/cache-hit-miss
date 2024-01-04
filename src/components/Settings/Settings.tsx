@@ -5,6 +5,7 @@ import { Slider as BaseSlider, sliderClasses } from '@mui/base/Slider';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import { Sidebar } from 'primereact/sidebar';
+import { InputSwitch } from 'primereact/inputswitch';
 import { Cache } from "../../cache";
 import './Settings.css';
 import 'primereact/resources/themes/lara-light-teal/theme.css';
@@ -17,6 +18,8 @@ interface SettingsProps {
     blockSize: number;
     setCache: React.Dispatch<SetStateAction<Cache>>;
     setCacheShouldBeCold: React.Dispatch<SetStateAction<boolean>>;
+    calculateIndices: boolean;
+    setCalculateIndices: React.Dispatch<SetStateAction<boolean>>;
 }
 
 /**
@@ -38,6 +41,8 @@ export default function Settings({
     blockSize,
     setCache,
     setCacheShouldBeCold,
+    calculateIndices,
+    setCalculateIndices
 
 }: SettingsProps) {
     const [showSettings, setShowSettings] = useState<boolean>(false);
@@ -194,6 +199,14 @@ export default function Settings({
                             title="Cache settings"
                         >
                             <div className="card flex justify-content-center" >
+                                <div>
+                                    <h3>Caculate the indices (offset, index, tag)</h3>
+                                    <InputSwitch
+                                        checked={calculateIndices}
+                                        onChange={() => setCalculateIndices(!calculateIndices)}
+                                    />
+                                </div>
+
                                 <div style={{ marginBottom: '1em' }}>
                                     {blockSizeSliderJSX}
                                 </div>

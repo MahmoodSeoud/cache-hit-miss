@@ -105,6 +105,8 @@ function App() {
   const [log, setLog] = useState<LogHistory>(log_)
   const toastFacit = useRef<Toast | null>(null);
 
+  const [calculateIndices, setCalculateIndices] = useState<boolean>(false);
+
   useEffect(() => {
     assignmentType = createCacheMissAssigment(cache);
   }, [0]);
@@ -252,7 +254,7 @@ function App() {
         debugger
         let empty_: Bit = 0;
 
-/*         let blockSizeBits: string = cache.blockSize.toString(2).padStart(blockOffset, '0'); */
+        /*         let blockSizeBits: string = cache.blockSize.toString(2).padStart(blockOffset, '0'); */
         debugger
 
         const existingTag = knownTagsInSet.find(tag => tag.tagBits === tagBits_);
@@ -270,9 +272,9 @@ function App() {
           } while (knownTagsInSet.some(tag => tag.tagBits === newTagBits));
           valid_ = 1;
           tag_ = tagBits_;
-          blockStart_= parseInt(tagBits_ + setIndexBits_ + "".padEnd(blockOffset, '0'), 2).toString();
-          blockSizeBits= (blockSize - 1).toString(2);
-          blockEnd_= parseInt(tagBits_ + setIndexBits_ + blockSizeBits, 2).toString();
+          blockStart_ = parseInt(tagBits_ + setIndexBits_ + "".padEnd(blockOffset, '0'), 2).toString();
+          blockSizeBits = (blockSize - 1).toString(2);
+          blockEnd_ = parseInt(tagBits_ + setIndexBits_ + blockSizeBits, 2).toString();
           empty_ = 0;
         }
 
@@ -368,8 +370,8 @@ function App() {
     cacheBlock.empty = 0;
 
     let blockSizeBits: string = (cache.blockSize - 1).toString(2);
-    cacheBlock.blockStart= parseInt(tagBits + setIndexBits + "".padEnd(blockOffset, '0'), 2).toString();
-    cacheBlock.blockEnd= parseInt(tagBits + setIndexBits + blockSizeBits, 2).toString();
+    cacheBlock.blockStart = parseInt(tagBits + setIndexBits + "".padEnd(blockOffset, '0'), 2).toString();
+    cacheBlock.blockEnd = parseInt(tagBits + setIndexBits + blockSizeBits, 2).toString();
     setCache(newCache);
     return newCache
   }
@@ -506,8 +508,8 @@ function App() {
         cacheBlock.valid = 1;
         cacheBlock.empty = 0;
         let blockSizeBits: string = (cache.blockSize - 1).toString(2);
-        cacheBlock.blockStart= parseInt(tagBits + setIndexBits + "".padEnd(blockOffset, '0'), 2).toString();
-        cacheBlock.blockEnd= parseInt(tagBits + setIndexBits + blockSizeBits, 2).toString();
+        cacheBlock.blockStart = parseInt(tagBits + setIndexBits + "".padEnd(blockOffset, '0'), 2).toString();
+        cacheBlock.blockEnd = parseInt(tagBits + setIndexBits + blockSizeBits, 2).toString();
 
         // Update the cache
         newCache.sets[setValue].lines[i] = cacheBlock;
@@ -552,6 +554,8 @@ function App() {
           blockSize={cache.blockSize}
           setCache={setCache}
           setCacheShouldBeCold={setCacheShouldBeCold}
+          calculateIndices={calculateIndices}
+          setCalculateIndices={setCalculateIndices}
         />
 
         <Log
@@ -567,12 +571,15 @@ function App() {
           addressBitWidth={addressBitWidth}
           addressInBits={addressInBits}
         />
-        <div>
-          <h3>Block offset bits: {blockOffset}</h3>
-          <h3>Set bits: {setIndex}</h3>
-          <h3>Tag bits: {tag}</h3>
-          <h3>Block size: {cache.blockSize}</h3>
-        </div>
+        {
+          calculateIndices &&
+          <div>
+            <h3>Block offset bits: {blockOffset}</h3>
+            <h3>Set bits: {setIndex}</h3>
+            <h3>Tag bits: {tag}</h3>
+          </div>
+        }
+        <h3>Block size: {cache.blockSize}</h3>
         <div className='virtual-wrapper'>
           <SelectButton
             value={cacheValue}
