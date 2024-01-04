@@ -246,9 +246,14 @@ function App() {
         let valid_: Bit = 1;
         let tag_: string = tagBits_;
 
-        let blockStart_: string = address_.toString();
-        let blockEnd_: string = (address_ + blockSize - 1).toString();
+        let blockStart_: string = parseInt(tagBits_ + setIndexBits_ + "".padEnd(blockOffset, '0'), 2).toString();
+        let blockSizeBits: string = (blockSize - 1).toString(2);
+        let blockEnd_: string = parseInt(tagBits_ + setIndexBits_ + blockSizeBits, 2).toString();
+        debugger
         let empty_: Bit = 0;
+
+/*         let blockSizeBits: string = cache.blockSize.toString(2).padStart(blockOffset, '0'); */
+        debugger
 
         const existingTag = knownTagsInSet.find(tag => tag.tagBits === tagBits_);
         if (existingTag) {
@@ -265,8 +270,9 @@ function App() {
           } while (knownTagsInSet.some(tag => tag.tagBits === newTagBits));
           valid_ = 1;
           tag_ = tagBits_;
-          blockStart_ = address_.toString();
-          blockEnd_ = (address_ + blockSize - 1).toString();
+          blockStart_= parseInt(tagBits_ + setIndexBits_ + "".padEnd(blockOffset, '0'), 2).toString();
+          blockSizeBits= (blockSize - 1).toString(2);
+          blockEnd_= parseInt(tagBits_ + setIndexBits_ + blockSizeBits, 2).toString();
           empty_ = 0;
         }
 
@@ -360,8 +366,10 @@ function App() {
     cacheBlock.tag = tagBits;
     cacheBlock.valid = 1;
     cacheBlock.empty = 0;
-    cacheBlock.blockStart = address.toString();
-    cacheBlock.blockEnd = (address + cache.blockSize - 1).toString();
+
+    let blockSizeBits: string = (cache.blockSize - 1).toString(2);
+    cacheBlock.blockStart= parseInt(tagBits + setIndexBits + "".padEnd(blockOffset, '0'), 2).toString();
+    cacheBlock.blockEnd= parseInt(tagBits + setIndexBits + blockSizeBits, 2).toString();
     setCache(newCache);
     return newCache
   }
@@ -497,8 +505,9 @@ function App() {
         cacheBlock.tag = tagBits;
         cacheBlock.valid = 1;
         cacheBlock.empty = 0;
-        cacheBlock.blockStart = address.toString();
-        cacheBlock.blockEnd = (address + cache.blockSize - 1).toString();
+        let blockSizeBits: string = (cache.blockSize - 1).toString(2);
+        cacheBlock.blockStart= parseInt(tagBits + setIndexBits + "".padEnd(blockOffset, '0'), 2).toString();
+        cacheBlock.blockEnd= parseInt(tagBits + setIndexBits + blockSizeBits, 2).toString();
 
         // Update the cache
         newCache.sets[setValue].lines[i] = cacheBlock;
