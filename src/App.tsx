@@ -567,13 +567,29 @@ function App() {
     handleSubmitClick(facit, userGuessedHit);
     setCache(facit);
   }
+  
+  function handleGenerateRandomCache() {
+    const newNumSets = numSetsArr[Math.floor(Math.random() * numSetsArr.length)];
+    const newBlockSize = blockSizeArr[Math.floor(Math.random() * blockSizeArr.length)];
+    const newLinesPerSet = linesPerSetArr[Math.floor(Math.random() * linesPerSetArr.length)];
+    const totalCacheSize: number = newNumSets * newLinesPerSet * newBlockSize * BYTE; // S X L X B    
+
+    availbeAddresses.length = 0;
+    for (let k = 0; k < totalCacheSize; k++) {
+      availbeAddresses.push(k);
+    }
+
+    const cache_ = initNonEmptyCache(newNumSets, newBlockSize, newLinesPerSet, availbeAddresses);
+    setCache(cache_);
+    log_.logEntries.length = 0;
+    setLog(log_);
+  }
 
   return (
     <>
       <Toast ref={toast} />
       <Toast ref={toastFacit} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-
         <Settings
           numSets={cache.numSets}
           linesPerSet={cache.linesPerSet}
@@ -583,6 +599,13 @@ function App() {
           calculateIndices={calculateIndices}
           setCalculateIndices={setCalculateIndices}
         />
+
+        <div>
+          <Button
+            label='Generate Random Cache'
+            onClick={() => handleGenerateRandomCache()}
+          />
+        </div>
 
         <Log
           log={log}
