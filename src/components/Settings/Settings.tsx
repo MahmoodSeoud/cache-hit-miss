@@ -119,7 +119,7 @@ export default function Settings({
 
 
     const setSliderJSX: JSX.Element = (
-        < div className="input-card">
+        <div className="input-card">
             <h3>Number of sets</h3>
 
             <DiscreteSliderValues
