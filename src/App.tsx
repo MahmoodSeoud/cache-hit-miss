@@ -16,11 +16,14 @@ import { createRandomNumber, deepEqual, generateRandomBits, replaceChars } from 
 import BitAddressHeader from './components/BitAddressHeader/BitAddressHeader';
 import { Bit, Cache, CacheBlock, CacheSet, LogEntry, LogHistory } from './cache';
 
-
-const NUMSETS = 4 as const;
-const BLOCKSIZE = 8 as const;
-const LINESPERSET = 1 as const;
+const numSetsArr = [2, 4, 8];
+const blockSizeArr = [8, 16];
+const linesPerSetArr = [1, 2, 4, 8];
 const BYTE = 8 as const;
+
+const NUMSETS = numSetsArr[Math.floor(Math.random() * numSetsArr.length)];
+const BLOCKSIZE = blockSizeArr[Math.floor(Math.random() * blockSizeArr.length)];
+const LINESPERSET = linesPerSetArr[Math.floor(Math.random() * linesPerSetArr.length)];
 const TOTALCACHESIZE = NUMSETS * LINESPERSET * BLOCKSIZE * BYTE;
 
 

@@ -46,7 +46,7 @@ export default function Settings({
 
 }: SettingsProps) {
     const [showSettings, setShowSettings] = useState<boolean>(false);
-    const [cacheAssociativity, setCacheAssociativity] = useState<string>(cacheOptions[0]);
+    const [cacheAssociativity, setCacheAssociativity] = useState<string>(linesPerSet === 1 ? cacheOptions[0]: cacheOptions[1]);
 
     function handleSetBlockSize(value: number | number[]) {
         const index = blockSizeOptions.findIndex(mark => value === mark.value);
