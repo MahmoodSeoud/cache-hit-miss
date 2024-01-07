@@ -109,3 +109,17 @@ export function isObject(object: Cache): boolean {
     return object != null && typeof object === 'object';
 }
 
+
+/**
+ * 
+ * @param str  The string to replace characters in
+ * @param start The index to start replacing characters at
+ * @param numChars The number of characters to replace
+ * @param replacement The string to replace the characters with
+ * @returns 
+ */
+export function replaceChars(str: string, start: number, numChars: number, replacement: string): string {
+    const before = str.slice(0, start);
+    const after = str.slice(start + numChars);
+    return before + replacement + after;
+}

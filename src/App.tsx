@@ -12,22 +12,19 @@ import 'primereact/resources/themes/lara-light-teal/theme.css';
 import './components/Cache_input_table/Cache_input_table.css'
 import './App.css'
 import 'primeicons/primeicons.css';
-import { createRandomNumber, deepEqual, generateRandomBits } from './Utils';
+import { createRandomNumber, deepEqual, generateRandomBits, replaceChars } from './Utils';
 import BitAddressHeader from './components/BitAddressHeader/BitAddressHeader';
 import { Bit, Cache, CacheBlock, CacheSet, LogEntry, LogHistory } from './cache';
 
-function replaceChars(str: string, start: number, numChars: number, replacement: string): string {
-  const before = str.slice(0, start);
-  const after = str.slice(start + numChars);
-  return before + replacement + after;
-}
 
-const availbeAddresses: number[] = []
 const NUMSETS = 4 as const;
 const BLOCKSIZE = 8 as const;
 const LINESPERSET = 1 as const;
 const BYTE = 8 as const;
 const TOTALCACHESIZE = NUMSETS * LINESPERSET * BLOCKSIZE * BYTE;
+
+
+const availbeAddresses: number[] = []
 const ADDRESSBITWIDTH = TOTALCACHESIZE.toString(2).padStart(14, '0').length;
 const PROBABILITYOFGETTINGACACHEHIT = 50 as const;
 const log_: LogHistory = { logEntries: [] };
@@ -130,6 +127,7 @@ function App() {
       cache_ = initNonEmptyCache(cache.numSets, cache.blockSize, cache.linesPerSet, availbeAddresses);
       setCacheShouldBeCold(false);
     }
+
 
     log_.logEntries.length = 0;
     setLog(log_);
@@ -251,11 +249,10 @@ function App() {
         let blockStart_: string = parseInt(tagBits_ + setIndexBits_ + "".padEnd(blockOffset, '0'), 2).toString();
         let blockSizeBits: string = (blockSize - 1).toString(2);
         let blockEnd_: string = parseInt(tagBits_ + setIndexBits_ + blockSizeBits, 2).toString();
-        debugger
+
         let empty_: Bit = 0;
 
         /*         let blockSizeBits: string = cache.blockSize.toString(2).padStart(blockOffset, '0'); */
-        debugger
 
         const existingTag = knownTagsInSet.find(tag => tag.tagBits === tagBits_);
         if (existingTag) {
@@ -525,8 +522,34 @@ function App() {
   }
 
   function validateCache(cache: Cache, facits: Cache[]): number {
-    const lineIndex = facits.findIndex((facit: Cache) => deepEqual(cache, facit));
 
+
+    const facitBlocks: CacheBlock[][] = facits.map
+      (facit =>
+        facit.sets
+          .flatMap((set) => set.lines)
+          .map(line => ({
+            blockStart: parseInt(line.blockStart, 10).toString(),
+            blockEnd: parseInt(line.blockEnd, 10).toString(),
+            tag: parseInt(line.tag, 2).toString(2),
+            valid: line.valid,
+            empty: line.empty
+          })));
+
+    const cacheBlocks: CacheBlock[] = cache.sets
+      .flatMap((set) => set.lines)
+      .map(line => ({
+        blockStart: parseInt(line.blockStart, 10).toString(),
+        blockEnd: parseInt(line.blockEnd, 10).toString(),
+        tag: parseInt(line.tag, 2).toString(2),
+        valid: line.valid,
+        empty: line.empty
+      }));
+
+    const lineIndex = facitBlocks.findIndex((facitBlock: CacheBlock[]) => deepEqual(facitBlock, cacheBlocks));
+
+
+    debugger
     return lineIndex;
   }
 
