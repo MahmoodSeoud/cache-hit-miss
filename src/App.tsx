@@ -615,6 +615,7 @@ function App() {
       </div>
 
       <h1>Cache Assignment</h1>
+      <h2>Remember that the replacement schemes is random, NOT LRU</h2>
       <div className='logAssignmentWrapper'>
         <BitAddressHeader
           addressBitWidth={addressBitWidth}
@@ -639,11 +640,6 @@ function App() {
 
           {cacheValue === 'input' ?
             <div>
-              <h3>Cache hit?</h3>
-              <InputSwitch
-                checked={userGuessedHit}
-                onChange={(e) => setUserGuessedHit(e.value)}
-              />
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch' }}>
                 <Button
                   label="Submit"
@@ -657,6 +653,11 @@ function App() {
                   severity='help'
                 />
               </div>
+              <h3>Cache hit?</h3>
+              <InputSwitch
+                checked={userGuessedHit}
+                onChange={(e) => setUserGuessedHit(e.value)}
+              />
             </div>
             :
             <div className={`list-item-wrapper`}>
