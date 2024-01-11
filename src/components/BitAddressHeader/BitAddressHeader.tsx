@@ -13,6 +13,7 @@ interface BitAddressHeaderProps {
 function BitAddressHeader({ addressBitWidth, addressInBits }: BitAddressHeaderProps) {
     const [isMouseDown, setIsMouseDown] = useState(false);
     const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
+
     /**
     * Handles the mouse enter event on an element.
     *
@@ -141,9 +142,6 @@ function BitAddressHeader({ addressBitWidth, addressInBits }: BitAddressHeaderPr
                             autoFocus={false}
                             autoCapitalize='off'
                             className={'vbit-input'}
-/*                             onMouseUp={handleMouseUp}
-                            onMouseDown={handleMouseDown}
-                            onMouseEnter={handleMouseEnter} */
                         >
                             {addressInBits[index]}
                         </div>

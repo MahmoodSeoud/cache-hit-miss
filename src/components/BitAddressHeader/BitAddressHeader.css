@@ -23,6 +23,9 @@
     align-items: center;
 }
 
+.highlight {
+  background-color: rgb(118, 118, 31);
+}
 
 #vbit-index,
 #pbit-index {
