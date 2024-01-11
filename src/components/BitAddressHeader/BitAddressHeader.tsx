@@ -15,13 +15,15 @@ function BitAddressHeader({ addressBitWidth, addressInBits }: BitAddressHeaderPr
     const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
 
     /**
-    * Handles the mouse enter event on an element.
-    *
-    * @param {React.MouseEvent} e - The mouse event object.
-    */
-    function handleMouseDown(e: React.MouseEvent) {
+   
+  * Handles the mouse enter event on an element.
+  *
+  * @param {React.MouseEvent} index - The index of the element.
+  */
+    function handleMouseDown(index: number) {
         setIsMouseDown(true);
-        const pTagWithIndex = e.currentTarget as HTMLElement;
+        const pTagWithIndex = document.getElementById(`vbit-index-${index}`) as HTMLElement;
+
         const isHighligted = pTagWithIndex.classList.contains('highlight');
 
         if (isHighligted) {
@@ -42,16 +44,20 @@ function BitAddressHeader({ addressBitWidth, addressInBits }: BitAddressHeaderPr
    
   * Handles the mouse enter event on an element.
   *
-  * @param {React.MouseEvent} e - The mouse event object.
+  * @param {React.MouseEvent} index - The index of the element.
   */
-    function handleMouseEnter(e: React.MouseEvent) {
+    function handleMouseEnter(index: number) {
         if (isMouseDown) {
-            // Apply highlight to the current div
-            const pTagWithIndex = e.currentTarget as HTMLElement;
-            pTagWithIndex.classList.add('highlight');
+            // Select the specific element
+            const specificElement = document.getElementById(`vbit-index-${index}`) as HTMLElement;
 
-            // Setting the color the the one selected in the color picker
-            pTagWithIndex.style.backgroundColor = color;
+            if (specificElement) {
+                // Apply highlight to the specific element
+                specificElement.classList.add('highlight');
+
+                // Setting the color the the one selected in the color picker
+                specificElement.style.backgroundColor = color;
+            }
         }
     };
 
@@ -126,14 +132,13 @@ function BitAddressHeader({ addressBitWidth, addressInBits }: BitAddressHeaderPr
                         key={index}
                         className='input-wrapper'
                         onMouseUp={handleMouseUp}
-                    // TODO: Maybe change the coloring to appear when clicking on this div aswell
-
+                        // TODO: Maybe change the coloring to appear when clicking on this div aswell
+                        onMouseDown={() => handleMouseDown(index)}
+                        onMouseEnter={() => handleMouseEnter(index)}
                     >
                         <p
-                            id={"vbit-index"}
+                            id={"vbit-index-" + index.toString()}
                             className="input-text"
-                            onMouseDown={handleMouseDown}
-                            onMouseEnter={handleMouseEnter}
                         >
                             {addressBitWidth - index - 1}
                         </p>

@@ -24,16 +24,18 @@
 }
 
 .highlight {
-  background-color: rgb(118, 118, 31);
+    background-color: rgb(118, 118, 31);
 }
 
-#vbit-index,
+
+[id^="vbit-index"],
 #pbit-index {
     user-select: none;
     border: 1px solid transparent;
 }
 
-#vbit-index:hover,
+
+[id^="vbit-index"]:hover,
 #pbit-index:hover {
     border-color: rgb(142, 142, 142);
 }
