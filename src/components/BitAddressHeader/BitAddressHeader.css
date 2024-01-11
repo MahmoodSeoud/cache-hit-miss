@@ -1,0 +1,42 @@
+.input-wrapper {
+    margin: 0;
+    padding: .4em;
+}
+
+.vbit-input,
+.pbit-input {
+    width: 2em;
+    height: 2em;
+    border: solid white .1em;
+    user-select: none;
+    font-size: 16px;
+}
+
+.input-text {
+    margin: 0;
+}
+
+.input-header {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+
+#vbit-index,
+#pbit-index {
+    user-select: none;
+    border: 1px solid transparent;
+}
+
+#vbit-index:hover,
+#pbit-index:hover {
+    border-color: rgb(142, 142, 142);
+}
+
+
+#vbit:hover,
+#pbit:hover {
+    background-color: rgb(126, 126, 125);
+}

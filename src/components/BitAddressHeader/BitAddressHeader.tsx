@@ -2,6 +2,7 @@ import { Button } from "primereact/button";
 import { useState } from "react";
 import { ColorResult, HuePicker } from "react-color";
 import { createRandomNumberWith, createNullArr } from "../../Utils";
+import './BitAddressHeader.css';
 
 interface BitAddressHeaderProps {
     addressBitWidth: number;
@@ -9,7 +10,7 @@ interface BitAddressHeaderProps {
 }
 
 
-function BitAddressHeader({addressBitWidth, addressInBits}: BitAddressHeaderProps) {
+function BitAddressHeader({ addressBitWidth, addressInBits }: BitAddressHeaderProps) {
     const [isMouseDown, setIsMouseDown] = useState(false);
     const [color, setColor] = useState<string>("#" + createRandomNumberWith(4 * 6).toString(16));
     /**
@@ -125,9 +126,10 @@ function BitAddressHeader({addressBitWidth, addressInBits}: BitAddressHeaderProp
                         className='input-wrapper'
                         onMouseUp={handleMouseUp}
                     // TODO: Maybe change the coloring to appear when clicking on this div aswell
+
                     >
                         <p
-                            id='vbit-index'
+                            id={"vbit-index"}
                             className="input-text"
                             onMouseDown={handleMouseDown}
                             onMouseEnter={handleMouseEnter}
@@ -139,6 +141,9 @@ function BitAddressHeader({addressBitWidth, addressInBits}: BitAddressHeaderProp
                             autoFocus={false}
                             autoCapitalize='off'
                             className={'vbit-input'}
+/*                             onMouseUp={handleMouseUp}
+                            onMouseDown={handleMouseDown}
+                            onMouseEnter={handleMouseEnter} */
                         >
                             {addressInBits[index]}
                         </div>
