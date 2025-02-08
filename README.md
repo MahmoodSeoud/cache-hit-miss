@@ -1,14 +1,13 @@
 # **cache-hit-miss**
-An **interactive learning platform** for **CompSys** students to explore **cache memory concepts** through simulations and exercises.  
-
-![Demo](./assets/demo.gif)  
-
----
-
-> [!The vision]
+> [!IMPORTANT] 
 > The vision is to create a platform with exercises and
 > interactive diagrams suited for CompSys students that
 > make it visually appealing and engaging to learn.
+
+An **interactive learning platform** for **CompSys** students to explore **cache memory concepts** through simulations and exercises.  
+
+
+![Demo](./assets/demo.gif)  
 
 ---
 
