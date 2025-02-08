@@ -1,5 +1,5 @@
 # **cache-hit-miss**
-> [!IMPORTANT] 
+> [!HELLO] 
 > The vision is to create a platform with exercises and
 > interactive diagrams suited for CompSys students that
 > make it visually appealing and engaging to learn.
