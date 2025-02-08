@@ -4,7 +4,8 @@
 > interactive diagrams suited for CompSys students that
 > make it visually appealing and engaging to learn.
 
-An **interactive learning platform** for **CompSys** students to explore **cache memory concepts** through simulations and exercises.  
+An **interactive learning simulator** for **Computer Systemer** students to explore **cache memory concepts** through simulations and exercises. 
+This simulator was created by [Phillip](https://github.com/Nidocq) and [I](https://github.com/MahmoodSeoud) 
 
 
 ![Demo](./assets/demo.gif)  
