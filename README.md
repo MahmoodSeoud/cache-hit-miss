@@ -24,4 +24,8 @@ npm run dev
 ![Screenshot](./assets/demo.jpg)  
 
 ---
-[## **Project Report**](./assets/Virksomhedsprojekt_2023.pdf) {download}
+## **Project Report**
+
+<a href="./assets/Virksomhedsprojekt_2023.pdf" download>
+    <button>Get Project Report</button>
+</a>
