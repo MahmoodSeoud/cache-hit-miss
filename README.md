@@ -24,5 +24,4 @@ npm run dev
 ![Screenshot](./assets/demo.jpg)  
 
 ---
-## **Documentation**
-- [Report](./assets/Virksomhedsprojekt_2023.pdf)
+[## **Project Report**](./assets/Virksomhedsprojekt_2023.pdf) {download}
