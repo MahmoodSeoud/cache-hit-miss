@@ -5,7 +5,7 @@
 > make it visually appealing and engaging to learn.
 
 An **interactive learning simulator** for **Computer Systemer** students to explore **cache memory concepts** through simulations and exercises. 
-This simulator was created by [Phillip](https://github.com/Nidocq) and I
+This simulator was created by [Nidocq](https://github.com/Nidocq) and I
 
 
 ![Demo](./assets/demo.gif)  
