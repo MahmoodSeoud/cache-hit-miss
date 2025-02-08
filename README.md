@@ -1,5 +1,5 @@
 # **cache-hit-miss**
-> [!HELLO] 
+> [!NOTE] 
 > The vision is to create a platform with exercises and
 > interactive diagrams suited for CompSys students that
 > make it visually appealing and engaging to learn.
@@ -25,4 +25,4 @@ npm run dev
 
 ---
 ## **Documentation**
-- [Report](./assets/Virsomhedsproject_2023.pdf)
+- [Report](./assets/Virksomhedsprojekt_2023.pdf)
