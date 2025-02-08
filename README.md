@@ -1,6 +1,4 @@
 # **cache-hit-miss**
-
-[![CodeQL analysis](https://github.com/MahmoodSeoud/cache-hit-miss/actions/workflows/codeql-analysis.yml/badge.svg)]  
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)  
 [![Build](https://img.shields.io/github/actions/workflow/status/MahmoodSeoud/cache-hit-miss/ci.yml?branch=main)]  
 [![Version](https://img.shields.io/badge/version-1.0.0-orange)]  
