@@ -24,9 +24,6 @@ npm run dev
 ### Screenshot
 ![Screenshot](./assets/demo.jpg)  
 
-![Screenshot](./assets/vmatexam.png)  
-
-
 ---
 ## **Project Report**
 
